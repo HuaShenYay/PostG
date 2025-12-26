@@ -1,12 +1,13 @@
 <template>
-  <router-view></router-view>
+  <router-view />
 </template>
 
+<script setup>
+</script>
+
 <style>
-/* 可以在这里添加App级别的样式 */
 #app {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+  width: 100%;
+  height: 100%;
 }
 </style>

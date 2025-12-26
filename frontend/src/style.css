@@ -1,35 +1,39 @@
 /* 全局新中式基础样式 */
-@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Noto+Serif+SC:wght@200;400;700&family=Inter:wght@300;400&display=swap');
 
 :root {
-  --ink-black: #2c2c2c;
-  --paper-white: #fdfbf7;
-  /* 宣纸白 */
-  --seal-red: #b22c2c;
-  /* 印章红 */
-  --bamboo-green: #6c8c6d;
-  --faint-gray: #999999;
+  --modern-black: #1a1a1a;
+  --stone-white: #f9f7f2;
+  /* 绛红 */
+  --accent-red: #8b0000;
+  --muted-gold: #c5a059;
+  --line-gray: rgba(0, 0, 0, 0.08);
+  /* 顶部导航安全高度 */
+  --header-height: 100px;
 }
 
 body {
   margin: 0;
   padding: 0;
-  background-color: var(--paper-white);
-  background-image: url('/ink_bg.png');
-  background-size: cover;
-  background-attachment: fixed;
-  background-position: center;
-  color: var(--ink-black);
-  font-family: "Noto Serif SC", "STSong", "SimSun", serif;
-  /* 宋体/衬线体 */
+  background-color: var(--stone-white);
+  color: var(--modern-black);
+  font-family: 'Inter', "Noto Serif SC", serif;
   -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  box-sizing: border-box;
+  /* 禁止缩放导致的意外溢出 */
+  overflow-x: hidden;
+}
+
+* {
+  box-sizing: border-box;
 }
 
 /* 渐入动画 */
-@keyframes fadeIn {
+@keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(30px);
   }
 
   to {
@@ -39,75 +43,111 @@ body {
 }
 
 .fade-in {
-  animation: fadeIn 1.2s ease forwards;
+  animation: fadeInUp 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* 竖排文字工具类 */
+/* 现代垂直文字 */
 .vertical-text {
   writing-mode: vertical-rl;
   text-orientation: upright;
-  letter-spacing: 0.5em;
-  line-height: 1.8;
+  letter-spacing: 0.4em;
+  line-height: 2;
+  font-family: "Noto Serif SC", serif;
+  display: inline-block;
+  white-space: pre-wrap;
 }
 
-/* 按钮样式 - 水墨感 */
+/* 响应式调整 - 针对移动端适配 */
+@media (max-width: 768px) {
+  .vertical-text {
+    writing-mode: horizontal-tb;
+    letter-spacing: 0.1em;
+    line-height: 1.6;
+    display: block;
+    width: 100%;
+  }
+}
+
+/* 按钮样式 */
 .ink-btn {
-  background: rgba(44, 44, 44, 0.05);
-  border: 1px solid var(--ink-black);
-  color: var(--ink-black);
-  padding: 10px 30px;
+  background: transparent;
+  border: 1px solid var(--modern-black);
+  color: var(--modern-black);
+  padding: 12px 30px;
   cursor: pointer;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
   font-family: inherit;
-  font-size: 1rem;
-  letter-spacing: 2px;
-  position: relative;
-  overflow: hidden;
-}
-
-.ink-btn::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 0;
-  height: 0;
-  background: rgba(0, 0, 0, 0.1);
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  transition: width 0.6s, height 0.6s;
-}
-
-.ink-btn:hover::after {
-  width: 300px;
-  height: 300px;
+  font-size: 16PX;
+  /* 使用大写 PX 避免被 rem 转换导致移动端过小 */
+  letter-spacing: 0.1em;
+  outline: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .ink-btn:hover {
-  background: var(--ink-black);
-  color: var(--paper-white);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  background: var(--modern-black);
+  color: var(--stone-white);
 }
 
-.ink-btn.primary {
-  background: var(--ink-black);
-  color: var(--paper-white);
+.ink-btn:active {
+  transform: scale(0.98);
 }
 
-/* 输入框样式 */
+/* 输入框 */
 .ink-input {
   border: none;
-  border-bottom: 1px solid rgba(153, 153, 153, 0.5);
+  border-bottom: 1px solid var(--line-gray);
   background: transparent;
-  padding: 12px;
+  padding: 12px 5px;
   font-family: inherit;
-  font-size: 1.1rem;
+  font-size: 18PX;
+  /* 使用大写 PX */
   outline: none;
-  transition: all 0.3s;
-  color: var(--ink-black);
+  transition: all 0.4s;
+  width: 100%;
 }
 
 .ink-input:focus {
-  border-bottom: 2px solid var(--ink-black);
-  letter-spacing: 2px;
+  border-bottom: 1px solid var(--modern-black);
+}
+
+/* 滚动条美化 */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+/* 通用布局类 */
+.container-safe {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 40px;
+}
+
+@media (max-width: 768px) {
+  .container-safe {
+    padding: 0 20px;
+  }
+}
+
+/* 装饰性细线 */
+.thin-line {
+  height: 1px;
+  background: var(--line-gray);
+  width: 100%;
 }

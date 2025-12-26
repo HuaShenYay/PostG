@@ -1,53 +1,88 @@
 <template>
   <div class="login-container">
-    <div class="center-box fade-in">
-      <h1 class="title vertical-text">诗云</h1>
-      <div class="stamp">阅</div>
-      
-      <div class="form-area">
-        <div class="input-group">
-          <input v-model="username" type="text" placeholder="称谓 (User ID)" class="ink-input" @keyup.enter="handleLogin" />
-        </div>
-        <div class="input-group">
-          <input v-model="password" type="password" placeholder="口令 (Password)" class="ink-input" @keyup.enter="handleLogin" />
-        </div>
-        
-        <button @click="handleLogin" :disabled="loading" class="ink-btn primary" style="width: 100%; margin-top: 20px;">
-          {{ loading ? '入梦中...' : '入 梦' }}
-        </button>
+    <el-card class="login-card" shadow="never">
+      <div class="editorial-header">
+        <span class="date-stamp">公元二零二五</span>
+        <h1 class="title">诗云</h1>
+        <span class="tagline">基于 LDA-CF 的诗歌推荐系统</span>
       </div>
-    </div>
+      
+      <el-form :model="form" @submit.prevent="handleLogin" class="login-form">
+        <el-form-item>
+          <el-input 
+            v-model="form.username" 
+            placeholder="称 谓" 
+            size="large"
+            :prefix-icon="User"
+          />
+        </el-form-item>
+        <el-form-item>
+          <el-input 
+            v-model="form.password" 
+            type="password" 
+            placeholder="口 令" 
+            size="large"
+            :prefix-icon="Lock"
+            show-password
+          />
+        </el-form-item>
+        
+        <el-form-item>
+          <el-button 
+            type="primary" 
+            size="large" 
+            :loading="loading"
+            @click="handleLogin"
+            class="login-btn"
+          >
+            {{ loading ? '入梦中...' : '入 梦' }}
+          </el-button>
+        </el-form-item>
+      </el-form>
+
+      <div class="footer-note">
+        <p>诗云 · 现代语境下的古典回归</p>
+      </div>
+    </el-card>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
+import { User, Lock } from '@element-plus/icons-vue'
 import axios from 'axios'
 
 const router = useRouter()
-const username = ref('')
-const password = ref('')
 const loading = ref(false)
+const form = reactive({
+  username: '',
+  password: ''
+})
 
 const handleLogin = async () => {
-  if (!username.value || !password.value) return alert('请填写完整信息');
+  if (!form.username || !form.password) {
+    ElMessage.warning('请完整填写')
+    return
+  }
   
   loading.value = true
   try {
     const res = await axios.post('http://127.0.0.1:5000/api/login', {
-      username: username.value,
-      password: password.value
+      username: form.username,
+      password: form.password
     })
     
     if (res.data.status === 'success') {
-      localStorage.setItem('user', username.value);
-      router.push('/');
+      localStorage.setItem('user', form.username)
+      ElMessage.success('入梦成功')
+      router.push('/')
     } else {
-      alert(res.data.message);
+      ElMessage.error(res.data.message)
     }
   } catch (e) {
-    alert(e.response?.data?.message || '无法连接到诗云世界');
+    ElMessage.error(e.response?.data?.message || '连接失败')
   } finally {
     loading.value = false
   }
@@ -56,57 +91,106 @@ const handleLogin = async () => {
 
 <style scoped>
 .login-container {
-  height: 100vh;
+  min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  background-image: radial-gradient(circle at 50% 50%, #fdfbf7 0%, #f0ece2 100%);
+  background-color: var(--stone-white);
+  padding: 20px;
 }
 
-.center-box {
+.login-card {
+  width: 100%;
+  max-width: 420px;
+  border: none;
+  background: transparent;
+}
+
+.login-card :deep(.el-card__body) {
+  padding: 40px;
+}
+
+.editorial-header {
   text-align: center;
-  position: relative;
-  padding: 60px;
+  margin-bottom: 50px;
+}
+
+.date-stamp {
+  font-size: 14PX;
+  letter-spacing: 0.4em;
+  color: var(--accent-red);
+  display: block;
+  margin-bottom: 15px;
 }
 
 .title {
-  font-size: 4rem;
-  height: 200px;
-  display: inline-block;
-  margin-bottom: 20px;
-  color: var(--ink-black);
-  /* 竖排 */
-  writing-mode: vertical-rl;
-  text-orientation: upright;
+  font-family: "Noto Serif SC", serif;
+  font-size: 56PX;
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: 0.1em;
+  color: var(--modern-black);
 }
 
-.stamp {
-  position: absolute;
-  top: 40px;
-  right: 40px;
-  width: 40px;
-  height: 40px;
-  background: var(--seal-red);
-  color: white;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border-radius: 4px;
-  font-size: 1.2rem;
-  box-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+@media (max-width: 768px) {
+  .title { font-size: 42PX; }
 }
 
-.form-area {
+.tagline {
+  font-size: 13PX;
+  letter-spacing: 0.1em;
+  color: #888;
+  margin-top: 12px;
+  display: block;
+}
+
+.login-form {
   margin-top: 40px;
-  width: 300px;
 }
 
-.input-group {
-  margin-bottom: 20px;
+.login-form :deep(.el-input__wrapper) {
+  border-radius: 0;
+  box-shadow: none;
+  border-bottom: 1px solid #e0e0e0;
+  background: transparent;
 }
 
-.ink-input {
-  width: 100%;
+.login-form :deep(.el-input__wrapper:hover),
+.login-form :deep(.el-input__wrapper.is-focus) {
+  box-shadow: none;
+  border-bottom-color: var(--modern-black);
+}
+
+.login-form :deep(.el-input__inner) {
   text-align: center;
+  font-size: 16PX;
+}
+
+.login-btn {
+  width: 100%;
+  margin-top: 20px;
+  border-radius: 0;
+  background: var(--modern-black);
+  border-color: var(--modern-black);
+  font-size: 16PX;
+  letter-spacing: 0.2em;
+  height: 48px;
+}
+
+.login-btn:hover {
+  background: #333;
+  border-color: #333;
+}
+
+.footer-note {
+  text-align: center;
+  margin-top: 60px;
+  opacity: 0.4;
+}
+
+.footer-note p {
+  font-size: 12PX;
+  letter-spacing: 0.3em;
+  color: var(--modern-black);
 }
 </style>

@@ -1,106 +1,151 @@
 <template>
-  <div class="home-container fade-in">
-    <!-- 侧边抽屉：兴趣画像与推荐 -->
-    <div :class="['sidebar', { active: showSidebar }]">
-      <div class="sidebar-handle" @click="showSidebar = !showSidebar">
-        <span class="vertical-text">{{ showSidebar ? '收 起' : '探 索' }}</span>
-      </div>
-      <div class="sidebar-content">
-        <h2 class="section-title">兴趣画像</h2>
-        <div v-if="userProfile" class="profile-box">
-          <p>主攻流派：<span class="highlight">{{ userProfile.top_interest.join('、') }}</span></p>
-          <div class="topic-bars">
-            <div v-for="p in userProfile.preference" :key="p.topic_id" class="bar-row">
-              <span class="bar-label">主题{{ p.topic_id }}</span>
-              <div class="bar-bg"><div class="bar-fill" :style="{ width: (p.score*100)+'%' }"></div></div>
-            </div>
+  <div class="home-container">
+    <!-- 侧边栏 -->
+    <el-drawer
+      v-model="showSidebar"
+      title="探索"
+      direction="ltr"
+      size="320px"
+      :show-close="false"
+    >
+      <template #header>
+        <h3 class="drawer-title">用户画像</h3>
+      </template>
+      
+      <div v-if="userProfile" class="profile-section">
+        <el-tag type="danger" effect="plain" class="interest-tag">
+          偏好流派: {{ userProfile.top_interest.join(' / ') }}
+        </el-tag>
+        
+        <div class="topic-bars">
+          <div v-for="p in userProfile.preference" :key="p.topic_id" class="bar-item">
+            <span class="bar-label">主题 {{ p.topic_id + 1 }}</span>
+            <el-progress 
+              :percentage="Math.round(p.score * 100)" 
+              :stroke-width="6"
+              :show-text="false"
+              color="#1a1a1a"
+            />
           </div>
-          <button @click="getRecommendations" class="ink-btn" style="margin-top:20px; width:100%">获取推荐</button>
         </div>
         
-        <h2 class="section-title" style="margin-top:40px">为您荐诗</h2>
-        <div class="recommend-list">
-          <div v-for="rec in recommendations" :key="rec.title" class="rec-item" @click="jumpToPoem(rec.title)">
-            <div class="rec-title">{{ rec.title }}</div>
-            <div class="rec-reason">{{ rec.reason }}</div>
-          </div>
+        <el-button @click="getRecommendations" class="sync-btn" plain>
+          <el-icon><Refresh /></el-icon>
+          同步画卷
+        </el-button>
+      </div>
+      
+      <el-divider />
+      
+      <h4 class="section-title">为您荐诗</h4>
+      <div class="recommend-list">
+        <div 
+          v-for="rec in recommendations" 
+          :key="rec.title" 
+          class="rec-item"
+          @click="jumpToPoem(rec.title)"
+        >
+          <div class="rec-title">{{ rec.title }}</div>
+          <div class="rec-reason">{{ rec.reason }}</div>
+        </div>
+        <el-empty v-if="recommendations.length === 0" description="暂无推荐" :image-size="60" />
+      </div>
+    </el-drawer>
+
+    <!-- 顶部导航 -->
+    <el-header class="top-nav">
+      <div class="nav-left">
+        <el-button :icon="Menu" text @click="showSidebar = true" class="menu-btn" />
+        <div class="site-branding">
+          <span class="logo-text">诗云</span>
+          <span class="edition">二零二五 · 典藏版</span>
         </div>
       </div>
-    </div>
-
-    <!-- 顶部 -->
-    <nav class="top-nav">
-      <div class="logo">诗云 <span class="sub-logo">LDA-CF 精选</span></div>
       <div class="nav-right">
-        <span class="user-name">{{ currentUser }}</span>
-        <button @click="logout" class="logout-link">[ 离席 ]</button>
+        <el-tag effect="plain" size="small">{{ currentUser }}</el-tag>
+        <el-button type="danger" text @click="logout">
+          <el-icon><SwitchButton /></el-icon>
+          离席
+        </el-button>
       </div>
-    </nav>
+    </el-header>
 
-    <!-- 主展示区 -->
-    <main class="poem-main">
-      <div v-if="dailyPoem" class="poem-card">
-        <div class="poem-paper">
-          <div class="poem-content-wrap">
-            <h1 class="poem-title vertical-text">{{ dailyPoem.title }}</h1>
-            <div class="poem-author vertical-text">[{{ dailyPoem.author }}]</div>
-            <div class="poem-text vertical-text">{{ dailyPoem.content }}</div>
+    <!-- 主舞台 -->
+    <el-main class="main-stage">
+      <div v-if="dailyPoem" class="poem-display">
+        <el-card class="poem-card" shadow="never">
+          <div class="poem-header">
+            <h1 class="poem-title">{{ dailyPoem.title }}</h1>
+            <el-tag type="danger" effect="plain" size="small">{{ dailyPoem.author }}</el-tag>
           </div>
-          <div class="paper-texture"></div>
-        </div>
+          <el-divider />
+          <div class="poem-content">{{ dailyPoem.content }}</div>
+        </el-card>
         
-        <div class="poem-actions">
-           <button class="action-btn" @click="toggleComments">
-             <i class="icon">评</i> 
-             <span>{{ showComments ? '收起评论' : '雅评 (' + reviews.length + ')' }}</span>
-           </button>
-           <button class="action-btn" @click="getAnotherPoem">
-             <i class="icon">换</i> <span>易章</span>
-           </button>
+        <div class="action-bar">
+          <el-button-group>
+            <el-button @click="toggleComments" :icon="ChatLineSquare">
+              雅评 ({{ reviews.length }})
+            </el-button>
+            <el-button @click="getAnotherPoem" :icon="RefreshRight">
+              易章
+            </el-button>
+          </el-button-group>
         </div>
       </div>
+      
       <div v-else class="loading-state">
-        <div class="brush-stroke"></div>
-        <p>研墨中...</p>
+        <el-icon class="is-loading" :size="32"><Loading /></el-icon>
+        <p>研墨铺纸中...</p>
       </div>
-    </main>
+    </el-main>
 
-    <!-- 评论浮层 -->
-    <transition name="slide-up">
-      <div v-if="showComments" class="comments-drawer">
-        <div class="drawer-header">
-           <h2>诗友雅评</h2>
-           <button @click="showComments = false" class="close-btn">×</button>
+    <!-- 评论抽屉 -->
+    <el-drawer
+      v-model="showComments"
+      title="诗友雅评"
+      direction="rtl"
+      size="400px"
+    >
+      <div class="comments-list">
+        <div v-for="r in reviews" :key="r.id" class="comment-item">
+          <div class="comment-header">
+            <span class="comment-user">{{ r.user_id }}</span>
+            <el-rate :model-value="r.rating" disabled size="small" />
+          </div>
+          <p class="comment-text">{{ r.comment }}</p>
         </div>
-        <div class="comments-list">
-           <div v-for="r in reviews" :key="r.id" class="comment-card">
-             <div class="comment-meta">
-               <span class="author">{{ r.user_id }}</span>
-               <span class="rating">评分: {{ r.rating }}</span>
-             </div>
-             <p class="text">{{ r.comment }}</p>
-           </div>
-           <div v-if="reviews.length === 0" class="empty-hint">寂寂无声，虚位以待。</div>
-        </div>
+        <el-empty v-if="reviews.length === 0" description="寂寂无声，虚位以待" />
+      </div>
+      
+      <template #footer>
         <div class="comment-form">
-          <textarea v-model="newComment" placeholder="写下你的感悟..." class="ink-textarea"></textarea>
-          <div class="form-footer">
-            <select v-model="newRating" class="ink-select">
-              <option :value="5">上品 (5分)</option>
-              <option :value="4">中上 (4分)</option>
-              <option :value="3">中品 (3分)</option>
-            </select>
-            <button @click="submitComment" class="ink-btn primary">发表</button>
+          <el-input
+            v-model="newComment"
+            type="textarea"
+            :rows="3"
+            placeholder="写下你的感悟..."
+          />
+          <div class="form-actions">
+            <el-rate v-model="newRating" />
+            <el-button type="primary" @click="submitComment" :icon="EditPen">
+              发表
+            </el-button>
           </div>
         </div>
-      </div>
-    </transition>
+      </template>
+    </el-drawer>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
+import { 
+  Menu, SwitchButton, Refresh, RefreshRight, 
+  ChatLineSquare, Loading, EditPen 
+} from '@element-plus/icons-vue'
 import axios from 'axios'
 
 const router = useRouter()
@@ -115,18 +160,20 @@ const userProfile = ref(null)
 const recommendations = ref([])
 
 const fetchUserProfile = async () => {
-    try {
-        const res = await axios.get(`http://127.0.0.1:5000/api/user_preference/${currentUser}`)
-        userProfile.value = res.data
-    } catch(e) { console.error("无法加载画像", e) }
+  try {
+    const res = await axios.get(`http://127.0.0.1:5000/api/user_preference/${currentUser}`)
+    userProfile.value = res.data
+  } catch(e) { console.error(e) }
 }
 
 const getRecommendations = async () => {
-    try {
-        const res = await axios.get(`http://127.0.0.1:5000/api/recommend_personal/${currentUser}`)
-        recommendations.value = res.data
-        alert("已根据您的画像更新荐诗")
-    } catch(e) { console.error(e) }
+  try {
+    const res = await axios.get(`http://127.0.0.1:5000/api/recommend_personal/${currentUser}`)
+    recommendations.value = res.data
+    ElMessage.success('画卷已同步')
+  } catch(e) { 
+    ElMessage.error('同步失败')
+  }
 }
 
 const getAnotherPoem = async () => {
@@ -136,251 +183,287 @@ const getAnotherPoem = async () => {
     const list = res.data
     dailyPoem.value = list[Math.floor(Math.random() * list.length)]
     fetchReviews(dailyPoem.value.id)
-  } catch (e) {
-    console.error(e)
+  } catch (e) { 
+    ElMessage.error('获取诗歌失败')
   }
 }
 
 const fetchReviews = async (id) => {
-    try {
-        const res = await axios.get(`http://127.0.0.1:5000/api/poem/${id}/reviews`)
-        reviews.value = res.data
-    } catch(e) { console.error(e) }
+  try {
+    const res = await axios.get(`http://127.0.0.1:5000/api/poem/${id}/reviews`)
+    reviews.value = res.data
+  } catch(e) { console.error(e) }
 }
 
-const toggleComments = () => {
-    showComments.value = !showComments.value
+const toggleComments = () => { 
+  showComments.value = !showComments.value 
 }
 
 const submitComment = async () => {
-    if(!newComment.value) return;
-    try {
-        const res = await axios.post('http://127.0.0.1:5000/api/poem/review', {
-            username: currentUser,
-            poem_id: dailyPoem.value.id,
-            rating: newRating.value,
-            comment: newComment.value
-        })
-        if(res.data.status === 'success') {
-            // 重新获取评论列表以同步显示
-            fetchReviews(dailyPoem.value.id)
-            newComment.value = ''
-            alert("已收录您的雅评")
-        }
-    } catch(e) {
-        alert("雅评收录失败")
-        console.error(e)
+  if(!newComment.value) {
+    ElMessage.warning('请填写评论内容')
+    return
+  }
+  try {
+    const res = await axios.post('http://127.0.0.1:5000/api/poem/review', {
+      username: currentUser,
+      poem_id: dailyPoem.value.id,
+      rating: newRating.value,
+      comment: newComment.value
+    })
+    if(res.data.status === 'success') {
+      ElMessage.success('雅评已收录')
+      fetchReviews(dailyPoem.value.id)
+      newComment.value = ''
     }
+  } catch(e) { 
+    ElMessage.error('发表失败')
+  }
 }
 
 const logout = () => {
-    localStorage.removeItem('user')
-    router.push('/login')
+  localStorage.removeItem('user')
+  ElMessage.info('已离席')
+  router.push('/login')
+}
+
+const jumpToPoem = (title) => {
+  ElMessage.info(`跳转至: ${title}`)
 }
 
 onMounted(() => {
-    getAnotherPoem()
-    fetchUserProfile()
+  getAnotherPoem()
+  fetchUserProfile()
 })
 </script>
 
 <style scoped>
 .home-container {
   min-height: 100vh;
-  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: var(--stone-white);
+}
+
+/* 顶部导航 */
+.top-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 30px;
+  height: 70PX;
+  border-bottom: 1px solid var(--line-gray);
+  background: white;
+}
+
+.nav-left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.menu-btn {
+  font-size: 20PX;
+}
+
+.site-branding {
   display: flex;
   flex-direction: column;
 }
 
-/* 侧边栏 */
-.sidebar {
-  position: fixed;
-  left: -280px;
-  top: 0;
-  width: 320px;
-  height: 100vh;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  z-index: 100;
-  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 10px 0 30px rgba(0,0,0,0.05);
-  display: flex;
+.logo-text {
+  font-family: "Noto Serif SC", serif;
+  font-size: 24PX;
+  font-weight: 700;
+  letter-spacing: 0.1em;
 }
-.sidebar.active { left: 0; }
-.sidebar-handle {
-  width: 40px;
-  background: var(--ink-black);
-  color: white;
+
+.edition {
+  font-size: 11PX;
+  color: #aaa;
+  margin-top: 2px;
+}
+
+.nav-right {
   display: flex;
-  justify-content: center;
   align-items: center;
-  cursor: pointer;
-  order: 2;
+  gap: 15px;
 }
-.sidebar-content {
+
+/* 主舞台 */
+.main-stage {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   padding: 40px 20px;
-  overflow-y: auto;
 }
 
-.section-title {
-    font-size: 1.2rem;
-    border-left: 4px solid var(--seal-red);
-    padding-left: 10px;
-    margin-bottom: 20px;
-}
-
-.top-nav {
-  padding: 30px 60px;
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-}
-.logo { font-size: 1.8rem; font-weight: bold; }
-.sub-logo { font-size: 0.8rem; font-weight: normal; color: var(--seal-red); margin-left: 10px; border: 1px solid; padding: 2px 5px; }
-.user-name { font-weight: 500; margin-right: 15px; }
-.logout-link { background: none; border: none; cursor: pointer; color: #999; }
-
-.poem-main {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding-bottom: 100px;
+.poem-display {
+  width: 100%;
+  max-width: 700px;
 }
 
 .poem-card {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.poem-paper {
-  background: white;
-  padding: 60px 80px;
-  box-shadow: 20px 20px 60px rgba(0,0,0,0.05);
-  position: relative;
-  border: 1px solid rgba(0,0,0,0.02);
-}
-
-.poem-content-wrap {
-  display: flex;
-  flex-direction: row-reverse;
-  height: 450px;
-  gap: 50px;
-}
-
-.poem-title { font-size: 2.2rem; margin-left: 20px; }
-.poem-author { font-size: 1.1rem; color: var(--seal-red); margin-top: 30px; }
-.poem-text { font-size: 1.4rem; line-height: 2.5; white-space: pre-wrap; font-weight: 300; }
-
-.poem-actions {
-  margin-top: 50px;
-  display: flex;
-  gap: 30px;
-}
-
-.action-btn {
-  background: none;
   border: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-family: inherit;
-  transition: transform 0.3s;
-}
-.action-btn:hover { transform: translateY(-3px); }
-.action-btn .icon {
-  width: 36px;
-  height: 36px;
-  border: 1px solid var(--ink-black);
-  border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  background: white;
+  border-radius: 8px;
 }
 
-/* 评论弹窗 */
-.comments-drawer {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 60vh;
-  background: rgba(255, 255, 255, 0.98);
-  box-shadow: 0 -20px 50px rgba(0,0,0,0.1);
-  z-index: 200;
+.poem-card :deep(.el-card__body) {
+  padding: 40px;
+}
+
+.poem-header {
+  display: flex;
+  align-items: baseline;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.poem-title {
+  font-family: "Noto Serif SC", serif;
+  font-size: 32PX;
+  font-weight: 700;
+  margin: 0;
+  color: var(--modern-black);
+}
+
+@media (max-width: 768px) {
+  .poem-title { font-size: 24PX; }
+}
+
+.poem-content {
+  font-family: "Noto Serif SC", serif;
+  font-size: 18PX;
+  line-height: 2;
+  color: #333;
+  white-space: pre-wrap;
+}
+
+.action-bar {
+  margin-top: 30px;
+  text-align: center;
+}
+
+.loading-state {
+  text-align: center;
+  color: #999;
+}
+
+.loading-state p {
+  margin-top: 15px;
+}
+
+/* 侧边栏 */
+.drawer-title {
+  font-family: "Noto Serif SC", serif;
+  font-size: 18PX;
+  margin: 0;
+}
+
+.profile-section {
+  margin-bottom: 20px;
+}
+
+.interest-tag {
+  margin-bottom: 20px;
+}
+
+.topic-bars {
   display: flex;
   flex-direction: column;
-  padding: 40px 10%;
+  gap: 15px;
+  margin-bottom: 25px;
 }
 
-.drawer-header {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 30px;
+.bar-item .bar-label {
+  font-size: 12PX;
+  color: #888;
+  margin-bottom: 5px;
+  display: block;
 }
-.close-btn { font-size: 2rem; background: none; border: none; cursor: pointer; }
 
+.sync-btn {
+  width: 100%;
+}
+
+.section-title {
+  font-size: 14PX;
+  color: #666;
+  margin-bottom: 15px;
+}
+
+.recommend-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.rec-item {
+  padding: 12px;
+  border-radius: 6px;
+  background: #f9f9f9;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.rec-item:hover {
+  background: #f0f0f0;
+}
+
+.rec-title {
+  font-weight: 600;
+  font-size: 14PX;
+  margin-bottom: 4px;
+}
+
+.rec-reason {
+  font-size: 12PX;
+  color: #999;
+}
+
+/* 评论 */
 .comments-list {
-  flex: 1;
-  overflow-y: auto;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  display: flex;
+  flex-direction: column;
   gap: 20px;
-  padding-bottom: 20px;
 }
 
-.comment-card {
-    background: #f9f9f9;
-    padding: 20px;
-    border-radius: 4px;
-    border-left: 3px solid var(--ink-black);
+.comment-item {
+  padding-bottom: 15px;
+  border-bottom: 1px solid #f0f0f0;
 }
 
-.comment-meta {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.8rem;
-    color: #999;
-    margin-bottom: 10px;
+.comment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.comment-user {
+  font-weight: 600;
+  font-size: 14PX;
+}
+
+.comment-text {
+  font-size: 14PX;
+  color: #555;
+  line-height: 1.6;
+  margin: 0;
 }
 
 .comment-form {
-    margin-top: 20px;
-    border-top: 1px solid #eee;
-    padding-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
 }
 
-.ink-textarea {
-    width: 100%;
-    padding: 15px;
-    border: 1px solid #ddd;
-    font-family: inherit;
-    resize: none;
-    outline: none;
-    background: #fdfdfd;
+.form-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
-
-.form-footer {
-    display: flex;
-    justify-content: flex-end;
-    gap: 15px;
-    margin-top: 15px;
-}
-
-.ink-select {
-    padding: 5px 15px;
-    border: 1px solid #ddd;
-    font-family: inherit;
-}
-
-/* 动画 */
-.slide-up-enter-active, .slide-up-leave-active { transition: transform 0.4s ease; }
-.slide-up-enter-from, .slide-up-leave-to { transform: translateY(100%); }
-
-.loading-state { text-align: center; }
-.brush-stroke { width: 100px; height: 5px; background: var(--ink-black); margin: 0 auto 20px; border-radius: 50%; opacity: 0.2; }
 </style>
