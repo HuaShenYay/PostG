@@ -1,0 +1,9 @@
+flask-sqlalchemy
+pymysql
+cryptography
+flask
+flask-cors
+jieba
+scikit-learn
+numpy
+pandas

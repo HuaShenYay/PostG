@@ -1,0 +1,113 @@
+/* 全局新中式基础样式 */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;500;700&display=swap');
+
+:root {
+  --ink-black: #2c2c2c;
+  --paper-white: #fdfbf7;
+  /* 宣纸白 */
+  --seal-red: #b22c2c;
+  /* 印章红 */
+  --bamboo-green: #6c8c6d;
+  --faint-gray: #999999;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--paper-white);
+  background-image: url('/ink_bg.png');
+  background-size: cover;
+  background-attachment: fixed;
+  background-position: center;
+  color: var(--ink-black);
+  font-family: "Noto Serif SC", "STSong", "SimSun", serif;
+  /* 宋体/衬线体 */
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 渐入动画 */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 1.2s ease forwards;
+}
+
+/* 竖排文字工具类 */
+.vertical-text {
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+  letter-spacing: 0.5em;
+  line-height: 1.8;
+}
+
+/* 按钮样式 - 水墨感 */
+.ink-btn {
+  background: rgba(44, 44, 44, 0.05);
+  border: 1px solid var(--ink-black);
+  color: var(--ink-black);
+  padding: 10px 30px;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: inherit;
+  font-size: 1rem;
+  letter-spacing: 2px;
+  position: relative;
+  overflow: hidden;
+}
+
+.ink-btn::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.ink-btn:hover::after {
+  width: 300px;
+  height: 300px;
+}
+
+.ink-btn:hover {
+  background: var(--ink-black);
+  color: var(--paper-white);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.ink-btn.primary {
+  background: var(--ink-black);
+  color: var(--paper-white);
+}
+
+/* 输入框样式 */
+.ink-input {
+  border: none;
+  border-bottom: 1px solid rgba(153, 153, 153, 0.5);
+  background: transparent;
+  padding: 12px;
+  font-family: inherit;
+  font-size: 1.1rem;
+  outline: none;
+  transition: all 0.3s;
+  color: var(--ink-black);
+}
+
+.ink-input:focus {
+  border-bottom: 2px solid var(--ink-black);
+  letter-spacing: 2px;
+}
