@@ -1,11 +1,13 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Login from './views/Login.vue'
+import Register from './views/Register.vue'
 import Home from './views/Home.vue'
 import PoemDetail from './views/PoemDetail.vue'
 
 const routes = [
     { path: '/', component: Home }, // 首页就是每日一诗
     { path: '/login', component: Login },
+    { path: '/register', component: Register },
     { path: '/poem/:id', component: PoemDetail }
 ]
 
@@ -17,7 +19,10 @@ const router = createRouter({
 // 简单的路由守卫：检查是否登录
 router.beforeEach((to, from, next) => {
     const user = localStorage.getItem('user');
-    if (to.path !== '/login' && !user) {
+    const publicPages = ['/login', '/register'];
+    const authRequired = !publicPages.includes(to.path);
+
+    if (authRequired && !user) {
         next('/login');
     } else {
         next();

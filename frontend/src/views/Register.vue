@@ -3,15 +3,15 @@
     <el-card class="login-card" shadow="never">
       <div class="editorial-header">
         <span class="date-stamp">公元二零二五</span>
-        <h1 class="title">诗云</h1>
-        <span class="tagline">基于 LDA-CF 的诗歌推荐系统</span>
+        <h1 class="title">新绿</h1>
+        <span class="tagline">加入诗云 · 开启您的诗意之旅</span>
       </div>
       
-      <el-form :model="form" @submit.prevent="handleLogin" class="login-form">
+      <el-form :model="form" @submit.prevent="handleRegister" class="login-form">
         <el-form-item>
           <el-input 
             v-model="form.username" 
-            placeholder="称 谓" 
+            placeholder="拟 定 称 谓" 
             size="large"
             :prefix-icon="User"
           />
@@ -20,7 +20,17 @@
           <el-input 
             v-model="form.password" 
             type="password" 
-            placeholder="口 令" 
+            placeholder="设 置 口 令" 
+            size="large"
+            :prefix-icon="Lock"
+            show-password
+          />
+        </el-form-item>
+        <el-form-item>
+          <el-input 
+            v-model="form.confirmPassword" 
+            type="password" 
+            placeholder="确 认 口 令" 
             size="large"
             :prefix-icon="Lock"
             show-password
@@ -32,16 +42,16 @@
             type="primary" 
             size="large" 
             :loading="loading"
-            @click="handleLogin"
+            @click="handleRegister"
             class="login-btn"
           >
-            {{ loading ? '入梦中...' : '入 梦' }}
+            {{ loading ? '启程中...' : '注 册' }}
           </el-button>
         </el-form-item>
       </el-form>
 
       <div class="actions">
-        <router-link to="/register" class="register-link">尚无称谓？前往注册</router-link>
+        <router-link to="/login" class="back-link">已有称谓？返回入梦</router-link>
       </div>
 
       <div class="footer-note">
@@ -62,26 +72,31 @@ const router = useRouter()
 const loading = ref(false)
 const form = reactive({
   username: '',
-  password: ''
+  password: '',
+  confirmPassword: ''
 })
 
-const handleLogin = async () => {
-  if (!form.username || !form.password) {
+const handleRegister = async () => {
+  if (!form.username || !form.password || !form.confirmPassword) {
     ElMessage.warning('请完整填写')
+    return
+  }
+  
+  if (form.password !== form.confirmPassword) {
+    ElMessage.warning('两次口令不一致')
     return
   }
   
   loading.value = true
   try {
-    const res = await axios.post('http://127.0.0.1:5000/api/login', {
+    const res = await axios.post('http://127.0.0.1:5000/api/register', {
       username: form.username,
       password: form.password
     })
     
     if (res.data.status === 'success') {
-      localStorage.setItem('user', form.username)
-      ElMessage.success('入梦成功')
-      router.push('/')
+      ElMessage.success('注册成功')
+      router.push('/login')
     } else {
       ElMessage.error(res.data.message)
     }
@@ -165,7 +180,7 @@ const handleLogin = async () => {
 .login-form :deep(.el-input__wrapper:hover),
 .login-form :deep(.el-input__wrapper.is-focus) {
   box-shadow: none;
-  border-bottom-color: var(--accent-red); /* 改为主题色 */
+  border-bottom-color: var(--accent-red);
 }
 
 .login-form :deep(.el-input__inner) {
@@ -179,7 +194,7 @@ const handleLogin = async () => {
   width: 100%;
   margin-top: 40px;
   border-radius: 0;
-  background: var(--accent-red); /* 改为主题色 */
+  background: var(--accent-red);
   border-color: var(--accent-red);
   font-size: 14PX;
   letter-spacing: 0.4em;
@@ -190,7 +205,7 @@ const handleLogin = async () => {
 }
 
 .login-btn:hover {
-  background: #c52d2d; /* 稍微淡化的主题色 */
+  background: #c52d2d;
   border-color: #c52d2d;
   transform: translateY(-2px);
   box-shadow: 0 5px 15px rgba(166, 27, 27, 0.2);
@@ -201,7 +216,7 @@ const handleLogin = async () => {
   margin-top: 20px;
 }
 
-.register-link {
+.back-link {
   font-size: 13PX;
   color: #888;
   text-decoration: none;
@@ -209,13 +224,13 @@ const handleLogin = async () => {
   transition: color 0.3s;
 }
 
-.register-link:hover {
+.back-link:hover {
   color: var(--accent-red);
 }
 
 .footer-note {
   text-align: center;
-  margin-top: 100px;
+  margin-top: 60px;
   opacity: 0.3;
 }
 

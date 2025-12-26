@@ -134,6 +134,29 @@ def login():
     else:
         return jsonify({"message": "账号或口令有误", "status": "error"}), 401
 
+@app.route('/api/register', methods=['POST'])
+def register():
+    data = request.json
+    username = data.get('username')
+    password = data.get('password')
+    
+    if not username or not password:
+        return jsonify({"message": "请输入账号和密码", "status": "error"}), 400
+    
+    # 检查用户是否已存在
+    existing_user = User.query.filter_by(username=username).first()
+    if existing_user:
+        return jsonify({"message": "此称谓已被占用", "status": "error"}), 400
+    
+    try:
+        new_user = User(username=username, password_hash=password)
+        db.session.add(new_user)
+        db.session.commit()
+        return jsonify({"message": "注册成功，即将开启诗意之旅", "status": "success"})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"message": f"注册失败: {str(e)}", "status": "error"}), 500
+
 @app.route('/api/test')
 def api_test():
     return jsonify({"message": "MySQL连接成功！LDA模型已就绪。", "status": "success"})
