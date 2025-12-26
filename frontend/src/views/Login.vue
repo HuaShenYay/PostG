@@ -96,101 +96,112 @@ const handleLogin = async () => {
   justify-content: center;
   align-items: center;
   background-color: var(--stone-white);
-  padding: 20px;
+  padding: 40px;
 }
 
 .login-card {
   width: 100%;
-  max-width: 420px;
+  max-width: 440px;
   border: none;
   background: transparent;
 }
 
 .login-card :deep(.el-card__body) {
-  padding: 40px;
+  padding: 60px 40px;
 }
 
 .editorial-header {
   text-align: center;
-  margin-bottom: 50px;
+  margin-bottom: 80px;
 }
 
 .date-stamp {
   font-size: 14PX;
-  letter-spacing: 0.4em;
+  letter-spacing: 0.5em;
   color: var(--accent-red);
   display: block;
-  margin-bottom: 15px;
+  margin-bottom: 20px;
+  font-weight: 300;
 }
 
 .title {
   font-family: "Noto Serif SC", serif;
-  font-size: 56PX;
-  font-weight: 700;
+  font-size: 64PX;
+  font-weight: 300;
   margin: 0;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.15em;
   color: var(--modern-black);
 }
 
 @media (max-width: 768px) {
-  .title { font-size: 42PX; }
+  .title { font-size: 48PX; }
 }
 
 .tagline {
-  font-size: 13PX;
-  letter-spacing: 0.1em;
-  color: #888;
-  margin-top: 12px;
+  font-size: 12PX;
+  letter-spacing: 0.2em;
+  color: #999;
+  margin-top: 15px;
   display: block;
+  text-transform: uppercase;
 }
 
 .login-form {
-  margin-top: 40px;
+  margin-top: 60px;
 }
 
 .login-form :deep(.el-input__wrapper) {
   border-radius: 0;
   box-shadow: none;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 0.5px solid var(--line-gray);
   background: transparent;
+  padding: 12px 0;
 }
 
 .login-form :deep(.el-input__wrapper:hover),
 .login-form :deep(.el-input__wrapper.is-focus) {
   box-shadow: none;
-  border-bottom-color: var(--modern-black);
+  border-bottom-color: var(--accent-red); /* 改为主题色 */
 }
 
 .login-form :deep(.el-input__inner) {
   text-align: center;
   font-size: 16PX;
+  font-weight: 300;
+  letter-spacing: 0.1em;
 }
 
 .login-btn {
   width: 100%;
-  margin-top: 20px;
+  margin-top: 40px;
   border-radius: 0;
-  background: var(--modern-black);
-  border-color: var(--modern-black);
-  font-size: 16PX;
-  letter-spacing: 0.2em;
-  height: 48px;
+  background: var(--accent-red); /* 改为主题色 */
+  border-color: var(--accent-red);
+  font-size: 14PX;
+  letter-spacing: 0.4em;
+  height: 52px;
+  font-weight: 300;
+  text-indent: 0.4em;
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .login-btn:hover {
-  background: #333;
-  border-color: #333;
+  background: #c52d2d; /* 稍微淡化的主题色 */
+  border-color: #c52d2d;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(166, 27, 27, 0.2);
 }
 
 .footer-note {
   text-align: center;
-  margin-top: 60px;
-  opacity: 0.4;
+  margin-top: 100px;
+  opacity: 0.3;
 }
 
 .footer-note p {
-  font-size: 12PX;
-  letter-spacing: 0.3em;
+  font-size: 11PX;
+  letter-spacing: 0.4em;
   color: var(--modern-black);
+  font-weight: 200;
 }
 </style>

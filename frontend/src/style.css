@@ -1,15 +1,17 @@
-/* 全局新中式基础样式 */
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Noto+Serif+SC:wght@200;400;700&family=Inter:wght@300;400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Noto+Serif+SC:wght@200;300;400;500;700&family=Inter:wght@200;300;400;500&display=swap');
 
 :root {
-  --modern-black: #1a1a1a;
-  --stone-white: #f9f7f2;
-  /* 绛红 */
-  --accent-red: #8b0000;
-  --muted-gold: #c5a059;
-  --line-gray: rgba(0, 0, 0, 0.08);
-  /* 顶部导航安全高度 */
-  --header-height: 100px;
+  --modern-black: #121212;
+  --stone-white: #fdfcf9;
+  /* 更轻盈的石白 */
+  --accent-red: #a61b1b;
+  /* 稍微调亮的绛红 */
+  --muted-gold: #b3935d;
+  --line-gray: rgba(0, 0, 0, 0.05);
+  /* 更淡的分割线 */
+  --soft-shadow: 0 10px 40px rgba(0, 0, 0, 0.03);
+  --header-height: 120PX;
+  /* 增加导航栏高度以提供更多留白 */
 }
 
 body {
@@ -21,19 +23,31 @@ body {
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
   box-sizing: border-box;
-  /* 禁止缩放导致的意外溢出 */
   overflow-x: hidden;
+  line-height: 1.8;
+  /* 整体行高增加 */
+}
+
+/* 统一留白类 */
+.editorial-spacing {
+  padding: 120PX 0;
+}
+
+@media (max-width: 768px) {
+  .editorial-spacing {
+    padding: 60PX 0;
+  }
 }
 
 * {
   box-sizing: border-box;
 }
 
-/* 渐入动画 */
+/* 渐入动画 - 更加平滑 */
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(30px);
+    transform: translateY(20px);
   }
 
   to {
@@ -43,80 +57,33 @@ body {
 }
 
 .fade-in {
-  animation: fadeInUp 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: fadeInUp 2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* 现代垂直文字 */
+/* 垂直文字 - 精细化 */
 .vertical-text {
   writing-mode: vertical-rl;
   text-orientation: upright;
-  letter-spacing: 0.4em;
-  line-height: 2;
+  letter-spacing: 0.6em;
+  /* 增加字间距 */
+  line-height: 2.2;
   font-family: "Noto Serif SC", serif;
-  display: inline-block;
-  white-space: pre-wrap;
+  font-weight: 300;
 }
 
-/* 响应式调整 - 针对移动端适配 */
 @media (max-width: 768px) {
   .vertical-text {
     writing-mode: horizontal-tb;
-    letter-spacing: 0.1em;
-    line-height: 1.6;
+    letter-spacing: 0.2em;
+    line-height: 1.8;
     display: block;
     width: 100%;
   }
 }
 
-/* 按钮样式 */
-.ink-btn {
-  background: transparent;
-  border: 1px solid var(--modern-black);
-  color: var(--modern-black);
-  padding: 12px 30px;
-  cursor: pointer;
-  transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
-  font-family: inherit;
-  font-size: 16PX;
-  /* 使用大写 PX 避免被 rem 转换导致移动端过小 */
-  letter-spacing: 0.1em;
-  outline: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.ink-btn:hover {
-  background: var(--modern-black);
-  color: var(--stone-white);
-}
-
-.ink-btn:active {
-  transform: scale(0.98);
-}
-
-/* 输入框 */
-.ink-input {
-  border: none;
-  border-bottom: 1px solid var(--line-gray);
-  background: transparent;
-  padding: 12px 5px;
-  font-family: inherit;
-  font-size: 18PX;
-  /* 使用大写 PX */
-  outline: none;
-  transition: all 0.4s;
-  width: 100%;
-}
-
-.ink-input:focus {
-  border-bottom: 1px solid var(--modern-black);
-}
-
-/* 滚动条美化 */
+/* 滚动条隐藏或极简化 */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 4px;
 }
 
 ::-webkit-scrollbar-track {
@@ -124,30 +91,57 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.1);
-  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 10px;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.2);
+/* Element Plus 全局样式覆盖 */
+.el-button {
+  font-family: inherit;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1);
 }
 
-/* 通用布局类 */
-.container-safe {
-  max-width: 1440px;
-  margin: 0 auto;
-  padding: 0 40px;
+.el-input__wrapper {
+  background: transparent !important;
+  box-shadow: none !important;
+  border-bottom: 0.5px solid var(--line-gray) !important;
+  border-radius: 0 !important;
+  padding: 8px 0 !important;
 }
 
-@media (max-width: 768px) {
-  .container-safe {
-    padding: 0 20px;
-  }
+.el-input__wrapper.is-focus {
+  border-bottom-color: var(--modern-black) !important;
 }
 
-/* 装饰性细线 */
-.thin-line {
-  height: 1px;
-  background: var(--line-gray);
-  width: 100%;
+/* Element Plus Message (弹窗) 深度定制 */
+.el-message {
+  background-color: var(--stone-white) !important;
+  border: 1px solid var(--line-gray) !important;
+  border-radius: 0 !important;
+  box-shadow: var(--soft-shadow) !important;
+  padding: 15px 30px !important;
+  min-width: 240px !important;
+  justify-content: center !important;
+  /* 核心修改：居中内容 */
+}
+
+.el-message .el-message__content {
+  color: var(--modern-black) !important;
+  font-family: "Noto Serif SC", serif !important;
+  letter-spacing: 0.1em !important;
+  font-size: 14PX !important;
+}
+
+/* 统一图标颜色为主题绛红 */
+.el-message--success .el-message__icon,
+.el-message--info .el-message__icon,
+.el-message--warning .el-message__icon,
+.el-message--error .el-message__icon {
+  color: var(--accent-red) !important;
+}
+
+.el-message--success {
+  border-left: 2px solid var(--accent-red) !important;
 }

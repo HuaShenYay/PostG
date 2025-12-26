@@ -62,79 +62,87 @@
         </div>
       </div>
       <div class="nav-right">
-        <el-tag effect="plain" size="small">{{ currentUser }}</el-tag>
-        <el-button type="danger" text @click="logout">
-          <el-icon><SwitchButton /></el-icon>
-          离席
-        </el-button>
+        <div class="user-meta-link">
+          <span class="user-name-tag">{{ currentUser }}</span>
+          <div class="meta-dot"></div>
+          <span class="logout-link" @click="logout">离席</span>
+        </div>
       </div>
     </el-header>
 
     <!-- 主舞台 -->
     <el-main class="main-stage">
-      <div v-if="dailyPoem" class="poem-display">
-        <el-card class="poem-card" shadow="never">
-          <div class="poem-header">
-            <h1 class="poem-title">{{ dailyPoem.title }}</h1>
-            <el-tag type="danger" effect="plain" size="small">{{ dailyPoem.author }}</el-tag>
+      <transition name="poem-fade" mode="out-in">
+        <div v-if="dailyPoem" :key="dailyPoem.id" class="poem-display-split">
+          <!-- 左侧：诗文内容 -->
+          <div class="poem-content-side">
+            <p class="content-text">{{ dailyPoem.content }}</p>
           </div>
-          <el-divider />
-          <div class="poem-content">{{ dailyPoem.content }}</div>
-        </el-card>
-        
-        <div class="action-bar">
-          <el-button-group>
-            <el-button @click="toggleComments" :icon="ChatLineSquare">
+
+          <!-- 右侧：诗题与诗人 (错落排列) -->
+          <div class="poem-meta-side">
+            <div class="meta-wrapper">
+              <h1 class="poem-title-vertical">{{ dailyPoem.title }}</h1>
+              <div class="meta-divider"></div>
+              <span class="author-tag-vertical theme-color">{{ dailyPoem.author }}</span>
+            </div>
+          </div>
+          
+          <!-- 操作栏：改为侧边浮动或底部跟随 -->
+          <div class="action-bar-floating">
+            <el-button @click="toggleComments" class="ghost-btn">
               雅评 ({{ reviews.length }})
             </el-button>
-            <el-button @click="getAnotherPoem" :icon="RefreshRight">
+            <el-button @click="getAnotherPoem" class="ghost-btn">
               易章
             </el-button>
-          </el-button-group>
+          </div>
         </div>
-      </div>
-      
-      <div v-else class="loading-state">
-        <el-icon class="is-loading" :size="32"><Loading /></el-icon>
-        <p>研墨铺纸中...</p>
-      </div>
+        
+        <div v-else class="loading-state">
+          <el-icon class="is-loading" :size="32"><Loading /></el-icon>
+          <p>研墨铺纸中...</p>
+        </div>
+      </transition>
     </el-main>
 
-    <!-- 评论抽屉 -->
-    <el-drawer
-      v-model="showComments"
-      title="诗友雅评"
-      direction="rtl"
-      size="400px"
-    >
-      <div class="comments-list">
-        <div v-for="r in reviews" :key="r.id" class="comment-item">
-          <div class="comment-header">
-            <span class="comment-user">{{ r.user_id }}</span>
-            <el-rate :model-value="r.rating" disabled size="small" />
-          </div>
-          <p class="comment-text">{{ r.comment }}</p>
+    <!-- 雅评区域：彻底去盒子化，作为页面的“边注”融入 -->
+    <transition name="editorial-fade">
+      <div v-if="showComments" class="marginalia-reviews">
+        <!-- 背景水印感标题 -->
+        <div class="watermark-title">雅评</div>
+        
+        <div class="marginalia-header">
+           <span class="editorial-count">卷之九 / {{ reviews.length }} 条雅赏</span>
+           <el-button :icon="Close" circle text @click="showComments = false" class="marginalia-close" />
         </div>
-        <el-empty v-if="reviews.length === 0" description="寂寂无声，虚位以待" />
-      </div>
-      
-      <template #footer>
-        <div class="comment-form">
+        
+        <div class="marginalia-scroll">
+          <div v-for="(r, index) in reviews" :key="r.id" class="marginalia-item" :style="{ transitionDelay: index * 100 + 'ms' }">
+            <div class="item-header">
+              <span class="u-name theme-color">{{ r.user_id }}</span>
+              <div class="item-line"></div>
+              <span class="u-rating">{{ r.rating }}.0</span>
+            </div>
+            <p class="u-content-modern">{{ r.comment }}</p>
+          </div>
+          <el-empty v-if="reviews.length === 0" description="虚位以待" :image-size="40" />
+        </div>
+
+        <div class="marginalia-input-zone">
           <el-input
             v-model="newComment"
-            type="textarea"
-            :rows="3"
-            placeholder="写下你的感悟..."
+            placeholder="在此处留墨..."
+            class="bare-input"
+            @keyup.enter="submitComment"
           />
-          <div class="form-actions">
-            <el-rate v-model="newRating" />
-            <el-button type="primary" @click="submitComment" :icon="EditPen">
-              发表
-            </el-button>
+          <div class="input-actions-minimal">
+            <el-rate v-model="newRating" size="small" />
+            <span class="submit-ink" @click="submitComment">落笔</span>
           </div>
         </div>
-      </template>
-    </el-drawer>
+      </div>
+    </transition>
   </div>
 </template>
 
@@ -144,7 +152,7 @@ import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { 
   Menu, SwitchButton, Refresh, RefreshRight, 
-  ChatLineSquare, Loading, EditPen 
+  ChatLineSquare, Loading, EditPen, Close, Check 
 } from '@element-plus/icons-vue'
 import axios from 'axios'
 
@@ -242,28 +250,33 @@ onMounted(() => {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: var(--stone-white);
+  background-color: var(--stone-white);
 }
 
-/* 顶部导航 */
+/* 顶部导航 - 更加通透 */
 .top-nav {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 30px;
-  height: 70PX;
-  border-bottom: 1px solid var(--line-gray);
-  background: white;
+  padding: 0 60px;
+  height: var(--header-height);
+  background: transparent;
+  z-index: 100;
+}
+
+@media (max-width: 768px) {
+  .top-nav { padding: 0 20px; }
 }
 
 .nav-left {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 40px;
 }
 
 .menu-btn {
-  font-size: 20PX;
+  font-size: 24PX;
+  color: var(--modern-black);
 }
 
 .site-branding {
@@ -273,197 +286,361 @@ onMounted(() => {
 
 .logo-text {
   font-family: "Noto Serif SC", serif;
-  font-size: 24PX;
+  font-size: 28PX;
   font-weight: 700;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.2em;
 }
 
 .edition {
-  font-size: 11PX;
-  color: #aaa;
-  margin-top: 2px;
+  font-size: 10PX;
+  color: #bbb;
+  margin-top: 6px;
+  text-transform: uppercase;
 }
 
 .nav-right {
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: 30px;
 }
 
-/* 主舞台 */
+.user-meta-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-name-tag {
+  font-size: 13PX;
+  letter-spacing: 0.1em;
+  color: var(--modern-black);
+  font-weight: 300;
+}
+
+.meta-dot {
+  width: 3px;
+  height: 3px;
+  background-color: var(--accent-red);
+  border-radius: 50%;
+  opacity: 0.4;
+}
+
+.logout-link {
+  font-size: 13PX;
+  letter-spacing: 0.2em;
+  color: var(--accent-red);
+  cursor: pointer;
+  opacity: 0.6;
+  transition: all 0.3s;
+  font-weight: 400;
+}
+
+.logout-link:hover {
+  opacity: 1;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+/* 主舞台 - 大面积留白 */
 .main-stage {
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 40px 20px;
+  padding: 0 40px 100px;
 }
 
 .poem-display {
   width: 100%;
-  max-width: 700px;
+  max-width: 800px;
+  text-align: center;
 }
 
 .poem-card {
   border: none;
-  background: white;
-  border-radius: 8px;
+  background: transparent;
+  box-shadow: none;
 }
 
 .poem-card :deep(.el-card__body) {
-  padding: 40px;
+  padding: 0;
 }
 
-.poem-header {
+/* 错落并排布局 (现代新中式) */
+.poem-display-split {
   display: flex;
-  align-items: baseline;
-  gap: 15px;
-  flex-wrap: wrap;
+  flex-direction: row;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 120PX; /* 诗文与标题的间距 */
+  width: 100%;
+  max-width: 1100px;
+  position: relative;
 }
 
-.poem-title {
+@media (max-width: 900px) {
+  .poem-display-split {
+    flex-direction: column-reverse;
+    align-items: center;
+    gap: 40px;
+  }
+}
+
+/* 左侧：内容容器 */
+.poem-content-side {
+  flex: 1;
+  text-align: right; /* 内容右对齐，靠近标题 */
+  margin-top: 60PX; /* 与右侧形成高度差(错落) */
+}
+
+.content-text {
   font-family: "Noto Serif SC", serif;
-  font-size: 32PX;
-  font-weight: 700;
+  font-size: 20PX;
+  line-height: 2.2;
+  color: #333;
+  white-space: pre-wrap;
+  font-weight: 300;
+  letter-spacing: 0.05em;
+  display: inline-block;
+  text-align: left; /* 文字内部左对齐 */
+}
+
+/* 右侧：元数据容器 (垂直排版) */
+.poem-meta-side {
+  width: 120px;
+  display: flex;
+  justify-content: center;
+}
+
+.meta-wrapper {
+  writing-mode: vertical-rl; /* 关键：垂直排列 */
+  text-orientation: upright;
+  display: flex;
+  align-items: center;
+}
+
+.poem-title-vertical {
+  font-family: "Noto Serif SC", serif;
+  font-size: 36PX;
+  font-weight: 500;
   margin: 0;
+  letter-spacing: 0.3em;
   color: var(--modern-black);
 }
 
-@media (max-width: 768px) {
-  .poem-title { font-size: 24PX; }
+.meta-divider {
+  width: 1px;
+  height: 60px;
+  background: var(--accent-red);
+  margin: 20px 0;
+  opacity: 0.3;
 }
 
-.poem-content {
+.author-tag-vertical {
+  font-size: 14PX;
+  letter-spacing: 0.5em;
+  font-weight: 400;
+}
+
+/* 操作栏：底部悬浮 */
+.action-bar-floating {
+  position: absolute;
+  bottom: -100PX;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 40px;
+  width: 100%;
+  justify-content: center;
+}
+
+@media (max-width: 900px) {
+  .action-bar-floating {
+    position: static;
+    transform: none;
+    margin-top: 40px;
+  }
+}
+
+.ghost-btn {
+  border: none !important;
+  background: transparent !important;
+  font-size: 12PX !important;
+  letter-spacing: 0.2em;
+  opacity: 0.4;
+  color: var(--modern-black);
+}
+
+.ghost-btn:hover {
+  opacity: 1;
+  color: var(--accent-red) !important;
+}
+
+.theme-color {
+  color: var(--accent-red) !important;
+}
+
+.theme-bg {
+  background-color: var(--accent-red) !important;
+  border-color: var(--accent-red) !important;
+}
+
+/* 切换动画 */
+.poem-fade-enter-active, .poem-fade-leave-active {
+  transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.poem-fade-enter-from {
+  opacity: 0;
+  transform: translateX(30px); /* 侧向滑入 */
+}
+.poem-fade-leave-to {
+  opacity: 0;
+  transform: translateX(-30px);
+}
+
+/* 雅评：彻底融入背景的“边注”派 */
+.marginalia-reviews {
+  position: fixed;
+  top: 180PX;
+  left: 60px;
+  width: 400px;
+  bottom: 80px;
+  z-index: 900;
+  display: flex;
+  flex-direction: column;
+  background: transparent; /* 彻底透明 */
+}
+
+/* 水印背景 */
+.watermark-title {
+  position: absolute;
+  top: -80px;
+  left: -20px;
   font-family: "Noto Serif SC", serif;
-  font-size: 18PX;
-  line-height: 2;
-  color: #333;
-  white-space: pre-wrap;
+  font-size: 140PX;
+  color: rgba(0, 0, 0, 0.02); /* 极淡的水印 */
+  font-weight: 900;
+  pointer-events: none;
+  user-select: none;
+  z-index: -1;
 }
 
-.action-bar {
-  margin-top: 30px;
-  text-align: center;
+.marginalia-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 50px;
 }
 
-.loading-state {
-  text-align: center;
-  color: #999;
+.editorial-count {
+  font-size: 10PX;
+  letter-spacing: 0.3em;
+  color: #bbb;
+  text-transform: uppercase;
 }
 
-.loading-state p {
+.marginalia-close {
+  opacity: 0.2;
+}
+
+.marginalia-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 20px;
+  mask-image: linear-gradient(to bottom, transparent, black 10%, black 90%, transparent);
+  /* 彻底隐藏滚动条 */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+
+.marginalia-scroll::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
+}
+
+.marginalia-item {
+  margin-bottom: 50px;
+  opacity: 1; /* 默认设为 1，确保动画结束后不消失 */
+  transform: translateX(0);
+  transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* 仅在进入动画开始时设为透明 */
+.editorial-fade-enter-from .marginalia-item {
+  opacity: 0;
+  transform: translateX(-10px);
+}
+
+.item-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 12px;
+}
+
+.item-line {
+  flex: 1;
+  height: 0.5px;
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.u-name {
+  font-size: 12PX;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+}
+
+.u-rating {
+  font-size: 10PX;
+  color: #ccc;
+  font-family: 'Inter', sans-serif;
+}
+
+.u-content-modern {
+  font-size: 15PX;
+  line-height: 1.8;
+  color: #555;
+  font-weight: 300;
+  margin: 0;
+}
+
+.marginalia-input-zone {
+  margin-top: 50px;
+  padding-top: 30px;
+}
+
+.bare-input :deep(.el-input__wrapper) {
+  background: transparent !important;
+  box-shadow: none !important;
+  border-bottom: 0.5px solid rgba(0,0,0,0.05) !important;
+  padding: 0 !important;
+}
+
+.input-actions-minimal {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-top: 15px;
 }
 
-/* 侧边栏 */
-.drawer-title {
-  font-family: "Noto Serif SC", serif;
-  font-size: 18PX;
-  margin: 0;
-}
-
-.profile-section {
-  margin-bottom: 20px;
-}
-
-.interest-tag {
-  margin-bottom: 20px;
-}
-
-.topic-bars {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  margin-bottom: 25px;
-}
-
-.bar-item .bar-label {
+.submit-ink {
   font-size: 12PX;
-  color: #888;
-  margin-bottom: 5px;
-  display: block;
-}
-
-.sync-btn {
-  width: 100%;
-}
-
-.section-title {
-  font-size: 14PX;
-  color: #666;
-  margin-bottom: 15px;
-}
-
-.recommend-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.rec-item {
-  padding: 12px;
-  border-radius: 6px;
-  background: #f9f9f9;
+  letter-spacing: 0.3em;
+  color: var(--accent-red);
   cursor: pointer;
-  transition: background 0.3s;
+  opacity: 0.6;
+  transition: opacity 0.3s;
 }
 
-.rec-item:hover {
-  background: #f0f0f0;
+.submit-ink:hover {
+  opacity: 1;
 }
 
-.rec-title {
-  font-weight: 600;
-  font-size: 14PX;
-  margin-bottom: 4px;
+/* 彻底融入的渐变 */
+.editorial-fade-enter-active, .editorial-fade-leave-active {
+  transition: opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
-
-.rec-reason {
-  font-size: 12PX;
-  color: #999;
-}
-
-/* 评论 */
-.comments-list {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.comment-item {
-  padding-bottom: 15px;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.comment-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
-}
-
-.comment-user {
-  font-weight: 600;
-  font-size: 14PX;
-}
-
-.comment-text {
-  font-size: 14PX;
-  color: #555;
-  line-height: 1.6;
-  margin: 0;
-}
-
-.comment-form {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
-.form-actions {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.editorial-fade-enter-from, .editorial-fade-leave-to {
+  opacity: 0;
 }
 </style>
