@@ -73,22 +73,59 @@
     <!-- 主舞台 -->
     <el-main class="main-stage">
       <transition name="poem-fade" mode="out-in">
-        <div v-if="dailyPoem" :key="dailyPoem.id" class="poem-display-split">
-          <!-- 左侧：诗文内容 -->
-          <div class="poem-content-side">
-            <p class="content-text">{{ dailyPoem.content }}</p>
-          </div>
+        <div v-if="dailyPoem" :key="dailyPoem.id" class="poem-wrapper">
+          <div class="poem-display-split" :class="{ 'with-reviews': showComments }">
+            <!-- 雅评区域：作为页面的“边注”融入 -->
+            <transition name="marginalia-slide">
+              <div v-if="showComments" class="marginalia-reviews-integrated">
+                <div class="watermark-title">雅评</div>
+                <div class="marginalia-header">
+                   <span class="editorial-count">卷之九 / {{ reviews.length }} 条雅赏</span>
+                   <el-button :icon="Close" circle text @click="showComments = false" class="marginalia-close" />
+                </div>
+                <div class="marginalia-scroll">
+                  <div v-for="(r, index) in reviews" :key="r.id" class="marginalia-item" :style="{ transitionDelay: index * 100 + 'ms' }">
+                    <div class="item-header">
+                      <span class="u-name theme-color">{{ r.user_id }}</span>
+                      <div class="item-line"></div>
+                      <span class="u-rating">{{ r.rating }}.0</span>
+                    </div>
+                    <p class="u-content-modern">{{ r.comment }}</p>
+                  </div>
+                  <el-empty v-if="reviews.length === 0" description="虚位以待" :image-size="40" />
+                </div>
+                <div class="marginalia-input-zone">
+                  <el-input
+                    v-model="newComment"
+                    placeholder="在此处留墨..."
+                    class="bare-input"
+                    @keyup.enter="submitComment"
+                  />
+                  <div class="input-actions-minimal">
+                    <el-rate v-model="newRating" size="small" />
+                    <span class="submit-ink" @click="submitComment">落笔</span>
+                  </div>
+                </div>
+              </div>
+            </transition>
 
-          <!-- 右侧：诗题与诗人 (错落排列) -->
-          <div class="poem-meta-side">
-            <div class="meta-wrapper">
-              <h1 class="poem-title-vertical">{{ dailyPoem.title }}</h1>
-              <div class="meta-divider"></div>
-              <span class="author-tag-vertical theme-color">{{ dailyPoem.author }}</span>
+            <!-- 诗文内容与元数据 -->
+            <div class="poem-main-body">
+              <div class="poem-content-side">
+                <p class="content-text">{{ dailyPoem.content }}</p>
+              </div>
+
+              <div class="poem-meta-side">
+                <div class="meta-wrapper">
+                  <h1 class="poem-title-vertical">{{ dailyPoem.title }}</h1>
+                  <div class="meta-divider"></div>
+                  <span class="author-tag-vertical theme-color">{{ dailyPoem.author }}</span>
+                </div>
+              </div>
             </div>
           </div>
           
-          <!-- 操作栏：改为侧边浮动或底部跟随 -->
+          <!-- 操作栏 -->
           <div class="action-bar-floating">
             <el-button @click="toggleComments" class="ghost-btn">
               雅评 ({{ reviews.length }})
@@ -98,51 +135,13 @@
             </el-button>
           </div>
         </div>
-        
+
         <div v-else class="loading-state">
           <el-icon class="is-loading" :size="32"><Loading /></el-icon>
           <p>研墨铺纸中...</p>
         </div>
       </transition>
     </el-main>
-
-    <!-- 雅评区域：彻底去盒子化，作为页面的“边注”融入 -->
-    <transition name="editorial-fade">
-      <div v-if="showComments" class="marginalia-reviews">
-        <!-- 背景水印感标题 -->
-        <div class="watermark-title">雅评</div>
-        
-        <div class="marginalia-header">
-           <span class="editorial-count">卷之九 / {{ reviews.length }} 条雅赏</span>
-           <el-button :icon="Close" circle text @click="showComments = false" class="marginalia-close" />
-        </div>
-        
-        <div class="marginalia-scroll">
-          <div v-for="(r, index) in reviews" :key="r.id" class="marginalia-item" :style="{ transitionDelay: index * 100 + 'ms' }">
-            <div class="item-header">
-              <span class="u-name theme-color">{{ r.user_id }}</span>
-              <div class="item-line"></div>
-              <span class="u-rating">{{ r.rating }}.0</span>
-            </div>
-            <p class="u-content-modern">{{ r.comment }}</p>
-          </div>
-          <el-empty v-if="reviews.length === 0" description="虚位以待" :image-size="40" />
-        </div>
-
-        <div class="marginalia-input-zone">
-          <el-input
-            v-model="newComment"
-            placeholder="在此处留墨..."
-            class="bare-input"
-            @keyup.enter="submitComment"
-          />
-          <div class="input-actions-minimal">
-            <el-rate v-model="newRating" size="small" />
-            <span class="submit-ink" @click="submitComment">落笔</span>
-          </div>
-        </div>
-      </div>
-    </transition>
   </div>
 </template>
 
@@ -235,8 +234,22 @@ const logout = () => {
   router.push('/login')
 }
 
-const jumpToPoem = (title) => {
-  ElMessage.info(`跳转至: ${title}`)
+const jumpToPoem = async (title) => {
+  dailyPoem.value = null
+  try {
+    // 这里我们简单处理，从已有的 poems 列表中找，或者去后端查
+    // 后端目前没有直接按 title 查的接口，但我们可以先模糊匹配或者查全部
+    const res = await axios.get('http://127.0.0.1:5000/api/poems')
+    const target = res.data.find(p => p.title === title)
+    if (target) {
+      dailyPoem.value = target
+      fetchReviews(target.id)
+      showSidebar.value = false
+      ElMessage.success(`已为您呈上《${title}》`)
+    }
+  } catch(e) {
+    ElMessage.error('寻诗失败')
+  }
 }
 
 onMounted(() => {
@@ -368,15 +381,42 @@ onMounted(() => {
 }
 
 /* 错落并排布局 (现代新中式) */
+.poem-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
 .poem-display-split {
   display: flex;
   flex-direction: row;
   justify-content: center;
   align-items: flex-start;
-  gap: 120PX; /* 诗文与标题的间距 */
+  gap: 120PX;
   width: 100%;
   max-width: 1100px;
-  position: relative;
+  transition: all 1s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.poem-main-body {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 120PX;
+  transition: all 1s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* 当有雅评时，整体布局略微左移或压缩 */
+.poem-display-split.with-reviews {
+  gap: 60PX;
+}
+
+@media (max-width: 1200px) {
+  .poem-display-split.with-reviews .poem-main-body {
+    transform: scale(0.9);
+  }
 }
 
 @media (max-width: 900px) {
@@ -385,11 +425,15 @@ onMounted(() => {
     align-items: center;
     gap: 40px;
   }
+  .poem-main-body {
+    flex-direction: column-reverse;
+    align-items: center;
+    gap: 40px;
+  }
 }
 
 /* 左侧：内容容器 */
 .poem-content-side {
-  flex: 1;
   text-align: right; /* 内容右对齐，靠近标题 */
   margin-top: 60PX; /* 与右侧形成高度差(错落) */
 }
@@ -445,10 +489,7 @@ onMounted(() => {
 
 /* 操作栏：底部悬浮 */
 .action-bar-floating {
-  position: absolute;
-  bottom: -100PX;
-  left: 50%;
-  transform: translateX(-50%);
+  margin-top: 120px;
   display: flex;
   gap: 40px;
   width: 100%;
@@ -457,9 +498,7 @@ onMounted(() => {
 
 @media (max-width: 900px) {
   .action-bar-floating {
-    position: static;
-    transform: none;
-    margin-top: 40px;
+    margin-top: 60px;
   }
 }
 
@@ -492,33 +531,54 @@ onMounted(() => {
 }
 .poem-fade-enter-from {
   opacity: 0;
-  transform: translateX(30px); /* 侧向滑入 */
+  transform: translateY(20px);
 }
 .poem-fade-leave-to {
   opacity: 0;
-  transform: translateX(-30px);
+  transform: translateY(-20px);
 }
 
-/* 雅评：彻底融入背景的“边注”派 */
-.marginalia-reviews {
-  position: fixed;
-  top: 180PX;
-  left: 60px;
-  width: 400px;
-  bottom: 80px;
-  z-index: 900;
+/* 雅评：集成在页面内的版本 */
+.marginalia-reviews-integrated {
+  width: 350px;
   display: flex;
   flex-direction: column;
-  background: transparent; /* 彻底透明 */
+  margin-right: 40px;
+  position: relative;
+  /* 竖线优化：使用更具主题感的淡红色，并带有一点渐变感 */
+  border-right: 1px solid rgba(166, 27, 27, 0.08); 
+  padding-right: 40px;
+  animation: slide-in 1s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* 评分图标优化：深度覆盖 Element Plus 样式 */
+.marginalia-input-zone :deep(.el-rate) {
+  --el-rate-fill-color: var(--accent-red); /* 使用主题红 */
+  --el-rate-void-color: rgba(0, 0, 0, 0.05);
+  opacity: 0.8;
+}
+
+.marginalia-input-zone :deep(.el-rate__item) {
+  cursor: pointer;
+  transition: transform 0.3s;
+}
+
+.marginalia-input-zone :deep(.el-rate__item:hover) {
+  transform: scale(1.2);
+}
+
+@keyframes slide-in {
+  from { opacity: 0; transform: translateX(-30px); }
+  to { opacity: 1; transform: translateX(0); }
 }
 
 /* 水印背景 */
 .watermark-title {
   position: absolute;
-  top: -80px;
+  top: -60px;
   left: -20px;
   font-family: "Noto Serif SC", serif;
-  font-size: 140PX;
+  font-size: 120PX;
   color: rgba(0, 0, 0, 0.02); /* 极淡的水印 */
   font-weight: 900;
   pointer-events: none;
@@ -530,7 +590,7 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 50px;
+  margin-bottom: 40px;
 }
 
 .editorial-count {
@@ -545,30 +605,19 @@ onMounted(() => {
 }
 
 .marginalia-scroll {
-  flex: 1;
+  max-height: 480px;
   overflow-y: auto;
-  padding-right: 20px;
+  padding-right: 15px;
   mask-image: linear-gradient(to bottom, transparent, black 10%, black 90%, transparent);
-  /* 彻底隐藏滚动条 */
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE/Edge */
+  scrollbar-width: none;
 }
 
 .marginalia-scroll::-webkit-scrollbar {
-  display: none; /* Chrome/Safari */
+  display: none;
 }
 
 .marginalia-item {
-  margin-bottom: 50px;
-  opacity: 1; /* 默认设为 1，确保动画结束后不消失 */
-  transform: translateX(0);
-  transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-/* 仅在进入动画开始时设为透明 */
-.editorial-fade-enter-from .marginalia-item {
-  opacity: 0;
-  transform: translateX(-10px);
+  margin-bottom: 40px;
 }
 
 .item-header {
@@ -593,11 +642,10 @@ onMounted(() => {
 .u-rating {
   font-size: 10PX;
   color: #ccc;
-  font-family: 'Inter', sans-serif;
 }
 
 .u-content-modern {
-  font-size: 15PX;
+  font-size: 14PX;
   line-height: 1.8;
   color: #555;
   font-weight: 300;
@@ -605,8 +653,8 @@ onMounted(() => {
 }
 
 .marginalia-input-zone {
-  margin-top: 50px;
-  padding-top: 30px;
+  margin-top: 30px;
+  padding-top: 20px;
 }
 
 .bare-input :deep(.el-input__wrapper) {
@@ -629,18 +677,21 @@ onMounted(() => {
   color: var(--accent-red);
   cursor: pointer;
   opacity: 0.6;
-  transition: opacity 0.3s;
 }
 
 .submit-ink:hover {
   opacity: 1;
 }
 
-/* 彻底融入的渐变 */
-.editorial-fade-enter-active, .editorial-fade-leave-active {
-  transition: opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+/* 动画过渡 */
+.marginalia-slide-enter-active, .marginalia-slide-leave-active {
+  transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
 }
-.editorial-fade-enter-from, .editorial-fade-leave-to {
+.marginalia-slide-enter-from, .marginalia-slide-leave-to {
+  width: 0;
   opacity: 0;
+  margin-right: 0;
+  padding-right: 0;
 }
 </style>
