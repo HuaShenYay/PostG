@@ -1,7 +1,6 @@
 import pandas as pd
 import jieba
-from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.decomposition import LatentDirichletAllocation
+from gensim import corpora, models
 import os
 
 # 1. 配置路径
@@ -33,48 +32,85 @@ def preprocess_text(text, stopwords):
     words = jieba.cut(text)
     # 过滤停用词和过短的词
     meaningful_words = [w for w in words if w not in stopwords and len(w) > 1]
-    return " ".join(meaningful_words)
+    return meaningful_words # 返回列表，供 Gensim 使用
 
-def train_lda_model(n_topics=3):
-    """训练LDA模型"""
-    # 1. 加载数据
-    df = load_data()
+def train_lda_model(df=None):
+    """
+    训练LDA模型 (学术增强版：使用评估指标自动寻找最优 K 值)
+    方案 B：Perplexity (困惑度) 评估法
+    """
+    if df is None:
+        df = load_data()
+    
     stopwords = load_stopwords()
 
-    # 2. 预处理评论
+    # 1. 预处理评论
     print("正在进行分词和预处理...")
-    df['processed_comment'] = df['comment'].apply(lambda x: preprocess_text(str(x), stopwords))
+    tokenized_texts = df['comment'].apply(lambda x: preprocess_text(str(x), stopwords)).tolist()
     
-    # 3. 构建词频矩阵 (Document-Term Matrix)
-    # max_df=0.95: 如果一个词在95%的文档里都出现，那它太常见了（比如“诗歌”），去掉
-    # min_df=2: 如果一个词只出现过1次，去掉
-    tf_vectorizer = CountVectorizer(max_df=0.95, min_df=2)
-    tf = tf_vectorizer.fit_transform(df['processed_comment'])
+    # 2. 构建 Gensim 字典和语料库
+    dictionary = corpora.Dictionary(tokenized_texts)
+    dictionary.filter_extremes(no_below=1, no_above=1.0) 
+    corpus = [dictionary.doc2bow(text) for text in tokenized_texts]
 
-    # 4. 训练LDA模型
-    print(f"开始训练LDA模型，尝试提取 {n_topics} 个主题...")
-    lda = LatentDirichletAllocation(n_components=n_topics, max_iter=50,
-                                    learning_method='online',
-                                    learning_offset=50.,
-                                    random_state=0)
-    lda.fit(tf)
+    if not corpus:
+        print("语料库为空，无法训练。")
+        return None, None, df, {}
 
-    # 5. 展示主题词
-    print("\n=== 主题挖掘结果 ===")
-    feature_names = tf_vectorizer.get_feature_names_out()
+    # 3. 寻找最优 K 值 (学术评估)
+    # 遍历 K 从 2 到 10 (或根据数据量调整)
+    k_range = range(2, 11)
+    best_k = 5
+    min_perplexity = float('inf')
     
-    # 存储主题关键词，方便后续使用
+    print(f"正在通过困惑度评估寻找最优主题数 K (范围: {list(k_range)})...")
+    
+    # 存储评估数据，方便后续打印（用户可用于论文绘图）
+    eval_results = []
+
+    for k in k_range:
+        # 训练临时模型进行评估
+        temp_lda = models.LdaModel(
+            corpus=corpus, 
+            num_topics=k, 
+            id2word=dictionary, 
+            passes=5, # 评估时减少迭代次数以提升速度
+            random_state=42
+        )
+        # 计算困惑度 (值越小，模型拟合越好)
+        perplexity = temp_lda.log_perplexity(corpus)
+        eval_results.append((k, perplexity))
+        print(f"  - K={k}, Log-Perplexity: {perplexity:.4f}")
+        
+        if perplexity < min_perplexity:
+            min_perplexity = perplexity
+            best_k = k
+
+    print(f"\n[评估结论] 根据困惑度指标，选取最优主题数 K = {best_k}")
+
+    # 4. 使用最优 K 值训练最终模型
+    print(f"正在构建最终 LDA 模型 (K={best_k})...")
+    lda = models.LdaModel(
+        corpus=corpus, 
+        num_topics=best_k, 
+        id2word=dictionary, 
+        passes=20, # 最终模型增加迭代次数，保证收敛
+        random_state=42,
+        alpha='auto',
+        eta='auto'
+    )
+    
+    # 5. 提取主题关键词
     topic_keywords = {}
+    for topic_id in range(best_k):
+        words = lda.show_topic(topic_id, topn=10)
+        topic_keywords[topic_id] = [w[0] for w in words]
     
-    for topic_idx, topic in enumerate(lda.components_):
-        # 获取每个主题下权重最高的10个词
-        top_features_ind = topic.argsort()[:-11:-1]
-        top_features = [feature_names[i] for i in top_features_ind]
-        topic_keywords[topic_idx] = top_features
-        print(f"主题 #{topic_idx}: {' '.join(top_features)}")
-    
-    return lda, tf_vectorizer, df, topic_keywords
+    return lda, dictionary, df, topic_keywords
 
 if __name__ == "__main__":
     # 如果直接运行此脚本，则进行测试
-    train_lda_model()
+    lda, dictionary, df, keywords = train_lda_model()
+    if keywords:
+        for tid, words in list(keywords.items())[:5]:
+            print(f"主题 #{tid}: {' '.join(words)}")
