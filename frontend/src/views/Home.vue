@@ -1,67 +1,23 @@
 <template>
   <div class="home-container">
-    <!-- 侧边栏 -->
-    <el-drawer
-      v-model="showSidebar"
-      title="探索"
-      direction="ltr"
-      size="320px"
-      :show-close="false"
-    >
-      <template #header>
-        <h3 class="drawer-title">用户画像</h3>
-      </template>
-      
-      <div v-if="userProfile" class="profile-section">
-        <el-tag type="danger" effect="plain" class="interest-tag">
-          偏好流派: {{ userProfile.top_interest.join(' / ') }}
-        </el-tag>
-        
-        <div class="topic-bars">
-          <div v-for="p in userProfile.preference" :key="p.topic_id" class="bar-item">
-            <span class="bar-label">主题 {{ p.topic_id + 1 }}</span>
-            <el-progress 
-              :percentage="Math.round(p.score * 100)" 
-              :stroke-width="6"
-              :show-text="false"
-              color="#1a1a1a"
-            />
-          </div>
-        </div>
-        
-        <el-button @click="getRecommendations" class="sync-btn" plain>
-          <el-icon><Refresh /></el-icon>
-          同步画卷
-        </el-button>
-      </div>
-      
-      <el-divider />
-      
-      <h4 class="section-title">为您荐诗</h4>
-      <div class="recommend-list">
-        <div 
-          v-for="rec in recommendations" 
-          :key="rec.title" 
-          class="rec-item"
-          @click="jumpToPoem(rec.title)"
-        >
-          <div class="rec-title">{{ rec.title }}</div>
-          <div class="rec-reason">{{ rec.reason }}</div>
-        </div>
-        <el-empty v-if="recommendations.length === 0" description="暂无推荐" :image-size="60" />
-      </div>
-    </el-drawer>
 
     <!-- 顶部导航 -->
     <el-header class="top-nav">
       <div class="nav-left">
-        <el-button :icon="Menu" text @click="showSidebar = true" class="menu-btn" />
         <div class="site-branding">
           <span class="logo-text">诗云</span>
           <span class="edition">二零二五 · 典藏版</span>
         </div>
       </div>
       <div class="nav-right">
+        <!-- 用户画像：移至顶部，保持观看契合主题 -->
+        <transition name="fade">
+          <div v-if="userProfile" class="header-preference-tag">
+            <el-icon class="aura-icon"><Compass /></el-icon>
+            <span class="aura-text">{{ userProfile.top_interest.join(' · ') }}</span>
+          </div>
+        </transition>
+
         <div class="user-meta-link">
           <span class="user-name-tag">{{ currentUser }}</span>
           <div class="meta-dot"></div>
@@ -74,6 +30,10 @@
     <el-main class="main-stage">
       <transition name="poem-fade" mode="out-in">
         <div v-if="dailyPoem" :key="dailyPoem.id" class="poem-wrapper">
+          <div v-if="dailyPoem.recommend_reason" class="smart-rec-banner">
+             <el-icon><MagicStick /></el-icon>
+             <span>{{ dailyPoem.recommend_reason }}</span>
+          </div>
           <div class="poem-display-split" :class="{ 'with-reviews': showComments }">
             <!-- 雅评区域：作为页面的“边注”融入 -->
             <transition name="marginalia-slide">
@@ -159,12 +119,10 @@ const router = useRouter()
 const currentUser = localStorage.getItem('user') || '访客'
 const dailyPoem = ref(null)
 const showComments = ref(false)
-const showSidebar = ref(false)
 const reviews = ref([])
 const newComment = ref('')
 const newRating = ref(5)
 const userProfile = ref(null)
-const recommendations = ref([])
 
 const fetchUserProfile = async () => {
   try {
@@ -173,25 +131,16 @@ const fetchUserProfile = async () => {
   } catch(e) { console.error(e) }
 }
 
-const getRecommendations = async () => {
-  try {
-    const res = await axios.get(`http://127.0.0.1:5000/api/recommend_personal/${currentUser}`)
-    recommendations.value = res.data
-    ElMessage.success('画卷已同步')
-  } catch(e) { 
-    ElMessage.error('同步失败')
-  }
-}
-
 const getAnotherPoem = async () => {
+  const currentId = dailyPoem.value ? dailyPoem.value.id : ''
   dailyPoem.value = null
   try {
-    const res = await axios.get('http://127.0.0.1:5000/api/poems')
-    const list = res.data
-    dailyPoem.value = list[Math.floor(Math.random() * list.length)]
+    // 调用智能换诗接口，并传入当前ID以去重
+    const res = await axios.get(`http://127.0.0.1:5000/api/recommend_one/${currentUser}?current_id=${currentId}`)
+    dailyPoem.value = res.data
     fetchReviews(dailyPoem.value.id)
   } catch (e) { 
-    ElMessage.error('获取诗歌失败')
+    ElMessage.error('寻诗失败')
   }
 }
 
@@ -352,6 +301,81 @@ onMounted(() => {
   opacity: 1;
   text-decoration: underline;
   text-underline-offset: 4px;
+}
+
+/* 顶部画像标签：替代侧边栏 */
+.header-preference-tag {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px;
+  background: rgba(0, 0, 0, 0.03);
+  border-radius: 15px;
+  margin-right: 20px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.aura-icon {
+  font-size: 14px;
+  color: var(--accent-red);
+  opacity: 0.6;
+}
+
+.aura-text {
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  color: #888;
+  font-weight: 300;
+}
+
+/* 主题库样式 */
+.system-topics-gallery {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  padding: 0 5px;
+}
+
+.topic-capsule {
+  background: rgba(0,0,0,0.02);
+  border-radius: 4px;
+  padding: 12px;
+  border-left: 2px solid var(--accent-red);
+}
+
+.topic-id {
+  font-size: 10px;
+  color: var(--accent-red);
+  font-weight: bold;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.topic-keywords {
+  font-size: 13px;
+  color: #666;
+  letter-spacing: 1px;
+}
+
+/* 智能推荐横幅 */
+.smart-rec-banner {
+  position: absolute;
+  top: -40px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--accent-red);
+  background: rgba(166, 27, 27, 0.05);
+  padding: 6px 15px;
+  border-radius: 20px;
+  opacity: 0.8;
+  animation: fade-in 1s;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 0.8; transform: translateY(0); }
 }
 
 /* 主舞台 - 大面积留白 */

@@ -6,7 +6,7 @@ import os
 # 1. 配置路径
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_FILE = os.path.join(BASE_DIR, '../data/dataset.csv')
-STOPWORDS_FILE = os.path.join(BASE_DIR, '../data/stopwords.txt')
+STOPWORDS_FILE = os.path.join(BASE_DIR, '../data/scu_stopwords.txt')
 
 def load_data():
     """加载CSV数据"""

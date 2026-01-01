@@ -79,8 +79,7 @@ def init_db_and_model():
         
         refresh_system_data()
 
-# 启动时初始化
-init_db_and_model()
+# 启动时初始化逻辑已移动到文件末尾的 __main__ 块中
 
 @app.route('/')
 def hello_world():
@@ -232,33 +231,89 @@ def recommend_personal(username):
     top_topic_id = data['preference'][0]['topic_id']
     return recommend_by_topic(top_topic_id)
 
+@app.route('/api/recommend/<int:topic_id>')
+def recommend_by_topic(topic_id):
+    if df_data is None or lda_model is None:
+        return jsonify([])
+    
+    # 混合打分逻辑：LDA/HDP 匹配度 (70%) + 用户评价评分 (30%)
+    scores = []
+    for idx, row in df_data.iterrows():
+        dist = doc_topic_probs.get(idx, {})
+        topic_prob = dist.get(topic_id, 0)
+        
+        # 混合评分
+        hybrid_score = topic_prob * 0.7 + (row['rating'] / 5.0) * 0.3
+        scores.append((idx, hybrid_score))
+    
+    # 按得分排列
+    scores.sort(key=lambda x: x[1], reverse=True)
+    
+    recommended_poems = []
+    seen_titles = set()
+    for idx, score in scores:
+        if len(recommended_poems) >= 6: break
+        row = df_data.loc[idx]
+        if row['poem_title'] not in seen_titles:
+            recommended_poems.append({
+                "title": row['poem_title'],
+                "reason": f"文脉匹配度: {score:.2f}",
+                "related_comment": row['comment'][:50] + "..."
+            })
+            seen_titles.add(row['poem_title'])
+            
+    return jsonify(recommended_poems)
+
 @app.route('/api/recommend_one/<username>')
 def recommend_one(username):
-    """智能换诗：优先推荐符合口味的一首诗"""
+    """智能换诗：增加多样性，避免重复"""
     import random
+    current_id = request.args.get('current_id', type=int)
     data, code = _get_user_preference_data(username)
     
     poem_obj = None
     reason = "随机选取的千古佳作"
 
+    # 如果有画像，尝试“加权随机”选择一个主题，增加多样性
     if code == 200 and data['preference']:
-        top_topic_id = data['preference'][0]['topic_id']
+        prefs = data['preference']
+        # 权重分配：70% 概率抽第一偏好，20% 抽第二，10% 抽第三（如果有的话）
+        dice = random.random()
+        if dice < 0.7 or len(prefs) < 2:
+            target_pref = prefs[0]
+        elif dice < 0.9 or len(prefs) < 3:
+            target_pref = prefs[1]
+        else:
+            target_pref = prefs[2]
+            
+        target_topic_id = target_pref['topic_id']
+        keywords = " · ".join(target_pref['keywords'][:2])
+        
+        # 寻找候选集
         candidates = []
-        # 在缓存分布中寻找匹配度高的诗
         for idx, dist in doc_topic_probs.items():
-            if dist.get(top_topic_id, 0) > 0.2: # 匹配度阈值
-                candidates.append(idx)
+            # 排除当前正在看的这首
+            row = df_data.loc[idx]
+            p = Poem.query.filter_by(title=row['poem_title']).first()
+            if p and p.id == current_id:
+                continue
+                
+            if dist.get(target_topic_id, 0) > 0.15: # 降低一点点阈值，扩大池子
+                candidates.append(p)
         
         if candidates:
-            target_idx = random.choice(candidates[:20]) # 从前20个里抽
-            row = df_data.loc[target_idx]
-            poem_obj = Poem.query.filter_by(title=row['poem_title']).first()
-            reason = f"因您对“{' '.join(data['top_interest'][:2])}”感兴趣而荐"
+            poem_obj = random.choice(candidates)
+            reason = f"因您对“{keywords}”感兴趣而荐"
 
+    # 兜底：如果没抽到或者没画像，彻底随机
     if not poem_obj:
-        all_count = Poem.query.count()
+        query = Poem.query
+        if current_id:
+            query = query.filter(Poem.id != current_id)
+        
+        all_count = query.count()
         if all_count > 0:
-            poem_obj = Poem.query.offset(random.randrange(all_count)).first()
+            poem_obj = query.offset(random.randrange(all_count)).first()
 
     if poem_obj:
         res = poem_obj.to_dict()
@@ -268,4 +323,8 @@ def recommend_one(username):
     return jsonify({"error": "Poem list empty"}), 404
 
 if __name__ == '__main__':
+    # 仅在 Flask 热重载的子进程中运行初始化逻辑，避免跑两遍
+    if os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
+        init_db_and_model()
+    
     app.run(debug=True, port=5000)
