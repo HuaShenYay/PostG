@@ -12,6 +12,9 @@
   --soft-shadow: 0 10px 40px rgba(0, 0, 0, 0.03);
   --header-height: 80PX;
   /* 减少导航栏高度以节省垂直空间 */
+  --radius-main: 16px;
+  --radius-sub: 8px;
+  --transition-smooth: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 body {
@@ -43,11 +46,10 @@ body {
   box-sizing: border-box;
 }
 
-/* 渐入动画 - 更加平滑 */
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(15px);
   }
 
   to {
@@ -57,7 +59,16 @@ body {
 }
 
 .fade-in {
-  animation: fadeInUp 2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: fadeInUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.hover-lift {
+  transition: var(--transition-smooth);
+}
+
+.hover-lift:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
 }
 
 /* 垂直文字 - 精细化 */
@@ -100,31 +111,38 @@ body {
   font-family: inherit;
   font-weight: 400;
   letter-spacing: 0.1em;
-  transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+  border-radius: var(--radius-main) !important;
+  transition: var(--transition-smooth);
+}
+
+.el-card {
+  border-radius: var(--radius-main) !important;
+  border: 1px solid var(--line-gray) !important;
 }
 
 .el-input__wrapper {
-  background: transparent !important;
+  background: rgba(0, 0, 0, 0.02) !important;
   box-shadow: none !important;
-  border-bottom: 0.5px solid var(--line-gray) !important;
-  border-radius: 0 !important;
-  padding: 8px 0 !important;
+  border: 1px solid transparent !important;
+  border-radius: var(--radius-sub) !important;
+  padding: 8px 15px !important;
+  transition: var(--transition-smooth);
 }
 
 .el-input__wrapper.is-focus {
-  border-bottom-color: var(--modern-black) !important;
+  background: transparent !important;
+  border-color: var(--accent-red) !important;
 }
 
 /* Element Plus Message (弹窗) 深度定制 */
 .el-message {
   background-color: var(--stone-white) !important;
   border: 1px solid var(--line-gray) !important;
-  border-radius: 0 !important;
+  border-radius: var(--radius-sub) !important;
   box-shadow: var(--soft-shadow) !important;
   padding: 15px 30px !important;
   min-width: 240px !important;
   justify-content: center !important;
-  /* 核心修改：居中内容 */
 }
 
 .el-message .el-message__content {

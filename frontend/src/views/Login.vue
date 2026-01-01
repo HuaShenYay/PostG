@@ -1,6 +1,6 @@
 <template>
-  <div class="login-container">
-    <el-card class="login-card" shadow="never">
+  <div class="login-container fade-in">
+    <el-card class="login-card hover-lift" shadow="never">
       <div class="editorial-header">
         <span class="date-stamp">公元二零二五</span>
         <h1 class="title">荐诗</h1>
@@ -155,11 +155,8 @@ const handleLogin = async () => {
 }
 
 .login-form :deep(.el-input__wrapper) {
-  border-radius: 0;
-  box-shadow: none;
-  border-bottom: 0.5px solid var(--line-gray);
-  background: transparent;
-  padding: 12px 0;
+  /* 使用全局 style.css 中的圆角样式 */
+  padding: 12px 20px !important;
 }
 
 .login-form :deep(.el-input__wrapper:hover),
@@ -178,8 +175,7 @@ const handleLogin = async () => {
 .login-btn {
   width: 100%;
   margin-top: 40px;
-  border-radius: 0;
-  background: var(--accent-red); /* 改为主题色 */
+  background: var(--accent-red);
   border-color: var(--accent-red);
   font-size: 14PX;
   letter-spacing: 0.4em;

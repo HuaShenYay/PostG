@@ -326,11 +326,18 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 4px 12px;
+  padding: 6px 16px;
   background: rgba(0, 0, 0, 0.03);
-  border-radius: 15px;
+  border-radius: 20px; /* 圆角标签 */
   margin-right: 20px;
   border: 1px solid rgba(0, 0, 0, 0.05);
+  transition: var(--transition-smooth);
+  cursor: pointer;
+}
+
+.header-preference-tag:hover {
+  background: rgba(166, 27, 27, 0.05);
+  border-color: rgba(166, 27, 27, 0.1);
 }
 
 .aura-icon {
@@ -425,7 +432,7 @@ onMounted(() => {
   letter-spacing: 0.1em;
   background: rgba(166, 27, 27, 0.03);
   padding: 12px 24px;
-  border-radius: 2px;
+  border-radius: 30px; /* 全圆角 */
   width: fit-content;
   margin: 0 auto 80px;
   border: 1px solid rgba(166, 27, 27, 0.1);
@@ -576,9 +583,10 @@ onMounted(() => {
   flex-direction: column;
   margin-right: 40px;
   position: relative;
-  /* 竖线优化：使用更具主题感的淡红色，并带有一点渐变感 */
-  border-right: 1px solid rgba(166, 27, 27, 0.08); 
-  padding-right: 40px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: var(--radius-main);
+  border: 1px solid rgba(166, 27, 27, 0.05); 
+  padding: 30px;
   animation: slide-in 1s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
