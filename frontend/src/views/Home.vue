@@ -201,24 +201,6 @@ const logout = () => {
   router.push('/login')
 }
 
-const jumpToPoem = async (title) => {
-  dailyPoem.value = null
-  try {
-    // 这里我们简单处理，从已有的 poems 列表中找，或者去后端查
-    // 后端目前没有直接按 title 查的接口，但我们可以先模糊匹配或者查全部
-    const res = await axios.get('http://127.0.0.1:5000/api/poems')
-    const target = res.data.find(p => p.title === title)
-    if (target) {
-      dailyPoem.value = target
-      fetchReviews(target.id)
-      showSidebar.value = false
-      ElMessage.success(`已为您呈上《${title}》`)
-    }
-  } catch(e) {
-    ElMessage.error('寻诗失败')
-  }
-}
-
 onMounted(() => {
   getAnotherPoem()
   fetchUserProfile()

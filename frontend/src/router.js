@@ -2,13 +2,11 @@ import { createRouter, createWebHistory } from 'vue-router'
 import Login from './views/Login.vue'
 import Register from './views/Register.vue'
 import Home from './views/Home.vue'
-import PoemDetail from './views/PoemDetail.vue'
 
 const routes = [
     { path: '/', component: Home }, // 首页就是每日一诗
     { path: '/login', component: Login },
-    { path: '/register', component: Register },
-    { path: '/poem/:id', component: PoemDetail }
+    { path: '/register', component: Register }
 ]
 
 const router = createRouter({
