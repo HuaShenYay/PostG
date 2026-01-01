@@ -583,11 +583,12 @@ onMounted(() => {
   flex-direction: column;
   margin-right: 40px;
   position: relative;
-  background: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.7); /* 略微增加透明度背景的稳定性 */
   border-radius: var(--radius-main);
   border: 1px solid rgba(166, 27, 27, 0.05); 
   padding: 30px;
   animation: slide-in 1s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden; /* 防止水印溢出 */
 }
 
 /* 评分图标优化：深度覆盖 Element Plus 样式 */
@@ -611,18 +612,33 @@ onMounted(() => {
   to { opacity: 1; transform: translateX(0); }
 }
 
-/* 水印背景 */
+/* 水印背景 - 优化为真正的背景 */
 .watermark-title {
   position: absolute;
-  top: -60px;
-  left: -20px;
+  top: -10px;
+  right: -5px;
   font-family: "Noto Serif SC", serif;
-  font-size: 120PX;
-  color: rgba(0, 0, 0, 0.02); /* 极淡的水印 */
+  font-size: 140PX; /* 增大尺寸 */
+  color: rgba(166, 27, 27, 0.03); 
   font-weight: 900;
   pointer-events: none;
   user-select: none;
-  z-index: -1;
+  z-index: 0;
+  line-height: 1;
+  /* 增加一个非常缓慢的呼吸效果，使其看起来是动态的而非加载残留 */
+  animation: watermark-pulse 8s ease-in-out infinite;
+}
+
+@keyframes watermark-pulse {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.05); }
+}
+
+.marginalia-header, 
+.marginalia-scroll, 
+.marginalia-input-zone {
+  position: relative;
+  z-index: 1; /* 确保交互内容在水印之上 */
 }
 
 .marginalia-header {
@@ -673,20 +689,20 @@ onMounted(() => {
 }
 
 .u-name {
-  font-size: 12PX;
+  font-size: 14PX;
   font-weight: 500;
   letter-spacing: 0.1em;
 }
 
 .u-rating {
-  font-size: 10PX;
+  font-size: 11PX;
   color: #ccc;
 }
 
 .u-content-modern {
-  font-size: 14PX;
-  line-height: 1.8;
-  color: #555;
+  font-size: 16PX;
+  line-height: 1.6;
+  color: #444;
   font-weight: 300;
   margin: 0;
 }
