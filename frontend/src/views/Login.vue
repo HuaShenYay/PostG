@@ -3,8 +3,8 @@
     <el-card class="login-card" shadow="never">
       <div class="editorial-header">
         <span class="date-stamp">公元二零二五</span>
-        <h1 class="title">诗云</h1>
-        <span class="tagline">基于 LDA-CF 的诗歌推荐系统</span>
+        <h1 class="title">荐诗</h1>
+        <span class="tagline">基于 LDA 主题模型的诗歌推荐系统</span>
       </div>
       
       <el-form :model="form" @submit.prevent="handleLogin" class="login-form">
@@ -35,7 +35,7 @@
             @click="handleLogin"
             class="login-btn"
           >
-            {{ loading ? '入梦中...' : '入 梦' }}
+            {{ loading ? '登录中...' : '登 录' }}
           </el-button>
         </el-form-item>
       </el-form>
@@ -45,7 +45,7 @@
       </div>
 
       <div class="footer-note">
-        <p>诗云 · 现代语境下的古典回归</p>
+        <p>荐诗 · 现代语境下的古典回归</p>
       </div>
     </el-card>
   </div>
@@ -80,7 +80,7 @@ const handleLogin = async () => {
     
     if (res.data.status === 'success') {
       localStorage.setItem('user', form.username)
-      ElMessage.success('入梦成功')
+      ElMessage.success('登录成功')
       router.push('/')
     } else {
       ElMessage.error(res.data.message)

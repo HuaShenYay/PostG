@@ -98,7 +98,7 @@ def login():
     
     if user and user.check_password(password):
         return jsonify({
-            "message": "入梦成功",
+            "message": "登录成功",
             "status": "success",
             "user": user.to_dict()
         })

@@ -4,7 +4,7 @@
       <div class="editorial-header">
         <span class="date-stamp">公元二零二五</span>
         <h1 class="title">新绿</h1>
-        <span class="tagline">加入诗云 · 开启您的诗意之旅</span>
+        <span class="tagline">加入荐诗 · 开启您的诗意之旅</span>
       </div>
       
       <el-form :model="form" @submit.prevent="handleRegister" class="login-form">
@@ -51,11 +51,11 @@
       </el-form>
 
       <div class="actions">
-        <router-link to="/login" class="back-link">已有称谓？返回入梦</router-link>
+        <router-link to="/login" class="back-link">已有称谓？返回登录</router-link>
       </div>
 
       <div class="footer-note">
-        <p>诗云 · 现代语境下的古典回归</p>
+        <p>荐诗 · 现代语境下的古典回归</p>
       </div>
     </el-card>
   </div>

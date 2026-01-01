@@ -5,7 +5,7 @@
     <el-header class="top-nav">
       <div class="nav-left">
         <div class="site-branding">
-          <span class="logo-text">诗云</span>
+          <span class="logo-text">荐诗</span>
           <span class="edition">二零二五 · 典藏版</span>
         </div>
       </div>
@@ -26,18 +26,22 @@
       </div>
     </el-header>
 
-    <!-- 主舞台 -->
-    <el-main class="main-stage">
+    <!-- 主舞台：启用纵向滚动 -->
+    <el-main class="main-stage" ref="scrollContainer">
       <transition name="poem-fade" mode="out-in">
         <div v-if="dailyPoem" :key="dailyPoem.id" class="poem-wrapper">
-          <div v-if="dailyPoem.recommend_reason" class="smart-rec-banner">
+          
+          <!-- 智能推荐理由：作为滚动的起点 -->
+          <div v-if="dailyPoem.recommend_reason" class="smart-rec-banner-inline">
              <el-icon><MagicStick /></el-icon>
              <span>{{ dailyPoem.recommend_reason }}</span>
           </div>
+
           <div class="poem-display-split" :class="{ 'with-reviews': showComments }">
-            <!-- 雅评区域：作为页面的“边注”融入 -->
+            <!-- 雅评区域 -->
             <transition name="marginalia-slide">
               <div v-if="showComments" class="marginalia-reviews-integrated">
+                <!-- ... (保持原有雅评内容) ... -->
                 <div class="watermark-title">雅评</div>
                 <div class="marginalia-header">
                    <span class="editorial-count">卷之九 / {{ reviews.length }} 条雅赏</span>
@@ -69,14 +73,14 @@
               </div>
             </transition>
 
-            <!-- 诗文内容与元数据 -->
-            <div class="poem-main-body">
-              <div class="poem-content-side">
-                <p class="content-text">{{ dailyPoem.content }}</p>
+            <!-- 核心展示区：内容居中，元数据在右 -->
+            <div class="poem-main-body-horizontal">
+              <div class="poem-content-center">
+                <p class="content-text-horizontal">{{ formattedPoemContent }}</p>
               </div>
 
-              <div class="poem-meta-side">
-                <div class="meta-wrapper">
+              <div class="poem-meta-right">
+                <div class="meta-wrapper-vertical">
                   <h1 class="poem-title-vertical">{{ dailyPoem.title }}</h1>
                   <div class="meta-divider"></div>
                   <span class="author-tag-vertical theme-color">{{ dailyPoem.author }}</span>
@@ -97,6 +101,7 @@
         </div>
 
         <div v-else class="loading-state">
+          <!-- ... -->
           <el-icon class="is-loading" :size="32"><Loading /></el-icon>
           <p>研墨铺纸中...</p>
         </div>
@@ -106,7 +111,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { 
@@ -123,6 +128,14 @@ const reviews = ref([])
 const newComment = ref('')
 const newRating = ref(5)
 const userProfile = ref(null)
+const scrollContainer = ref(null) // 滚动容器引用
+
+const formattedPoemContent = computed(() => {
+  if (!dailyPoem.value || !dailyPoem.value.content) return ''
+  // 核心清理：移除所有原始换行，完全由标点控制排版，确保对齐
+  const cleanContent = dailyPoem.value.content.replace(/\s+/g, '').trim()
+  return cleanContent.replace(/([，。！？；])/g, '$1\n')
+})
 
 const fetchUserProfile = async () => {
   try {
@@ -134,8 +147,13 @@ const fetchUserProfile = async () => {
 const getAnotherPoem = async () => {
   const currentId = dailyPoem.value ? dailyPoem.value.id : ''
   dailyPoem.value = null
+  
+  // 滚动回顶部
+  if (scrollContainer.value) {
+    scrollContainer.value.$el.scrollTop = 0
+  }
+
   try {
-    // 调用智能换诗接口，并传入当前ID以去重
     const res = await axios.get(`http://127.0.0.1:5000/api/recommend_one/${currentUser}?current_id=${currentId}`)
     dailyPoem.value = res.data
     fetchReviews(dailyPoem.value.id)
@@ -220,7 +238,7 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 60px;
+  padding: 0 40px; /* 减少水平内边距 */
   height: var(--header-height);
   background: transparent;
   z-index: 100;
@@ -378,166 +396,155 @@ onMounted(() => {
   to { opacity: 0.8; transform: translateY(0); }
 }
 
-/* 主舞台 - 大面积留白 */
+/* 主舞台 - 全局滚动 */
 .main-stage {
   flex: 1;
+  overflow-y: auto;
+  padding: 40px 40px 80px;
+  scroll-behavior: smooth;
+}
+
+/* 智能推荐横幅 (改为流式布局) */
+/* --- 主舞台整体布局优化 --- */
+.main-stage {
+  flex: 1;
+  overflow-y: auto;
+  padding: 60px 20px 100px;
+  background-color: var(--stone-white);
+  scroll-behavior: smooth;
+}
+
+/* 智能推荐横幅 (Zen风格) */
+.smart-rec-banner-inline {
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 0 40px 100px;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--accent-red);
+  letter-spacing: 0.1em;
+  background: rgba(166, 27, 27, 0.03);
+  padding: 12px 24px;
+  border-radius: 2px;
+  width: fit-content;
+  margin: 0 auto 80px;
+  border: 1px solid rgba(166, 27, 27, 0.1);
+  animation: banner-slide-down 1.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.poem-display {
-  width: 100%;
-  max-width: 800px;
-  text-align: center;
+@keyframes banner-slide-down {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-.poem-card {
-  border: none;
-  background: transparent;
-  box-shadow: none;
-}
-
-.poem-card :deep(.el-card__body) {
-  padding: 0;
-}
-
-/* 错落并排布局 (现代新中式) */
 .poem-wrapper {
-  position: relative;
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  width: 100%;
+  items-align: center;
+  position: relative;
 }
 
 .poem-display-split {
   display: flex;
-  flex-direction: row;
   justify-content: center;
   align-items: flex-start;
-  gap: 120PX;
   width: 100%;
-  max-width: 1100px;
-  transition: all 1s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  min-height: 400px;
 }
 
-.poem-main-body {
+/* 核心内容区 */
+.poem-main-body-horizontal {
   display: flex;
   flex-direction: row;
   align-items: flex-start;
-  gap: 120PX;
-  transition: all 1s cubic-bezier(0.16, 1, 0.3, 1);
+  gap: 100px; /* 内容与落款的间距 */
+  position: relative;
 }
 
-/* 当有雅评时，整体布局略微左移或压缩 */
-.poem-display-split.with-reviews {
-  gap: 60PX;
+.poem-content-center {
+  max-width: 600px;
+  text-align: center;
 }
 
-@media (max-width: 1200px) {
-  .poem-display-split.with-reviews .poem-main-body {
-    transform: scale(0.9);
-  }
-}
-
-@media (max-width: 900px) {
-  .poem-display-split {
-    flex-direction: column-reverse;
-    align-items: center;
-    gap: 40px;
-  }
-  .poem-main-body {
-    flex-direction: column-reverse;
-    align-items: center;
-    gap: 40px;
-  }
-}
-
-/* 左侧：内容容器 */
-.poem-content-side {
-  text-align: right; /* 内容右对齐，靠近标题 */
-  margin-top: 60PX; /* 与右侧形成高度差(错落) */
-}
-
-.content-text {
+.content-text-horizontal {
   font-family: "Noto Serif SC", serif;
-  font-size: 20PX;
+  font-size: 20px;
   line-height: 2.2;
-  color: #333;
-  white-space: pre-wrap;
+  color: #2c2c2c;
+  letter-spacing: 0.15em;
   font-weight: 300;
-  letter-spacing: 0.05em;
+  white-space: pre-wrap;
   display: inline-block;
-  text-align: left; /* 文字内部左对齐 */
+  text-align: left;
 }
 
-/* 右侧：元数据容器 (垂直排版) */
-.poem-meta-side {
-  width: 120px;
-  display: flex;
-  justify-content: center;
+/* 右侧落款 (垂直题识) */
+.poem-meta-right {
+  width: 60px;
+  margin-top: 10px;
 }
 
-.meta-wrapper {
-  writing-mode: vertical-rl; /* 关键：垂直排列 */
+.meta-wrapper-vertical {
+  writing-mode: vertical-rl;
   text-orientation: upright;
   display: flex;
   align-items: center;
+  border-left: 1px solid rgba(166, 27, 27, 0.1);
+  padding-left: 30px;
 }
 
 .poem-title-vertical {
   font-family: "Noto Serif SC", serif;
-  font-size: 36PX;
+  font-size: 28px;
   font-weight: 500;
-  margin: 0;
-  letter-spacing: 0.3em;
   color: var(--modern-black);
+  margin: 0;
+  letter-spacing: 0.4em;
 }
 
 .meta-divider {
   width: 1px;
-  height: 60px;
+  height: 30px;
   background: var(--accent-red);
   margin: 20px 0;
-  opacity: 0.3;
+  opacity: 0.4;
 }
 
 .author-tag-vertical {
-  font-size: 14PX;
-  letter-spacing: 0.5em;
+  font-size: 13px;
+  letter-spacing: 0.6em;
   font-weight: 400;
+  color: var(--accent-red);
+  opacity: 0.9;
 }
 
-/* 操作栏：底部悬浮 */
+/* 底部操作 */
 .action-bar-floating {
-  margin-top: 120px;
+  margin-top: 100px;
   display: flex;
-  gap: 40px;
-  width: 100%;
+  gap: 50px;
   justify-content: center;
-}
-
-@media (max-width: 900px) {
-  .action-bar-floating {
-    margin-top: 60px;
-  }
+  padding-bottom: 50px;
 }
 
 .ghost-btn {
   border: none !important;
   background: transparent !important;
-  font-size: 12PX !important;
-  letter-spacing: 0.2em;
-  opacity: 0.4;
+  font-size: 13px !important;
+  letter-spacing: 0.25em;
+  opacity: 0.5;
   color: var(--modern-black);
+  transition: all 0.3s;
 }
 
 .ghost-btn:hover {
   opacity: 1;
   color: var(--accent-red) !important;
+  transform: translateY(-2px);
 }
 
 .theme-color {
@@ -629,7 +636,7 @@ onMounted(() => {
 }
 
 .marginalia-scroll {
-  max-height: 480px;
+  max-height: 40vh; /* 使用相对高度，防止溢出 */
   overflow-y: auto;
   padding-right: 15px;
   mask-image: linear-gradient(to bottom, transparent, black 10%, black 90%, transparent);

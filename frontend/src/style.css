@@ -10,8 +10,8 @@
   --line-gray: rgba(0, 0, 0, 0.05);
   /* 更淡的分割线 */
   --soft-shadow: 0 10px 40px rgba(0, 0, 0, 0.03);
-  --header-height: 120PX;
-  /* 增加导航栏高度以提供更多留白 */
+  --header-height: 80PX;
+  /* 减少导航栏高度以节省垂直空间 */
 }
 
 body {
