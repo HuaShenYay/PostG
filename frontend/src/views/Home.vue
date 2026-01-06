@@ -10,6 +10,12 @@
         </div>
       </div>
       <div class="nav-right">
+        <!-- 搜诗入口 -->
+        <div class="search-entry" @click="openSearch">
+          <el-icon><Search /></el-icon>
+          <span>搜诗</span>
+        </div>
+
         <!-- 用户画像：移至顶部，保持观看契合主题 -->
         <transition name="fade">
           <div v-if="userProfile" class="header-preference-tag">
@@ -25,6 +31,43 @@
         </div>
       </div>
     </el-header>
+
+    <!-- 全屏搜索蒙层 -->
+    <transition name="overlay-fade">
+      <div v-if="searchVisible" class="search-overlay" @click.self="closeSearch">
+        <div class="search-modal">
+          <div class="search-input-wrapper">
+             <el-input
+               v-model="searchQuery"
+               placeholder="输入题目、作者或诗句..."
+               class="zen-search-input"
+               prefix-icon="Search"
+               clearable
+               @input="handleSearch"
+               @keyup.enter="handleSearch"
+             />
+             <el-icon class="close-search-icon" @click="closeSearch"><Close /></el-icon>
+          </div>
+          
+          <div class="search-results-area" v-loading="searchLoading">
+            <div v-if="searchResults.length > 0" class="results-grid">
+              <div 
+                v-for="item in searchResults" 
+                :key="item.id" 
+                class="search-result-card"
+                @click="selectPoemFromSearch(item)"
+              >
+                <div class="card-title">{{ item.title }}</div>
+                <div class="card-author">{{ item.author }}</div>
+                <div class="card-snippet">{{ item.content.slice(0, 30) }}...</div>
+              </div>
+            </div>
+            <el-empty v-else-if="searchQuery && !searchLoading" description="未觅得相关诗章" />
+            <div v-else-if="!searchQuery" class="search-tip">欲寻何诗？</div>
+          </div>
+        </div>
+      </div>
+    </transition>
 
     <!-- 主舞台：启用纵向滚动 -->
     <el-main class="main-stage" ref="scrollContainer">
@@ -116,7 +159,8 @@ import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { 
   Menu, SwitchButton, Refresh, RefreshRight, 
-  ChatLineSquare, Loading, EditPen, Close, Check 
+  ChatLineSquare, Loading, EditPen, Close, Check,
+  Search, Compass, MagicStick
 } from '@element-plus/icons-vue'
 import axios from 'axios'
 
@@ -128,7 +172,13 @@ const reviews = ref([])
 const newComment = ref('')
 const newRating = ref(5)
 const userProfile = ref(null)
-const scrollContainer = ref(null) // 滚动容器引用
+const scrollContainer = ref(null)
+
+// 搜索功能相关状态
+const searchVisible = ref(false)
+const searchQuery = ref('')
+const searchLoading = ref(false)
+const searchResults = ref([])
 
 const formattedPoemContent = computed(() => {
   if (!dailyPoem.value || !dailyPoem.value.content) return ''
@@ -171,6 +221,42 @@ const fetchReviews = async (id) => {
 
 const toggleComments = () => { 
   showComments.value = !showComments.value 
+}
+
+// 搜索控制逻辑
+const openSearch = () => {
+  searchVisible.value = true
+  searchQuery.value = ''
+  searchResults.value = []
+}
+
+const closeSearch = () => {
+  searchVisible.value = false
+}
+
+const handleSearch = async () => {
+  if (!searchQuery.value.trim()) {
+    searchResults.value = []
+    return
+  }
+  searchLoading.value = true
+  try {
+    const res = await axios.get(`http://127.0.0.1:5000/api/search_poems?q=${searchQuery.value}`)
+    searchResults.value = res.data
+  } catch (e) {
+    console.error(e)
+  } finally {
+    searchLoading.value = false
+  }
+}
+
+const selectPoemFromSearch = (poem) => {
+  dailyPoem.value = poem
+  fetchReviews(poem.id)
+  closeSearch()
+  if (scrollContainer.value) {
+    scrollContainer.value.$el.scrollTop = 0
+  }
 }
 
 const submitComment = async () => {
@@ -333,6 +419,157 @@ onMounted(() => {
   letter-spacing: 0.1em;
   color: #888;
   font-weight: 300;
+}
+
+/* 搜索入口 */
+.search-entry {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 6px 16px;
+  border-radius: 20px;
+  background: rgba(0, 0, 0, 0.03);
+  transition: var(--transition-smooth);
+  margin-right: 10px;
+}
+
+.search-entry:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.search-entry .el-icon {
+  font-size: 16px;
+  color: var(--modern-black);
+  opacity: 0.6;
+}
+
+.search-entry span {
+  font-size: 12px;
+  color: var(--modern-black);
+  opacity: 0.6;
+  letter-spacing: 0.1em;
+}
+
+/* 搜索蒙层 */
+.search-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  z-index: 2000;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 10vh;
+}
+
+.search-modal {
+  width: 90%;
+  max-width: 800px;
+  display: flex;
+  flex-direction: column;
+}
+
+.search-input-wrapper {
+  position: relative;
+  margin-bottom: 40px;
+}
+
+.zen-search-input :deep(.el-input__wrapper) {
+  background: transparent !important;
+  box-shadow: none !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1) !important;
+  padding: 10px 0 !important;
+  border-radius: 0;
+}
+
+.zen-search-input :deep(.el-input__inner) {
+  font-family: "Noto Serif SC", serif;
+  font-size: 24px;
+  letter-spacing: 0.1em;
+}
+
+.close-search-icon {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 24px;
+  cursor: pointer;
+  opacity: 0.3;
+  transition: var(--transition-smooth);
+}
+
+.close-search-icon:hover {
+  opacity: 1;
+}
+
+.search-results-area {
+  flex: 1;
+  max-height: 70vh;
+  overflow-y: auto;
+  padding: 20px 0;
+}
+
+.results-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 20px;
+}
+
+.search-result-card {
+  padding: 20px;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+
+.search-result-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-main);
+  border-color: var(--accent-red);
+}
+
+.card-title {
+  font-family: "Noto Serif SC", serif;
+  font-size: 18px;
+  margin-bottom: 8px;
+  color: var(--modern-black);
+}
+
+.card-author {
+  font-size: 12px;
+  color: var(--accent-red);
+  margin-bottom: 12px;
+  letter-spacing: 0.1em;
+}
+
+.card-snippet {
+  font-size: 13px;
+  color: #888;
+  line-height: 1.6;
+}
+
+.search-tip {
+  text-align: center;
+  font-size: 18px;
+  color: #ccc;
+  font-family: "Noto Serif SC", serif;
+  margin-top: 100px;
+}
+
+.overlay-fade-enter-active, .overlay-fade-leave-active {
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.overlay-fade-enter-from, .overlay-fade-leave-to {
+  opacity: 0;
+  transform: scale(1.05);
 }
 
 /* 主题库样式 */

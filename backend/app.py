@@ -5,7 +5,8 @@ from models import db, User, Poem, Review
 import pandas as pd
 from sqlalchemy import text
 import os
-from lda_analysis import train_lda_model, load_stopwords, preprocess_text
+from lda_analysis import train_lda_model, load_stopwords, preprocess_text, save_lda_model, load_lda_model
+import json
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -19,53 +20,131 @@ lda_model = None
 dictionary = None
 df_data = None
 topic_keywords = {}
-doc_topic_probs = {} # 缓存每条评论的主题分布
+
+def sync_global_cache():
+    """同步数据库数据到全局变量 df_data"""
+    global df_data, topic_keywords, lda_model, dictionary
+    
+    # 尝试加载模型元数据（如果内存中没有）
+    if not topic_keywords:
+        _, _, topic_keywords = load_lda_model()
+
+    sql = text("""
+        SELECT 
+            u.username as user_id, 
+            p.title as poem_title, 
+            r.rating, 
+            r.comment,
+            r.id as review_id,
+            r.topic_distribution
+        FROM reviews r
+        JOIN users u ON r.user_id = u.id
+        JOIN poems p ON r.poem_id = p.id
+    """)
+    try:
+        df_data = pd.read_sql(sql, db.session.connection())
+    except Exception:
+        df_data = pd.read_sql(sql, db.engine)
+
+def get_all_reviews_df():
+    """获取全量评论的 DataFrame 供训练使用"""
+    sql = text("""
+        SELECT u.username as user_id, p.title as poem_title, r.rating, r.comment 
+        FROM reviews r
+        JOIN users u ON r.user_id = u.id
+        JOIN poems p ON r.poem_id = p.id
+    """)
+    try:
+        return pd.read_sql(sql, db.session.connection())
+    except Exception:
+        return pd.read_sql(sql, db.engine)
 
 def refresh_system_data():
-    """实时刷新系统推荐模型 (使用 LDA)"""
-    global lda_model, dictionary, df_data, topic_keywords, doc_topic_probs
+    """
+    按需增量刷新：仅在有新评论时才激活 LDA。
+    如果没有新评论，只同步缓存，不进行任何模型计算。
+    """
+    global lda_model, dictionary, df_data, topic_keywords
     
     with app.app_context():
-        print("正在同步数据库数据并刷新 LDA 模型...")
-        sql = text("""
-            SELECT 
-                u.username as user_id, 
-                p.title as poem_title, 
-                r.rating, 
-                r.comment 
-            FROM reviews r
-            JOIN users u ON r.user_id = u.id
-            JOIN poems p ON r.poem_id = p.id
-        """)
+        # 1. 检查是否有未处理的新评论
+        new_count = Review.query.filter(Review.topic_distribution == None).count()
         
-        try:
-             df_db = pd.read_sql(sql, db.session.connection())
-        except Exception:
-             df_db = pd.read_sql(sql, db.engine)
-
-        if len(df_db) == 0:
-            print("数据不足，无法训练模型。")
+        # 2. 如果没有新内容，仅同步全局缓存以便推荐系统正常工作
+        if new_count == 0:
+            sync_global_cache()
+            print(">>> 检查完毕：无新增评论内容，跳过模型计算。")
             return
 
-        # 调用 LDA 训练逻辑 (返回 lda, dict, df, keywords)
-        lda, gensim_dict, df, keywords = train_lda_model(df_db)
+        # 3. 发现新内容，确保模型已加载
+        if lda_model is None:
+            lda_model, dictionary, topic_keywords = load_lda_model()
         
-        # 更新全局缓存
-        lda_model = lda
-        dictionary = gensim_dict
-        df_data = df
-        topic_keywords = keywords
-        
-        # 预计算所有文档的主题分布
+        # 4. 如果模型仍为空，尝试全量训练（仅针对第一次冷启动）
+        if lda_model is None:
+            df_all = get_all_reviews_df()
+            if len(df_all) >= 3:
+                print(">>> 未发现模型文件，正在执行初始化全量训练...")
+                lda_model, dictionary, _, topic_keywords = train_lda_model(df_all)
+                if lda_model:
+                    save_lda_model(lda_model, dictionary, topic_keywords)
+            else:
+                sync_global_cache()
+                return
+
+        # 5. 执行增量分析：对新评论推断主题分布
+        print(f">>> 发现 {new_count} 条新评论，仅对这些内容进行 LDA 主题识别...")
+        new_reviews = Review.query.filter(Review.topic_distribution == None).all()
         stopwords = load_stopwords()
-        doc_topic_probs = {}
-        for idx, row in df.iterrows():
-            tokens = preprocess_text(str(row['comment']), stopwords)
-            bow = dictionary.doc2bow(tokens)
-            # lda[bow] 返回 [(topic_id, prob), ...]
-            doc_topic_probs[idx] = dict(lda_model[bow])
+        affected_user_ids = set()
+        
+        for r in new_reviews:
+            tokens = preprocess_text(str(r.comment), stopwords)
+            if tokens:
+                bow = dictionary.doc2bow(tokens)
+                dist = dict(lda_model[bow])
+                # 将推断结果存入数据库
+                r.topic_distribution = json.dumps({str(k): float(v) for k, v in dist.items()})
+                affected_user_ids.add(r.user_id)
+        
+        db.session.commit()
+
+        # 6. 【重点】仅针对有新评论的用户更新画像
+        for uid in affected_user_ids:
+            update_user_preference(uid)
+            print(f"  - 用户ID {uid} 的偏好画像已重新生成")
+        
+        # 7. 更新全局缓存
+        sync_global_cache()
+        print(">>> 增量分析与画像更新已完成。")
+
+def update_user_preference(user_id):
+    """根据用户的历史评论分布，计算并持久化用户偏好"""
+    reviews = Review.query.filter(Review.user_id == user_id, Review.topic_distribution != None).all()
+    if not reviews:
+        return
+        
+    user_dist = {}
+    for r in reviews:
+        dist = json.loads(r.topic_distribution)
+        for tid, prob in dist.items():
+            user_dist[tid] = user_dist.get(tid, 0) + prob
             
-        print("LDA 模型及其索引已同步更新。")
+    total = sum(user_dist.values()) or 1
+    preference = []
+    for tid, score in user_dist.items():
+        preference.append({
+            "topic_id": int(tid),
+            "score": float(score / total)
+        })
+    
+    # 按得分排序
+    preference.sort(key=lambda x: x['score'], reverse=True)
+    
+    user = User.query.get(user_id)
+    if user:
+        user.preference_topics = json.dumps(preference)
+        db.session.commit()
 
 def init_db_and_model():
     """初始化数据库并进行首次训练"""
@@ -132,6 +211,21 @@ def get_poems():
     poems = Poem.query.limit(20).all()
     return jsonify([p.to_dict() for p in poems])
 
+@app.route('/api/search_poems')
+def search_poems():
+    query = request.args.get('q', '')
+    if not query:
+        return jsonify([])
+    
+    # 在标题、作者、内容中进行模糊搜索
+    results = Poem.query.filter(
+        (Poem.title.ilike(f'%{query}%')) |
+        (Poem.author.ilike(f'%{query}%')) |
+        (Poem.content.ilike(f'%{query}%'))
+    ).limit(20).all()
+    
+    return jsonify([p.to_dict() for p in results])
+
 @app.route('/api/topics')
 def get_topics():
     # 只返回前 10 个最活跃的主题
@@ -183,7 +277,26 @@ def add_review():
 
 def _get_user_preference_data(username):
     """提取获取用户偏好的核心逻辑 (内部使用)"""
-    if df_data is None or lda_model is None:
+    user = User.query.filter_by(username=username).first()
+    if not user:
+        return None, 404
+    
+    # 优先从数据库读取已持久化的画像
+    if user.preference_topics:
+        preference = json.loads(user.preference_topics)
+        # 补全关键词信息
+        for p in preference:
+            tid = p['topic_id']
+            p['keywords'] = topic_keywords.get(tid, ["未知"])[:3]
+        
+        return {
+            "user_id": username,
+            "preference": preference,
+            "top_interest": preference[0]['keywords'] if preference else ["通用"]
+        }, 200
+
+    # 兜底：如果数据库没有（比如刚迁移完），尝试从 df_data 现场计算一次
+    if df_data is None:
         return None, 503
         
     user_rows = df_data[df_data['user_id'] == username]
@@ -191,19 +304,21 @@ def _get_user_preference_data(username):
         return None, 404
 
     user_dist = {}
-    for idx in user_rows.index:
-        dist = doc_topic_probs.get(idx, {})
-        for tid, prob in dist.items():
-            user_dist[tid] = user_dist.get(tid, 0) + prob
+    for _, row in user_rows.iterrows():
+        dist_str = row.get('topic_distribution')
+        if dist_str:
+            dist = json.loads(dist_str)
+            for tid, prob in dist.items():
+                user_dist[tid] = user_dist.get(tid, 0) + prob
     
     total = sum(user_dist.values()) or 1
     preference = []
     for tid, score in user_dist.items():
-        if tid in topic_keywords:
+        if int(tid) in topic_keywords:
             preference.append({
                 "topic_id": int(tid),
                 "score": float(score / total),
-                "keywords": topic_keywords[tid][:3]
+                "keywords": topic_keywords[int(tid)][:3]
             })
     
     preference.sort(key=lambda x: x['score'], reverse=True)
@@ -233,14 +348,17 @@ def recommend_personal(username):
 
 @app.route('/api/recommend/<int:topic_id>')
 def recommend_by_topic(topic_id):
-    if df_data is None or lda_model is None:
+    if df_data is None:
         return jsonify([])
     
-    # 混合打分逻辑：LDA/HDP 匹配度 (70%) + 用户评价评分 (30%)
+    # 混合打分逻辑：LDA 匹配度 (70%) + 用户评价评分 (30%)
     scores = []
     for idx, row in df_data.iterrows():
-        dist = doc_topic_probs.get(idx, {})
-        topic_prob = dist.get(topic_id, 0)
+        dist_str = row.get('topic_distribution')
+        topic_prob = 0
+        if dist_str:
+            dist = json.loads(dist_str)
+            topic_prob = dist.get(str(topic_id), 0)
         
         # 混合评分
         hybrid_score = topic_prob * 0.7 + (row['rating'] / 5.0) * 0.3
@@ -291,19 +409,26 @@ def recommend_one(username):
         
         # 寻找候选集
         candidates = []
-        for idx, dist in doc_topic_probs.items():
+        for idx, row in df_data.iterrows():
+            dist_str = row.get('topic_distribution')
+            if not dist_str:
+                continue
+            dist = json.loads(dist_str)
+            
             # 排除当前正在看的这首
-            row = df_data.loc[idx]
             p = Poem.query.filter_by(title=row['poem_title']).first()
             if p and p.id == current_id:
                 continue
                 
-            if dist.get(target_topic_id, 0) > 0.15: # 降低一点点阈值，扩大池子
+            if dist.get(str(target_topic_id), 0) > 0.15: # 降低一点点阈值，扩大池子
                 candidates.append(p)
         
         if candidates:
-            poem_obj = random.choice(candidates)
-            reason = f"因您对“{keywords}”感兴趣而荐"
+            # 过滤掉 None
+            candidates = [c for c in candidates if c]
+            if candidates:
+                poem_obj = random.choice(candidates)
+                reason = f"因您对“{keywords}”感兴趣而荐"
 
     # 兜底：如果没抽到或者没画像，彻底随机
     if not poem_obj:

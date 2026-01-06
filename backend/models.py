@@ -8,17 +8,21 @@ class User(db.Model):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(50), unique=True, nullable=False)
-    password_hash = db.Column(db.String(128), default='123456')  # 简单起见，默认密码123456
+    password_hash = db.Column(db.String(128), default='123456')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
+    
+    # 新增：持久化用户的偏好主题（JSON字符串或格式化文本）
+    # 存储形如：[{"topic_id": 1, "score": 0.8}, ...]
+    preference_topics = db.Column(db.Text) 
+    
     def to_dict(self):
         return {
             'id': self.id,
-            'username': self.username
+            'username': self.username,
+            'preference_topics': self.preference_topics
         }
     
     def check_password(self, password):
-        # 简单比对，生产环境应使用 werkzeug.security 的 hash
         return self.password_hash == password
 
 
@@ -27,11 +31,9 @@ class Poem(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100), nullable=False)
     author = db.Column(db.String(50))
-    # TEXT类型可以存储长文本
     content = db.Column(db.Text)
     
     def to_dict(self):
-        """转为字典，方便API返回JSON"""
         return {
             'id': self.id,
             'title': self.title,
@@ -46,6 +48,10 @@ class Review(db.Model):
     poem_id = db.Column(db.Integer, db.ForeignKey('poems.id'), nullable=False)
     rating = db.Column(db.Integer)
     comment = db.Column(db.Text)
+    
+    # 新增：存储该条评论的主题分布情况
+    # 存储形如：{"0": 0.1, "1": 0.9} 之类的 JSON
+    topic_distribution = db.Column(db.Text)
     
     # 建立关联关系
     user = db.relationship('User', backref='reviews')

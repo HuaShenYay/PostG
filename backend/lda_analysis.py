@@ -108,6 +108,40 @@ def train_lda_model(df=None):
     
     return lda, dictionary, df, topic_keywords
 
+def save_lda_model(lda, dictionary, topic_keywords):
+    """保存模型到本地"""
+    model_dir = os.path.join(BASE_DIR, 'saved_models')
+    if not os.path.exists(model_dir):
+        os.makedirs(model_dir)
+    
+    lda.save(os.path.join(model_dir, 'lda.model'))
+    dictionary.save(os.path.join(model_dir, 'lda.dict'))
+    # 保存主题关键词（简单用 json）
+    import json
+    with open(os.path.join(model_dir, 'keywords.json'), 'w', encoding='utf-8') as f:
+        json.dump(topic_keywords, f, ensure_ascii=False)
+    print("LDA 模型及字典已保存。")
+
+def load_lda_model():
+    """从本地加载模型"""
+    model_dir = os.path.join(BASE_DIR, 'saved_models')
+    lda_path = os.path.join(model_dir, 'lda.model')
+    dict_path = os.path.join(model_dir, 'lda.dict')
+    kw_path = os.path.join(model_dir, 'keywords.json')
+    
+    if os.path.exists(lda_path) and os.path.exists(dict_path):
+        lda = models.LdaModel.load(lda_path)
+        dictionary = corpora.Dictionary.load(dict_path)
+        import json
+        topic_keywords = {}
+        if os.path.exists(kw_path):
+            with open(kw_path, 'r', encoding='utf-8') as f:
+                raw_kw = json.load(f)
+                # json 加载出来的 key 可能是字符串，转回 int
+                topic_keywords = {int(k): v for k, v in raw_kw.items()}
+        return lda, dictionary, topic_keywords
+    return None, None, None
+
 if __name__ == "__main__":
     # 如果直接运行此脚本，则进行测试
     lda, dictionary, df, keywords = train_lda_model()
