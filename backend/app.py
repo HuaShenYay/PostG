@@ -7,6 +7,8 @@ from sqlalchemy import text
 import os
 from lda_analysis import train_lda_model, load_stopwords, preprocess_text, save_lda_model, load_lda_model
 import json
+from collections import Counter
+from sqlalchemy import func
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -446,6 +448,154 @@ def recommend_one(username):
         return jsonify(res)
     
     return jsonify({"error": "Poem list empty"}), 404
+
+# --- 可视化相关 API ---
+
+@app.route('/api/visual/wordcloud')
+def get_wordcloud_data():
+    """生成评论词云数据"""
+    # 获取所有评论
+    reviews = Review.query.all()
+    all_comments = [r.comment for r in reviews if r.comment]
+    
+    stopwords = load_stopwords()
+    processed_words = []
+    
+    for comment in all_comments:
+        # 使用 lda_analysis 中定义的预处理（分词+去停用词）
+        words = preprocess_text(comment, stopwords)
+        processed_words.extend(words)
+        
+    # 统计词频
+    word_counts = Counter(processed_words)
+    
+    # 转换为 ECharts 需要的格式 [{"name": "词", "value": 频率}, ...]
+    # 取前 100 个高频词
+    data = [{"name": w, "value": c} for w, c in word_counts.most_common(100)]
+    
+    return jsonify(data)
+
+@app.route('/api/visual/stats')
+def get_system_stats():
+    """获取系统高级统计数据（多维雷达 + 桑基流向）"""
+    
+    # 1. 基础计数
+    total_users = User.query.count()
+    total_poems = Poem.query.count()
+    total_reviews = Review.query.count()
+    
+    # 2. 准备数据：获取带有作者信息的评论主题分布
+    # 我们需要关联 poems 表获取作者
+    sql = text("""
+        SELECT p.author, r.topic_distribution 
+        FROM reviews r
+        JOIN poems p ON r.poem_id = p.id
+        WHERE r.topic_distribution IS NOT NULL
+    """)
+    try:
+        raw_data = db.session.connection().execute(sql).fetchall()
+    except:
+        raw_data = []
+
+    # 全局主题缓存（确保 loaded）
+    global topic_keywords, lda_model, dictionary
+    if not topic_keywords:
+        lda_model, dictionary, topic_keywords = load_lda_model()
+    
+    # 如果还是空的（没训练过），给点假数据防止崩图
+    if not topic_keywords:
+        return jsonify({
+            "counts": {"users": total_users, "poems": total_poems, "reviews": total_reviews},
+            "radar_data": [],
+            "sankey_data": {"nodes": [], "links": []}
+        })
+
+    # --- A. 雷达图数据：系统的主题倾向 (System Topic Profile) ---
+    # 统计所有评论中，各个 Topic 的总权重
+    topic_weights = {}
+    
+    # --- B. 桑基图数据：作者 -> 主题流向 (Author-Topic Flow) ---
+    # 统计 {Author: {TopicID: Weight}}
+    author_topic_map = {}
+    
+    for row in raw_data:
+        author = row[0]
+        dist = json.loads(row[1])
+        
+        if author not in author_topic_map:
+            author_topic_map[author] = {}
+            
+        for tid, prob in dist.items():
+            tid_int = int(tid)
+            # 全局累加
+            topic_weights[tid_int] = topic_weights.get(tid_int, 0) + prob
+            # 作者累加
+            author_topic_map[author][tid_int] = author_topic_map[author].get(tid_int, 0) + prob
+            
+    # 处理雷达数据：取权重最高的 6 个主题
+    sorted_topics = sorted(topic_weights.items(), key=lambda x: x[1], reverse=True)[:6]
+    radar_indicator = []
+    radar_values = []
+    
+    max_val = sorted_topics[0][1] if sorted_topics else 100
+    
+    for tid, weight in sorted_topics:
+        # 获取该主题的代表词 (前2个)
+        kw = topic_keywords.get(tid, ["未知"])[0] 
+        label = f"主题{tid}-{kw}" # 如 "主题1-明月"
+        radar_indicator.append({"name": label, "max": max_val})
+        radar_values.append(weight)
+        
+    radar_data = {
+        "indicator": radar_indicator,
+        "value": radar_values
+    }
+    
+    # 处理桑基数据：Top 5 作者 -> Top 5 关联主题
+    # 1. 找出 Top Authors
+    sorted_authors = sorted(author_topic_map.items(), 
+                          key=lambda item: sum(item[1].values()), 
+                          reverse=True)[:8] # 取前8位诗人
+                          
+    sankey_nodes = []
+    sankey_links = []
+    seen_nodes = set()
+    
+    for author, t_map in sorted_authors:
+        if author not in seen_nodes:
+            sankey_nodes.append({"name": author})
+            seen_nodes.add(author)
+            
+        # 该作者权重最高的 3 个主题
+        top_t_for_author = sorted(t_map.items(), key=lambda x: x[1], reverse=True)[:3]
+        
+        for tid, w in top_t_for_author:
+            kw = topic_keywords.get(tid, ["未知"])[0]
+            topic_node_name = f"意象：{kw}"
+            
+            if topic_node_name not in seen_nodes:
+                sankey_nodes.append({"name": topic_node_name})
+                seen_nodes.add(topic_node_name)
+                
+            sankey_links.append({
+                "source": author,
+                "target": topic_node_name,
+                "value": round(w, 2)
+            })
+            
+    return jsonify({
+        "counts": {
+            "users": total_users,
+            "poems": total_poems,
+            "reviews": total_reviews
+        },
+        "radar_data": radar_data,
+        "sankey_data": {
+            "nodes": sankey_nodes,
+            "links": sankey_links
+        }
+    })
+
 
 if __name__ == '__main__':
     # 仅在 Flask 热重载的子进程中运行初始化逻辑，避免跑两遍

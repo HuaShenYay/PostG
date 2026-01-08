@@ -16,6 +16,12 @@
           <span>搜诗</span>
         </div>
 
+        <!-- 观象入口 -->
+        <div class="search-entry" @click="goToAnalysis">
+          <el-icon><DataLine /></el-icon>
+          <span>观象</span>
+        </div>
+
         <!-- 用户画像：移至顶部，保持观看契合主题 -->
         <transition name="fade">
           <div v-if="userProfile" class="header-preference-tag">
@@ -160,11 +166,12 @@ import { ElMessage } from 'element-plus'
 import { 
   Menu, SwitchButton, Refresh, RefreshRight, 
   ChatLineSquare, Loading, EditPen, Close, Check,
-  Search, Compass, MagicStick
+  Search, Compass, MagicStick, DataLine
 } from '@element-plus/icons-vue'
 import axios from 'axios'
 
 const router = useRouter()
+const goToAnalysis = () => router.push('/analysis')
 const currentUser = localStorage.getItem('user') || '访客'
 const dailyPoem = ref(null)
 const showComments = ref(false)

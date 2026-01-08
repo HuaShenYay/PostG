@@ -2,11 +2,13 @@ import { createRouter, createWebHistory } from 'vue-router'
 import Login from './views/Login.vue'
 import Register from './views/Register.vue'
 import Home from './views/Home.vue'
+import Analysis from './views/Analysis.vue'
 
 const routes = [
     { path: '/', component: Home }, // 首页就是每日一诗
     { path: '/login', component: Login },
-    { path: '/register', component: Register }
+    { path: '/register', component: Register },
+    { path: '/analysis', component: Analysis }
 ]
 
 const router = createRouter({

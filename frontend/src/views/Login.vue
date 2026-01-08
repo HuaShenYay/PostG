@@ -3,8 +3,7 @@
     <el-card class="login-card hover-lift" shadow="never">
       <div class="editorial-header">
         <span class="date-stamp">公元二零二五</span>
-        <h1 class="title">荐诗</h1>
-        <span class="tagline">基于 LDA 主题模型的诗歌推荐系统</span>
+        <h1 class="title">「荐诗」</h1>
       </div>
       
       <el-form :model="form" @submit.prevent="handleLogin" class="login-form">
