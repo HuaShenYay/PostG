@@ -4,6 +4,6 @@ cryptography
 flask
 flask-cors
 jieba
-scikit-learn
-numpy
+numpy==1.24.3
+gensim==4.3.1
 pandas
