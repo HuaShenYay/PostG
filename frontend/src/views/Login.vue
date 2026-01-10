@@ -3,7 +3,7 @@
     <el-card class="login-card hover-lift" shadow="never">
       <div class="editorial-header">
         <span class="date-stamp">公元二零二五</span>
-        <h1 class="title">「荐诗」</h1>
+        <h1 class="title">诗云</h1>
       </div>
       
       <el-form :model="form" @submit.prevent="handleLogin" class="login-form">

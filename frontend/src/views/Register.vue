@@ -96,7 +96,8 @@ const handleRegister = async () => {
     
     if (res.data.status === 'success') {
       ElMessage.success('注册成功')
-      router.push('/login')
+      localStorage.setItem('user', form.username)
+      router.push('/guide?username=' + form.username)
     } else {
       ElMessage.error(res.data.message)
     }

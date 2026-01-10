@@ -230,9 +230,49 @@ def search_poems():
 
 @app.route('/api/topics')
 def get_topics():
-    # 只返回前 10 个最活跃的主题
-    active_topics = {k: v for k, v in list(topic_keywords.items())[:10]}
-    return jsonify(active_topics)
+    # 返回所有主题
+    return jsonify(topic_keywords)
+
+@app.route('/api/save_initial_preferences', methods=['POST'])
+def save_initial_preferences():
+    """保存新用户选择的初始偏好主题"""
+    data = request.json
+    username = data.get('username')
+    selected_topics = data.get('selected_topics', [])
+    
+    if not username:
+        return jsonify({"message": "用户名不能为空", "status": "error"}), 400
+    
+    if not selected_topics:
+        return jsonify({"message": "请至少选择一个主题", "status": "error"}), 400
+    
+    user = User.query.filter_by(username=username).first()
+    if not user:
+        return jsonify({"message": "用户不存在", "status": "error"}), 404
+    
+    # 将用户选择的主题转换为偏好格式
+    # 为每个选中的主题分配较高的初始分数
+    preference = []
+    for i, topic_id in enumerate(selected_topics):
+        # 根据选择顺序分配权重，第一个选择的权重最高
+        weight = 1.0 - (i * 0.15)  # 递减权重
+        preference.append({
+            "topic_id": int(topic_id),
+            "score": max(weight, 0.1)
+        })
+    
+    # 按得分排序
+    preference.sort(key=lambda x: x['score'], reverse=True)
+    
+    # 保存到数据库
+    user.preference_topics = json.dumps(preference)
+    db.session.commit()
+    
+    return jsonify({
+        "message": "偏好设置成功",
+        "status": "success",
+        "preference": preference
+    })
 
 @app.route('/api/poem/<int:poem_id>/reviews')
 def get_poem_reviews(poem_id):
@@ -336,7 +376,11 @@ def _get_user_preference_data(username):
 def get_user_preference(username):
     data, code = _get_user_preference_data(username)
     if code != 200:
-        return jsonify({"error": "User or Model not found"}), code
+        return jsonify({
+            "user_id": username,
+            "preference": [],
+            "top_interest": ["通用"]
+        })
     return jsonify(data)
 
 @app.route('/api/recommend_personal/<username>')
@@ -386,61 +430,81 @@ def recommend_by_topic(topic_id):
 
 @app.route('/api/recommend_one/<username>')
 def recommend_one(username):
-    """智能换诗：增加多样性，避免重复"""
+    """智能换诗：增加多样性，避免重复，定期推荐未看过的诗歌"""
     import random
     current_id = request.args.get('current_id', type=int)
+    skip_count = request.args.get('skip_count', 0, type=int)
     data, code = _get_user_preference_data(username)
     
     poem_obj = None
     reason = "随机选取的千古佳作"
 
-    # 如果有画像，尝试“加权随机”选择一个主题，增加多样性
-    if code == 200 and data['preference']:
-        prefs = data['preference']
-        # 权重分配：70% 概率抽第一偏好，20% 抽第二，10% 抽第三（如果有的话）
-        dice = random.random()
-        if dice < 0.7 or len(prefs) < 2:
-            target_pref = prefs[0]
-        elif dice < 0.9 or len(prefs) < 3:
-            target_pref = prefs[1]
-        else:
-            target_pref = prefs[2]
-            
-        target_topic_id = target_pref['topic_id']
-        keywords = " · ".join(target_pref['keywords'][:2])
+    # 每5次推荐一次未被任何用户看过的诗歌，拓展用户视野
+    if skip_count > 0 and skip_count % 5 == 0:
+        # 查找所有诗歌ID
+        all_poem_ids = [p.id for p in Poem.query.all()]
+        # 查找所有被评论过的诗歌ID
+        reviewed_poem_ids = [r.poem_id for r in Review.query.all()]
+        # 找出未被看过的诗歌
+        unseen_poem_ids = list(set(all_poem_ids) - set(reviewed_poem_ids))
         
-        # 寻找候选集
-        candidates = []
-        for idx, row in df_data.iterrows():
-            dist_str = row.get('topic_distribution')
-            if not dist_str:
-                continue
-            dist = json.loads(dist_str)
-            
-            # 排除当前正在看的这首
-            p = Poem.query.filter_by(title=row['poem_title']).first()
-            if p and p.id == current_id:
-                continue
-                
-            if dist.get(str(target_topic_id), 0) > 0.15: # 降低一点点阈值，扩大池子
-                candidates.append(p)
+        if unseen_poem_ids:
+            # 随机选择一首未被看过的诗歌
+            poem_obj = Poem.query.filter(Poem.id.in_(unseen_poem_ids)).first()
+            if poem_obj:
+                reason = "为您推荐一首尚未被发现的佳作"
         
-        if candidates:
-            # 过滤掉 None
-            candidates = [c for c in candidates if c]
-            if candidates:
-                poem_obj = random.choice(candidates)
-                reason = f"因您对“{keywords}”感兴趣而荐"
+        # 如果没有未被看过的诗歌，继续使用常规推荐逻辑
 
-    # 兜底：如果没抽到或者没画像，彻底随机
+    # 如果没有推荐到诗歌，使用常规推荐逻辑
     if not poem_obj:
-        query = Poem.query
-        if current_id:
-            query = query.filter(Poem.id != current_id)
-        
-        all_count = query.count()
-        if all_count > 0:
-            poem_obj = query.offset(random.randrange(all_count)).first()
+        # 如果有画像，尝试"加权随机"选择一个主题，增加多样性
+        if code == 200 and data['preference']:
+            prefs = data['preference']
+            # 权重分配：70% 概率抽第一偏好，20% 抽第二，10% 抽第三（如果有的话）
+            dice = random.random()
+            if dice < 0.7 or len(prefs) < 2:
+                target_pref = prefs[0]
+            elif dice < 0.9 or len(prefs) < 3:
+                target_pref = prefs[1]
+            else:
+                target_pref = prefs[2]
+                
+            target_topic_id = target_pref['topic_id']
+            keywords = " · ".join(target_pref['keywords'][:2])
+            
+            # 寻找候选集
+            candidates = []
+            for idx, row in df_data.iterrows():
+                dist_str = row.get('topic_distribution')
+                if not dist_str:
+                    continue
+                dist = json.loads(dist_str)
+                
+                # 排除当前正在看的这首
+                p = Poem.query.filter_by(title=row['poem_title']).first()
+                if p and p.id == current_id:
+                    continue
+                    
+                if dist.get(str(target_topic_id), 0) > 0.15: # 降低一点点阈值，扩大池子
+                    candidates.append(p)
+            
+            if candidates:
+                # 过滤掉 None
+                candidates = [c for c in candidates if c]
+                if candidates:
+                    poem_obj = random.choice(candidates)
+                    reason = f"因您对\"{keywords}\"感兴趣而荐"
+
+        # 兜底：如果没抽到或者没画像，彻底随机
+        if not poem_obj:
+            query = Poem.query
+            if current_id:
+                query = query.filter(Poem.id != current_id)
+            
+            all_count = query.count()
+            if all_count > 0:
+                poem_obj = query.offset(random.randrange(all_count)).first()
 
     if poem_obj:
         res = poem_obj.to_dict()

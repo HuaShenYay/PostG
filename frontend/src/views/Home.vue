@@ -180,6 +180,7 @@ const newComment = ref('')
 const newRating = ref(5)
 const userProfile = ref(null)
 const scrollContainer = ref(null)
+const skipCount = ref(0)
 
 // 搜索功能相关状态
 const searchVisible = ref(false)
@@ -195,10 +196,18 @@ const formattedPoemContent = computed(() => {
 })
 
 const fetchUserProfile = async () => {
+  if (currentUser === '访客') {
+    userProfile.value = null
+    return
+  }
+  
   try {
     const res = await axios.get(`http://127.0.0.1:5000/api/user_preference/${currentUser}`)
     userProfile.value = res.data
-  } catch(e) { console.error(e) }
+  } catch(e) { 
+    console.error('获取用户画像失败:', e)
+    userProfile.value = null
+  }
 }
 
 const getAnotherPoem = async () => {
@@ -211,7 +220,8 @@ const getAnotherPoem = async () => {
   }
 
   try {
-    const res = await axios.get(`http://127.0.0.1:5000/api/recommend_one/${currentUser}?current_id=${currentId}`)
+    skipCount.value++
+    const res = await axios.get(`http://127.0.0.1:5000/api/recommend_one/${currentUser}?current_id=${currentId}&skip_count=${skipCount.value}`)
     dailyPoem.value = res.data
     fetchReviews(dailyPoem.value.id)
   } catch (e) { 
