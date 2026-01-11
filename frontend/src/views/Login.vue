@@ -10,37 +10,38 @@
     </div>
     
     <div class="login-content fade-in">
-      <el-card class="login-card glass-card" shadow="never">
+      <n-card class="login-card glass-card" bordered="false">
         <div class="editorial-header">
           <span class="date-stamp">公元二零二五</span>
           <h1 class="title">诗云</h1>
           <div class="decorative-line"></div>
+          <span class="tagline">诗云 · 重温古典社会下的民族语言</span>
         </div>
         
-        <el-form :model="form" @submit.prevent="handleLogin" class="login-form">
-          <el-form-item>
-            <el-input 
-              v-model="form.username" 
+        <n-form :model="form" @submit.prevent="handleLogin" class="login-form">
+          <n-form-item>
+            <n-input 
+              v-model:value="form.username" 
               placeholder="称 谓" 
               size="large"
-              :prefix-icon="User"
+              :prefix="() => h(Person, { size: 20 })"
               class="modern-input"
             />
-          </el-form-item>
-          <el-form-item>
-            <el-input 
-              v-model="form.password" 
+          </n-form-item>
+          <n-form-item>
+            <n-input 
+              v-model:value="form.password" 
               type="password" 
               placeholder="口 令" 
               size="large"
-              :prefix-icon="Lock"
-              show-password
+              :prefix="() => h(LockClosed, { size: 20 })"
+              show-password-on="mousedown"
               class="modern-input"
             />
-          </el-form-item>
+          </n-form-item>
           
-          <el-form-item>
-            <el-button 
+          <n-form-item>
+            <n-button 
               type="primary" 
               size="large" 
               :loading="loading"
@@ -48,30 +49,31 @@
               class="login-btn modern-btn"
             >
               {{ loading ? '登录中...' : '登 录' }}
-            </el-button>
-          </el-form-item>
-        </el-form>
+            </n-button>
+          </n-form-item>
+        </n-form>
 
         <div class="actions">
           <router-link to="/register" class="register-link">尚无称谓？前往注册</router-link>
         </div>
 
         <div class="footer-note">
-          <p>荐诗 · 现代语境下的古典回归</p>
+          <p>诗云 · 现代语境下的古典回归</p>
         </div>
-      </el-card>
+      </n-card>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, h } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
-import { User, Lock } from '@element-plus/icons-vue'
+import { useMessage } from 'naive-ui'
+import { Person, LockClosed } from '@vicons/ionicons5'
 import axios from 'axios'
 
 const router = useRouter()
+const message = useMessage()
 const loading = ref(false)
 const form = reactive({
   username: '',
@@ -80,7 +82,7 @@ const form = reactive({
 
 const handleLogin = async () => {
   if (!form.username || !form.password) {
-    ElMessage.warning('请完整填写')
+    message.warning('请完整填写')
     return
   }
   
@@ -93,13 +95,13 @@ const handleLogin = async () => {
     
     if (res.data.status === 'success') {
       localStorage.setItem('user', form.username)
-      ElMessage.success('登录成功')
+      message.success('登录成功')
       router.push('/')
     } else {
-      ElMessage.error(res.data.message)
+      message.error(res.data.message)
     }
   } catch (e) {
-    ElMessage.error(e.response?.data?.message || '连接失败')
+    message.error(e.response?.data?.message || '连接失败')
   } finally {
     loading.value = false
   }
@@ -160,6 +162,18 @@ const handleLogin = async () => {
   z-index: 1;
   width: 100%;
   padding: 40px;
+  animation: fade-in-up 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .login-card {
@@ -170,9 +184,22 @@ const handleLogin = async () => {
   background: rgba(255, 255, 255, 0.8) !important;
   backdrop-filter: blur(30px);
   -webkit-backdrop-filter: blur(30px);
+  border-radius: 24px !important;
+  animation: card-appear 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.2s both;
 }
 
-.login-card :deep(.el-card__body) {
+@keyframes card-appear {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.login-card :deep(.n-card-body) {
   padding: 60px 40px;
 }
 
@@ -190,6 +217,16 @@ const handleLogin = async () => {
   margin-bottom: 20px;
   font-weight: 300;
   opacity: 0.8;
+  animation: fade-in 1s ease-out 0.4s both;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 0.8;
+  }
 }
 
 .title {
@@ -203,6 +240,18 @@ const handleLogin = async () => {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  animation: title-appear 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.5s both;
+}
+
+@keyframes title-appear {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .decorative-line {
@@ -211,39 +260,74 @@ const handleLogin = async () => {
   background: linear-gradient(90deg, transparent, var(--accent-red), transparent);
   margin: 20px auto 0;
   border-radius: 2px;
+  animation: line-expand 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.7s both;
+}
+
+@keyframes line-expand {
+  from {
+    width: 0;
+  }
+  to {
+    width: 60px;
+  }
+}
+
+.tagline {
+  font-size: 12PX;
+  letter-spacing: 0.2em;
+  color: #999;
+  margin-top: 15px;
+  display: block;
+  text-transform: uppercase;
+  animation: fade-in 0.8s ease-out 0.9s both;
 }
 
 @media (max-width: 768px) {
   .title { font-size: 48PX; }
+  .login-card { max-width: 100%; }
+  .login-card :deep(.n-card-body) { padding: 40px 30px; }
+  .login-content { padding: 20px; }
+}
+
+@media (max-width: 480px) {
+  .title { font-size: 36PX; }
+  .date-stamp { font-size: 12PX; }
+  .login-card :deep(.n-card-body) { padding: 30px 20px; }
+  .login-form :deep(.n-input-input) { font-size: 14PX; }
+  .login-btn { height: 48px; font-size: 13PX; }
+  .editorial-header { margin-bottom: 40px; }
 }
 
 .login-form {
   margin-top: 40px;
 }
 
-.login-form :deep(.el-input__wrapper) {
+.login-form :deep(.n-input-wrapper) {
   background: rgba(255, 255, 255, 0.5) !important;
-  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  border: none !important;
   padding: 14px 20px !important;
-  border-radius: 12px !important;
+  border-radius: 16px !important;
   transition: var(--transition-smooth);
+  outline: none !important;
 }
 
-.login-form :deep(.el-input__wrapper:hover) {
+.login-form :deep(.n-input-wrapper:hover) {
   background: rgba(255, 255, 255, 0.8) !important;
-  border-color: rgba(166, 27, 27, 0.3) !important;
+  border: none !important;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  outline: none !important;
 }
 
-.login-form :deep(.el-input__wrapper.is-focus) {
+.login-form :deep(.n-input-wrapper.n-input-wrapper--focus) {
   background: white !important;
-  border-color: var(--accent-red) !important;
+  border: none !important;
   box-shadow: 0 0 0 4px rgba(166, 27, 27, 0.1), 0 4px 12px rgba(0, 0, 0, 0.08) !important;
   transform: translateY(-2px);
+  outline: none !important;
 }
 
-.login-form :deep(.el-input__inner) {
+.login-form :deep(.n-input-input) {
   text-align: center;
   font-size: 16PX;
   font-weight: 300;
@@ -251,7 +335,7 @@ const handleLogin = async () => {
   color: var(--modern-black);
 }
 
-.login-form :deep(.el-input__inner::placeholder) {
+.login-form :deep(.n-input-input::placeholder) {
   color: rgba(0, 0, 0, 0.3);
 }
 
@@ -263,7 +347,7 @@ const handleLogin = async () => {
   height: 52px;
   font-weight: 300;
   text-indent: 0.4em;
-  border-radius: 12px !important;
+  border-radius: 16px !important;
   background: linear-gradient(135deg, var(--accent-red) 0%, var(--accent-red-dark) 100%) !important;
   border: none !important;
   box-shadow: 0 4px 16px rgba(166, 27, 27, 0.3) !important;
@@ -284,6 +368,7 @@ const handleLogin = async () => {
 .actions {
   text-align: center;
   margin-top: 25px;
+  animation: fade-in 0.8s ease-out 1s both;
 }
 
 .register-link {
@@ -320,6 +405,7 @@ const handleLogin = async () => {
   text-align: center;
   margin-top: 50px;
   opacity: 0.3;
+  animation: fade-in 0.8s ease-out 1.2s both;
 }
 
 .footer-note p {

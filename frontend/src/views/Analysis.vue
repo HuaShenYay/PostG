@@ -1,10 +1,10 @@
 <template>
   <div class="analysis-container">
     <div class="header-section">
-      <div class="back-btn" @click="goHome">
-        <el-icon><ArrowLeft /></el-icon>
-        <span>回廊</span>
-      </div>
+    <div class="back-btn" @click="goHome">
+      <n-icon><ArrowBack /></n-icon>
+      <span>回廊</span>
+    </div>
       <div class="page-title">
         <span class="main-title">万象</span>
         <span class="sub-title">系统全览与数据洞察</span>
@@ -57,16 +57,17 @@
     </div>
     
     <div v-else class="loading-wrapper">
-      <el-icon class="is-loading"><Loading /></el-icon>
-      <div>观象推演中...</div>
-    </div>
+    <n-icon size="48" class="is-loading"><RefreshCircleOutline /></n-icon>
+    <div>观象推演中...</div>
+  </div>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ArrowLeft, Loading } from '@element-plus/icons-vue'
+import { ArrowBack, RefreshCircleOutline } from '@vicons/ionicons5'
+import { NIcon } from 'naive-ui'
 import axios from 'axios'
 import * as echarts from 'echarts'
 import 'echarts-wordcloud'
@@ -285,6 +286,7 @@ onMounted(() => {
   text-align: center;
   transition: var(--transition-smooth);
   box-shadow: var(--soft-shadow);
+  min-height: 120px;
 }
 
 .stat-item:hover {
@@ -322,6 +324,36 @@ onMounted(() => {
   gap: 25px;
 }
 
+/* 响应式布局 */
+@media (max-width: 768px) {
+  .analysis-container {
+    padding: 20px;
+  }
+  
+  .stat-card-row {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .charts-area {
+    grid-template-columns: 1fr;
+  }
+  
+  .wide {
+    grid-column: span 1;
+  }
+  
+  .header-section {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+  }
+  
+  .back-btn {
+    margin-right: 0;
+  }
+}
+
 .chart-card {
   background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(20px);
@@ -329,11 +361,13 @@ onMounted(() => {
   padding: 25px;
   border-radius: var(--radius-lg);
   border: 1px solid rgba(0, 0, 0, 0.05);
-  height: 350px;
+  min-height: 350px;
+  height: auto;
   display: flex;
   flex-direction: column;
   box-shadow: var(--soft-shadow);
   transition: var(--transition-smooth);
+  overflow: hidden;
 }
 
 .chart-card:hover {
@@ -378,5 +412,14 @@ onMounted(() => {
   color: #999;
   font-size: 14px;
   gap: 15px;
+}
+
+.is-loading {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 </style>
