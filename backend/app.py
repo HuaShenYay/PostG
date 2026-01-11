@@ -288,6 +288,73 @@ def get_poem_reviews(poem_id):
         })
     return jsonify(result)
 
+@app.route('/api/poem/<int:poem_id>/allusions')
+def get_poem_allusions(poem_id):
+    """获取诗歌的用典注释"""
+    # 模拟用典数据，实际应用中可以从数据库或外部API获取
+    mock_allusions = {
+        1: [
+            {
+                "text": "明月松间照",
+                "source": "出自唐代诗人王维《山居秋暝》",
+                "explanation": "此处化用王维诗句，营造出清幽宁静的月夜氛围，寄托诗人对自然之美的向往。"
+            },
+            {
+                "text": "清泉石上流",
+                "source": "出自唐代诗人王维《山居秋暝》",
+                "explanation": "化用王维经典意象，以清泉流动衬托环境的静谧，增强诗歌的画面感和意境美。"
+            }
+        ],
+        2: [
+            {
+                "text": "举头望明月",
+                "source": "出自唐代诗人李白《静夜思》",
+                "explanation": "借用李白名句，表达诗人对远方亲人的思念之情，引发读者共鸣。"
+            }
+        ],
+        3: [
+            {
+                "text": "春风又绿江南岸",
+                "source": "出自宋代诗人王安石《泊船瓜洲》",
+                "explanation": "化用王安石诗句，生动描绘春天到来时江南大地的生机盎然，表现时光流逝和季节更替。"
+            }
+        ]
+    }
+    
+    # 获取当前诗歌的用典注释，若无则返回空列表
+    poem_allusions = mock_allusions.get(poem_id, [])
+    return jsonify(poem_allusions)
+
+@app.route('/api/poem/<int:poem_id>/helper')
+def get_poem_helper(poem_id):
+    """获取诗歌辅助理解信息：作者简介、诗歌背景、诗歌赏析"""
+    # 模拟诗歌辅助数据，实际应用中可以从数据库或外部API获取
+    mock_helper_data = {
+        1: {
+            "author_bio": "王维（701年－761年），字摩诘，号摩诘居士，唐代著名诗人、画家。其诗多咏山水田园，与孟浩然合称'王孟'，有'诗佛'之称。书画特臻其妙，后人推其为'南宗山水画之祖'。",
+            "background": "此诗作于王维晚年隐居辋川时期，描绘了秋山雨后的自然风光，表现了诗人寄情山水田园的闲情逸致。",
+            "appreciation": "这首诗以自然景物为描绘对象，通过明月、松间、清泉、石上、竹喧、莲动等意象，营造出一幅清幽宁静的秋山月夜图，表达了诗人对自然之美的热爱和对隐居生活的向往。"
+        },
+        2: {
+            "author_bio": "李白（701年－762年），字太白，号青莲居士，唐代伟大的浪漫主义诗人，被后人誉为'诗仙'，与杜甫并称为'李杜'。其诗风格豪放飘逸，富有浪漫主义情怀。",
+            "background": "此诗作于李白客居他乡时，通过描写秋夜明月引发的思乡之情，表达了诗人对故乡和亲人的深切思念。",
+            "appreciation": "这首诗语言朴素自然，情感真挚深切，通过'举头望明月，低头思故乡'这一千古名句，将个人思乡之情升华到人类共有的情感体验，成为千古绝唱。"
+        },
+        3: {
+            "author_bio": "王安石（1021年－1086年），字介甫，号半山，北宋著名政治家、文学家、思想家。其散文简洁峻切，短小精悍，论点鲜明，逻辑严密，名列'唐宋八大家'。",
+            "background": "此诗作于王安石第二次拜相，赴汴京途中，通过描写泊船瓜洲时的所见所感，表达了诗人对故乡的思念和对变法前途的忧虑。",
+            "appreciation": "这首诗以'春风又绿江南岸'一句最为著名，其中'绿'字的运用堪称炼字的典范，生动描绘了春天到来时江南大地的生机盎然，表现了时光流逝和季节更替。"
+        }
+    }
+    
+    # 获取当前诗歌的辅助信息，若无则返回空对象
+    poem_helper = mock_helper_data.get(poem_id, {
+        "author_bio": "",
+        "background": "",
+        "appreciation": ""
+    })
+    return jsonify(poem_helper)
+
 @app.route('/api/poem/review', methods=['POST'])
 def add_review():
     data = request.json
@@ -518,30 +585,42 @@ def recommend_one(username):
 @app.route('/api/visual/wordcloud')
 def get_wordcloud_data():
     """生成评论词云数据"""
-    # 获取所有评论
-    reviews = Review.query.all()
-    all_comments = [r.comment for r in reviews if r.comment]
+    # 获取用户ID参数
+    user_id = request.args.get('user_id')
     
-    stopwords = load_stopwords()
-    processed_words = []
+    if user_id:
+        # 个性化词云：基于用户偏好主题生成
+        user = User.query.filter_by(username=user_id).first()
+        if user and user.preference_topics:
+            # 获取用户偏好主题
+            preference = json.loads(user.preference_topics)
+            processed_words = []
+            
+            # 遍历用户偏好的主题，生成关键词数据
+            for p in preference:
+                topic_id = p['topic_id']
+                score = p['score']
+                # 获取主题对应的关键词
+                keywords = topic_keywords.get(topic_id, [])
+                # 根据偏好分数生成权重
+                weight = int(score * 100)
+                # 将关键词按权重重复，生成词频
+                processed_words.extend(keywords * weight)
+            
+            # 统计词频
+            word_counts = Counter(processed_words)
+            # 转换为 ECharts 需要的格式，取前 100 个高频词
+            data = [{"name": w, "value": c} for w, c in word_counts.most_common(100)]
+            return jsonify(data)
     
-    for comment in all_comments:
-        # 使用 lda_analysis 中定义的预处理（分词+去停用词）
-        words = preprocess_text(comment, stopwords)
-        processed_words.extend(words)
-        
-    # 统计词频
-    word_counts = Counter(processed_words)
-    
-    # 转换为 ECharts 需要的格式 [{"name": "词", "value": 频率}, ...]
-    # 取前 100 个高频词
-    data = [{"name": w, "value": c} for w, c in word_counts.most_common(100)]
-    
-    return jsonify(data)
+    # 若用户无偏好或未登录，返回空词云数据
+    return jsonify([])
 
 @app.route('/api/visual/stats')
 def get_system_stats():
     """获取系统高级统计数据（多维雷达 + 桑基流向）"""
+    # 获取用户ID参数
+    user_id = request.args.get('user_id')
     
     # 1. 基础计数
     total_users = User.query.count()
@@ -549,17 +628,34 @@ def get_system_stats():
     total_reviews = Review.query.count()
     
     # 2. 准备数据：获取带有作者信息的评论主题分布
-    # 我们需要关联 poems 表获取作者
-    sql = text("""
-        SELECT p.author, r.topic_distribution 
-        FROM reviews r
-        JOIN poems p ON r.poem_id = p.id
-        WHERE r.topic_distribution IS NOT NULL
-    """)
-    try:
-        raw_data = db.session.connection().execute(sql).fetchall()
-    except:
-        raw_data = []
+    if user_id:
+        # 个性化：仅使用当前用户的评论数据
+        user = User.query.filter_by(username=user_id).first()
+        if user:
+            sql = text("""
+                SELECT p.author, r.topic_distribution 
+                FROM reviews r
+                JOIN poems p ON r.poem_id = p.id
+                WHERE r.user_id = :user_id AND r.topic_distribution IS NOT NULL
+            """)
+            try:
+                raw_data = db.session.connection().execute(sql, {'user_id': user.id}).fetchall()
+            except:
+                raw_data = []
+        else:
+            raw_data = []
+    else:
+        # 全局：使用所有评论数据
+        sql = text("""
+            SELECT p.author, r.topic_distribution 
+            FROM reviews r
+            JOIN poems p ON r.poem_id = p.id
+            WHERE r.topic_distribution IS NOT NULL
+        """)
+        try:
+            raw_data = db.session.connection().execute(sql).fetchall()
+        except:
+            raw_data = []
 
     # 全局主题缓存（确保 loaded）
     global topic_keywords, lda_model, dictionary
@@ -575,7 +671,7 @@ def get_system_stats():
         })
 
     # --- A. 雷达图数据：系统的主题倾向 (System Topic Profile) ---
-    # 统计所有评论中，各个 Topic 的总权重
+    # 统计评论中，各个 Topic 的总权重
     topic_weights = {}
     
     # --- B. 桑基图数据：作者 -> 主题流向 (Author-Topic Flow) ---
@@ -591,11 +687,41 @@ def get_system_stats():
             
         for tid, prob in dist.items():
             tid_int = int(tid)
-            # 全局累加
+            # 累加权重
             topic_weights[tid_int] = topic_weights.get(tid_int, 0) + prob
             # 作者累加
             author_topic_map[author][tid_int] = author_topic_map[author].get(tid_int, 0) + prob
             
+    # 如果当前用户没有评论数据，使用全局数据作为默认
+    if user_id and not raw_data:
+        # 使用全局数据作为默认
+        sql = text("""
+            SELECT p.author, r.topic_distribution 
+            FROM reviews r
+            JOIN poems p ON r.poem_id = p.id
+            WHERE r.topic_distribution IS NOT NULL
+            LIMIT 100
+        """)
+        try:
+            raw_data = db.session.connection().execute(sql).fetchall()
+        except:
+            raw_data = []
+        
+        # 重新计算权重
+        topic_weights = {}
+        author_topic_map = {}
+        for row in raw_data:
+            author = row[0]
+            dist = json.loads(row[1])
+            
+            if author not in author_topic_map:
+                author_topic_map[author] = {}
+                
+            for tid, prob in dist.items():
+                tid_int = int(tid)
+                topic_weights[tid_int] = topic_weights.get(tid_int, 0) + prob
+                author_topic_map[author][tid_int] = author_topic_map[author].get(tid_int, 0) + prob
+    
     # 处理雷达数据：取权重最高的 6 个主题
     sorted_topics = sorted(topic_weights.items(), key=lambda x: x[1], reverse=True)[:6]
     radar_indicator = []

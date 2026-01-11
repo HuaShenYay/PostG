@@ -5,6 +5,8 @@ import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
 import zhCn from 'element-plus/dist/locale/zh-cn.mjs'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
+// 添加 Naive UI 配置
+import naive from 'naive-ui'
 import './utils/responsive.js'
 import './style.css'
 
@@ -16,5 +18,6 @@ for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
 }
 
 app.use(ElementPlus, { locale: zhCn })
+app.use(naive)
 app.use(router)
 app.mount('#app')

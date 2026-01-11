@@ -3,24 +3,30 @@
 :root {
   --modern-black: #121212;
   --stone-white: #fdfcf9;
-  /* 更轻盈的石白 */
   --accent-red: #a61b1b;
-  /* 稍微调亮的绛红 */
+  --accent-red-light: #c52d2d;
+  --accent-red-dark: #8a1616;
   --muted-gold: #b3935d;
   --line-gray: rgba(0, 0, 0, 0.05);
-  /* 更淡的分割线 */
   --soft-shadow: 0 10px 40px rgba(0, 0, 0, 0.03);
+  --modern-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.06);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
   --header-height: 80PX;
-  /* 减少导航栏高度以节省垂直空间 */
   --radius-main: 16px;
   --radius-sub: 8px;
+  --radius-lg: 24px;
   --transition-smooth: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-bounce: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.5);
+  --gradient-subtle: linear-gradient(135deg, rgba(166, 27, 27, 0.03) 0%, rgba(179, 147, 93, 0.02) 100%);
+  --gradient-warm: linear-gradient(135deg, #fdfcf9 0%, #f8f6f1 100%);
 }
 
 body {
   margin: 0;
   padding: 0;
-  background-color: var(--stone-white);
+  background: var(--gradient-warm);
   color: var(--modern-black);
   font-family: 'Inter', "Noto Serif SC", serif;
   -webkit-font-smoothing: antialiased;
@@ -28,7 +34,7 @@ body {
   box-sizing: border-box;
   overflow-x: hidden;
   line-height: 1.8;
-  /* 整体行高增加 */
+  background-attachment: fixed;
 }
 
 /* 统一留白类 */
@@ -68,7 +74,76 @@ body {
 
 .hover-lift:hover {
   transform: translateY(-3px);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--modern-shadow);
+}
+
+/* 玻璃拟态效果 */
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+.glass-card-hover {
+  transition: var(--transition-smooth);
+}
+
+.glass-card-hover:hover {
+  background: rgba(255, 255, 255, 0.85);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+  transform: translateY(-4px);
+}
+
+/* 现代按钮效果 */
+.modern-btn {
+  position: relative;
+  overflow: hidden;
+  transition: var(--transition-smooth);
+}
+
+.modern-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.modern-btn:hover::before {
+  left: 100%;
+}
+
+/* 脉冲动画 */
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(166, 27, 27, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(166, 27, 27, 0);
+  }
+}
+
+.pulse-effect {
+  animation: pulse-glow 2s infinite;
+}
+
+/* 浮动动画 */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.float-animation {
+  animation: float 6s ease-in-out infinite;
 }
 
 /* 垂直文字 - 精细化 */
@@ -113,11 +188,30 @@ body {
   letter-spacing: 0.1em;
   border-radius: var(--radius-main) !important;
   transition: var(--transition-smooth);
+  position: relative;
+  overflow: hidden;
+}
+
+.el-button--primary {
+  background: linear-gradient(135deg, var(--accent-red) 0%, var(--accent-red-dark) 100%) !important;
+  border: none !important;
+  box-shadow: 0 4px 12px rgba(166, 27, 27, 0.3) !important;
+}
+
+.el-button--primary:hover {
+  background: linear-gradient(135deg, var(--accent-red-light) 0%, var(--accent-red) 100%) !important;
+  box-shadow: 0 6px 20px rgba(166, 27, 27, 0.4) !important;
+  transform: translateY(-2px);
 }
 
 .el-card {
   border-radius: var(--radius-main) !important;
   border: 1px solid var(--line-gray) !important;
+  transition: var(--transition-smooth);
+}
+
+.el-card:hover {
+  box-shadow: var(--modern-shadow);
 }
 
 .el-input__wrapper {
@@ -129,9 +223,15 @@ body {
   transition: var(--transition-smooth);
 }
 
+.el-input__wrapper:hover {
+  background: rgba(0, 0, 0, 0.04) !important;
+  border-color: rgba(166, 27, 27, 0.2) !important;
+}
+
 .el-input__wrapper.is-focus {
   background: transparent !important;
   border-color: var(--accent-red) !important;
+  box-shadow: 0 0 0 3px rgba(166, 27, 27, 0.1) !important;
 }
 
 /* Element Plus Message (弹窗) 深度定制 */

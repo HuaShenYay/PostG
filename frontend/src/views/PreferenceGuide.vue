@@ -1,9 +1,19 @@
 <template>
   <div class="guide-container fade-in">
-    <el-card class="guide-card" shadow="never">
+    <div class="background-animation">
+      <div class="floating-circle" v-for="i in 4" :key="i" :style="{ 
+        '--delay': i * 0.6 + 's',
+        '--size': (Math.random() * 150 + 80) + 'px',
+        '--x': Math.random() * 100 + '%',
+        '--y': Math.random() * 100 + '%'
+      }"></div>
+    </div>
+    
+    <el-card class="guide-card glass-card" shadow="never">
       <div class="editorial-header">
         <span class="date-stamp">公元二零二五</span>
         <h1 class="title">诗心初探</h1>
+        <div class="decorative-line"></div>
         <span class="tagline">请选择您偏好的诗歌主题 · 我们将为您量身推荐</span>
       </div>
 
@@ -157,15 +167,61 @@ const handleSkip = () => {
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: var(--stone-white);
+  position: relative;
+  overflow: hidden;
+  background: var(--gradient-warm);
+  background-attachment: fixed;
   padding: 40px 20px;
+}
+
+.background-animation {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.floating-circle {
+  position: absolute;
+  width: var(--size);
+  height: var(--size);
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, rgba(166, 27, 27, 0.08), transparent);
+  filter: blur(40px);
+  animation: float-circle 25s ease-in-out infinite;
+  animation-delay: var(--delay);
+  left: var(--x);
+  top: var(--y);
+  transform: translate(-50%, -50%);
+}
+
+@keyframes float-circle {
+  0%, 100% {
+    transform: translate(-50%, -50%) translate(0, 0) scale(1);
+  }
+  25% {
+    transform: translate(-50%, -50%) translate(20px, -20px) scale(1.1);
+  }
+  50% {
+    transform: translate(-50%, -50%) translate(-15px, 15px) scale(0.9);
+  }
+  75% {
+    transform: translate(-50%, -50%) translate(-20px, -15px) scale(1.05);
+  }
 }
 
 .guide-card {
   width: 100%;
   max-width: 900px;
-  border: none;
-  background: transparent;
+  border: none !important;
+  background: rgba(255, 255, 255, 0.85) !important;
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+  position: relative;
+  z-index: 1;
 }
 
 .guide-card :deep(.el-card__body) {
@@ -175,6 +231,7 @@ const handleSkip = () => {
 .editorial-header {
   text-align: center;
   margin-bottom: 60px;
+  position: relative;
 }
 
 .date-stamp {
@@ -184,6 +241,7 @@ const handleSkip = () => {
   display: block;
   margin-bottom: 20px;
   font-weight: 300;
+  opacity: 0.8;
 }
 
 .title {
@@ -193,6 +251,18 @@ const handleSkip = () => {
   margin: 0;
   letter-spacing: 0.15em;
   color: var(--modern-black);
+  background: linear-gradient(135deg, var(--modern-black) 0%, var(--accent-red) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.decorative-line {
+  width: 60px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent-red), transparent);
+  margin: 20px auto 0;
+  border-radius: 2px;
 }
 
 @media (max-width: 768px) {
@@ -233,24 +303,28 @@ const handleSkip = () => {
 }
 
 .topic-card {
-  border: 2px solid #e0e0e0;
-  border-radius: 12px;
+  border: 2px solid rgba(0, 0, 0, 0.08);
+  border-radius: 16px;
   padding: 24px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: var(--transition-smooth);
   position: relative;
-  background: #fff;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .topic-card:hover {
   border-color: var(--accent-red);
   transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(166, 27, 27, 0.1);
+  box-shadow: var(--modern-shadow);
+  background: rgba(255, 255, 255, 0.9);
 }
 
 .topic-card.selected {
   border-color: var(--accent-red);
-  background: linear-gradient(135deg, #fff5f5 0%, #fff 100%);
+  background: linear-gradient(135deg, rgba(166, 27, 27, 0.05) 0%, rgba(255, 255, 255, 0.9) 100%);
+  box-shadow: 0 4px 16px rgba(166, 27, 27, 0.15);
 }
 
 .topic-number {
@@ -269,7 +343,7 @@ const handleSkip = () => {
 .keyword-tag {
   font-size: 13PX;
   color: var(--modern-black);
-  background: #f5f5f5;
+  background: rgba(0, 0, 0, 0.04);
   padding: 6px 12px;
   border-radius: 20px;
   transition: all 0.3s ease;
@@ -277,7 +351,7 @@ const handleSkip = () => {
 
 .topic-card:hover .keyword-tag,
 .topic-card.selected .keyword-tag {
-  background: rgba(166, 27, 27, 0.08);
+  background: rgba(166, 27, 27, 0.1);
   color: var(--accent-red);
 }
 
@@ -293,6 +367,7 @@ const handleSkip = () => {
   align-items: center;
   justify-content: center;
   color: #fff;
+  box-shadow: 0 4px 12px rgba(166, 27, 27, 0.3);
 }
 
 .guide-actions {
@@ -303,21 +378,27 @@ const handleSkip = () => {
 .save-btn {
   width: 100%;
   max-width: 300px;
-  background: var(--accent-red);
+  background: linear-gradient(135deg, var(--accent-red) 0%, var(--accent-red-dark) 100%);
   border-color: var(--accent-red);
   font-size: 14PX;
   letter-spacing: 0.4em;
   height: 52px;
   font-weight: 300;
   text-indent: 0.4em;
-  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: var(--transition-bounce);
+  border-radius: 12px !important;
+  box-shadow: 0 4px 16px rgba(166, 27, 27, 0.3) !important;
 }
 
 .save-btn:hover:not(:disabled) {
-  background: #c52d2d;
-  border-color: #c52d2d;
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(166, 27, 27, 0.2);
+  background: linear-gradient(135deg, var(--accent-red-light) 0%, var(--accent-red) 100%);
+  box-shadow: 0 8px 24px rgba(166, 27, 27, 0.4);
+  transform: translateY(-3px);
+}
+
+.save-btn:active:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(166, 27, 27, 0.3);
 }
 
 .save-btn:disabled {
@@ -330,19 +411,21 @@ const handleSkip = () => {
   max-width: 300px;
   margin-top: 16px;
   background: transparent;
-  border-color: #e0e0e0;
+  border-color: rgba(0, 0, 0, 0.1);
   color: #999;
   font-size: 14PX;
   letter-spacing: 0.4em;
   height: 52px;
   font-weight: 300;
   text-indent: 0.4em;
-  transition: all 0.3s ease;
+  transition: var(--transition-smooth);
+  border-radius: 12px !important;
 }
 
 .skip-btn:hover {
   border-color: #999;
   color: var(--modern-black);
+  background: rgba(0, 0, 0, 0.02);
 }
 
 .hint-text {

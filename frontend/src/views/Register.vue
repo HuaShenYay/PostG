@@ -1,63 +1,78 @@
 <template>
-  <div class="login-container fade-in">
-    <el-card class="login-card hover-lift" shadow="never">
-      <div class="editorial-header">
-        <span class="date-stamp">公元二零二五</span>
-        <h1 class="title">新绿</h1>
-        <span class="tagline">加入荐诗 · 开启您的诗意之旅</span>
-      </div>
-      
-      <el-form :model="form" @submit.prevent="handleRegister" class="login-form">
-        <el-form-item>
-          <el-input 
-            v-model="form.username" 
-            placeholder="拟 定 称 谓" 
-            size="large"
-            :prefix-icon="User"
-          />
-        </el-form-item>
-        <el-form-item>
-          <el-input 
-            v-model="form.password" 
-            type="password" 
-            placeholder="设 置 口 令" 
-            size="large"
-            :prefix-icon="Lock"
-            show-password
-          />
-        </el-form-item>
-        <el-form-item>
-          <el-input 
-            v-model="form.confirmPassword" 
-            type="password" 
-            placeholder="确 认 口 令" 
-            size="large"
-            :prefix-icon="Lock"
-            show-password
-          />
-        </el-form-item>
+  <div class="login-container">
+    <div class="background-animation">
+      <div class="floating-circle" v-for="i in 6" :key="i" :style="{ 
+        '--delay': i * 0.5 + 's',
+        '--size': (Math.random() * 200 + 100) + 'px',
+        '--x': Math.random() * 100 + '%',
+        '--y': Math.random() * 100 + '%'
+      }"></div>
+    </div>
+    
+    <div class="login-content fade-in">
+      <el-card class="login-card glass-card" shadow="never">
+        <div class="editorial-header">
+          <span class="date-stamp">公元二零二五</span>
+          <h1 class="title">新绿</h1>
+          <div class="decorative-line"></div>
+          <span class="tagline">加入荐诗 · 开启您的诗意之旅</span>
+        </div>
         
-        <el-form-item>
-          <el-button 
-            type="primary" 
-            size="large" 
-            :loading="loading"
-            @click="handleRegister"
-            class="login-btn"
-          >
-            {{ loading ? '启程中...' : '注 册' }}
-          </el-button>
-        </el-form-item>
-      </el-form>
+        <el-form :model="form" @submit.prevent="handleRegister" class="login-form">
+          <el-form-item>
+            <el-input 
+              v-model="form.username" 
+              placeholder="拟 定 称 谓" 
+              size="large"
+              :prefix-icon="User"
+              class="modern-input"
+            />
+          </el-form-item>
+          <el-form-item>
+            <el-input 
+              v-model="form.password" 
+              type="password" 
+              placeholder="设 置 口 令" 
+              size="large"
+              :prefix-icon="Lock"
+              show-password
+              class="modern-input"
+            />
+          </el-form-item>
+          <el-form-item>
+            <el-input 
+              v-model="form.confirmPassword" 
+              type="password" 
+              placeholder="确 认 口 令" 
+              size="large"
+              :prefix-icon="Lock"
+              show-password
+              class="modern-input"
+            />
+          </el-form-item>
+          
+          <el-form-item>
+            <el-button 
+              type="primary" 
+              size="large" 
+              :loading="loading"
+              @click="handleRegister"
+              class="login-btn modern-btn"
+            >
+              {{ loading ? '启程中...' : '注 册' }}
+            </el-button>
+          </el-form-item>
+        </el-form>
 
-      <div class="actions">
-        <router-link to="/login" class="back-link">已有称谓？返回登录</router-link>
-      </div>
+        <div class="actions">
+          <router-link to="/login" class="back-link">已有称谓？返回登录</router-link>
+        </div>
 
-      <div class="footer-note">
-        <p>荐诗 · 现代语境下的古典回归</p>
-      </div>
-    </el-card>
+        <div class="footer-note">
+          <p>荐诗 · 现代语境下的古典回归</p>
+        </div>
+      </el-card>
+    </div>
   </div>
 </template>
 
@@ -115,15 +130,64 @@ const handleRegister = async () => {
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: var(--stone-white);
+  position: relative;
+  overflow: hidden;
+}
+
+.background-animation {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.floating-circle {
+  position: absolute;
+  width: var(--size);
+  height: var(--size);
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, rgba(166, 27, 27, 0.1), transparent);
+  filter: blur(40px);
+  animation: float-circle 20s ease-in-out infinite;
+  animation-delay: var(--delay);
+  left: var(--x);
+  top: var(--y);
+  transform: translate(-50%, -50%);
+}
+
+@keyframes float-circle {
+  0%, 100% {
+    transform: translate(-50%, -50%) translate(0, 0) scale(1);
+  }
+  25% {
+    transform: translate(-50%, -50%) translate(30px, -30px) scale(1.1);
+  }
+  50% {
+    transform: translate(-50%, -50%) translate(-20px, 20px) scale(0.9);
+  }
+  75% {
+    transform: translate(-50%, -50%) translate(-30px, -20px) scale(1.05);
+  }
+}
+
+.login-content {
+  position: relative;
+  z-index: 1;
+  width: 100%;
   padding: 40px;
 }
 
 .login-card {
   width: 100%;
   max-width: 440px;
-  border: none;
-  background: transparent;
+  margin: 0 auto;
+  border: none !important;
+  background: rgba(255, 255, 255, 0.8) !important;
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
 }
 
 .login-card :deep(.el-card__body) {
@@ -132,7 +196,8 @@ const handleRegister = async () => {
 
 .editorial-header {
   text-align: center;
-  margin-bottom: 80px;
+  margin-bottom: 60px;
+  position: relative;
 }
 
 .date-stamp {
@@ -142,6 +207,7 @@ const handleRegister = async () => {
   display: block;
   margin-bottom: 20px;
   font-weight: 300;
+  opacity: 0.8;
 }
 
 .title {
@@ -151,10 +217,18 @@ const handleRegister = async () => {
   margin: 0;
   letter-spacing: 0.15em;
   color: var(--modern-black);
+  background: linear-gradient(135deg, var(--modern-black) 0%, var(--accent-red) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-@media (max-width: 768px) {
-  .title { font-size: 48PX; }
+.decorative-line {
+  width: 60px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent-red), transparent);
+  margin: 20px auto 0;
+  border-radius: 2px;
 }
 
 .tagline {
@@ -166,18 +240,34 @@ const handleRegister = async () => {
   text-transform: uppercase;
 }
 
+@media (max-width: 768px) {
+  .title { font-size: 48PX; }
+}
+
 .login-form {
-  margin-top: 60px;
+  margin-top: 40px;
 }
 
 .login-form :deep(.el-input__wrapper) {
-  padding: 12px 20px !important;
+  background: rgba(255, 255, 255, 0.5) !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  padding: 14px 20px !important;
+  border-radius: 12px !important;
+  transition: var(--transition-smooth);
 }
 
-.login-form :deep(.el-input__wrapper:hover),
+.login-form :deep(.el-input__wrapper:hover) {
+  background: rgba(255, 255, 255, 0.8) !important;
+  border-color: rgba(166, 27, 27, 0.3) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
 .login-form :deep(.el-input__wrapper.is-focus) {
-  box-shadow: none;
-  border-bottom-color: var(--accent-red);
+  background: white !important;
+  border-color: var(--accent-red) !important;
+  box-shadow: 0 0 0 4px rgba(166, 27, 27, 0.1), 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+  transform: translateY(-2px);
 }
 
 .login-form :deep(.el-input__inner) {
@@ -185,31 +275,42 @@ const handleRegister = async () => {
   font-size: 16PX;
   font-weight: 300;
   letter-spacing: 0.1em;
+  color: var(--modern-black);
+}
+
+.login-form :deep(.el-input__inner::placeholder) {
+  color: rgba(0, 0, 0, 0.3);
 }
 
 .login-btn {
   width: 100%;
-  margin-top: 40px;
-  background: var(--accent-red);
-  border-color: var(--accent-red);
+  margin-top: 30px;
   font-size: 14PX;
   letter-spacing: 0.4em;
   height: 52px;
   font-weight: 300;
   text-indent: 0.4em;
-  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  border-radius: 12px !important;
+  background: linear-gradient(135deg, var(--accent-red) 0%, var(--accent-red-dark) 100%) !important;
+  border: none !important;
+  box-shadow: 0 4px 16px rgba(166, 27, 27, 0.3) !important;
+  transition: var(--transition-bounce);
 }
 
 .login-btn:hover {
-  background: #c52d2d;
-  border-color: #c52d2d;
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(166, 27, 27, 0.2);
+  background: linear-gradient(135deg, var(--accent-red-light) 0%, var(--accent-red) 100%) !important;
+  box-shadow: 0 8px 24px rgba(166, 27, 27, 0.4) !important;
+  transform: translateY(-3px);
+}
+
+.login-btn:active {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(166, 27, 27, 0.3) !important;
 }
 
 .actions {
   text-align: center;
-  margin-top: 20px;
+  margin-top: 25px;
 }
 
 .back-link {
@@ -217,16 +318,34 @@ const handleRegister = async () => {
   color: #888;
   text-decoration: none;
   letter-spacing: 0.1em;
-  transition: color 0.3s;
+  transition: all 0.3s;
+  position: relative;
+  padding: 5px 10px;
+}
+
+.back-link::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 0;
+  height: 1px;
+  background: var(--accent-red);
+  transition: all 0.3s;
+  transform: translateX(-50%);
 }
 
 .back-link:hover {
   color: var(--accent-red);
 }
 
+.back-link:hover::after {
+  width: 100%;
+}
+
 .footer-note {
   text-align: center;
-  margin-top: 60px;
+  margin-top: 50px;
   opacity: 0.3;
 }
 
