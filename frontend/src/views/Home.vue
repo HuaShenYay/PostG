@@ -1,7 +1,7 @@
 <template>
   <div class="home-container">
     <!-- 顶部导航 (Floating) -->
-    <nav class="top-nav glass-card anim-enter" style="animation-delay: 0.1s">
+    <nav class="top-nav glass-card">
       <div class="nav-brand">
         <span class="logo-text">诗云</span>
         <span class="edition-badge">Zen Edition</span>
@@ -47,7 +47,7 @@
         <div v-if="dailyPoem" :key="dailyPoem.id" class="content-wrapper">
             
             <!-- LEFT PANEL: Reviews/Comments -->
-            <section class="panel-left glass-card anim-enter" style="animation-delay: 0.3s">
+            <section class="panel-left glass-card">
                 <div class="panel-header">
                     <h3><n-icon><NSend /></n-icon> 雅评</h3>
                 </div>
@@ -56,7 +56,7 @@
                         <n-empty description="暂无雅评" />
                     </div>
                     <div v-else class="review-scroll">
-                        <div v-for="r in reviews" :key="r.id" class="review-minimal">
+                        <div v-for="(r, index) in reviews" :key="r.id" class="review-minimal" :style="{ animationDelay: index * 0.05 + 's' }">
                             <div class="review-header">
                                 <span class="r-user">{{ r.user_id }}</span>
                                 <n-rate readonly :value="r.rating" size="small" />
@@ -79,7 +79,7 @@
             </section>
 
             <!-- CENTER STAGE: The Poem -->
-            <section class="center-stage anim-enter" style="animation-delay: 0.2s">
+            <section class="center-stage">
                 <div class="poem-card glass-card">
                     <!-- Poem Header - Horizontal Layout -->
                     <div class="poem-header-horizontal">
@@ -108,13 +108,13 @@
             </section>
 
              <!-- RIGHT PANEL: Annotations/Helper -->
-             <aside class="panel-right glass-card anim-enter" style="animation-delay: 0.4s">
+             <aside class="panel-right glass-card">
                  <div class="panel-header">
                      <h3><n-icon><NCompass /></n-icon> 注译</h3>
                  </div>
                  <div class="annotations-container">
                     <!-- Real Annotations -->
-                    <div v-if="allusions && allusions.length > 0" class="helper-block">
+                    <div v-if="allusions && allusions.length > 0" class="helper-block" style="animation-delay: 0.1s;">
                         <h4>注释</h4>
                         <div v-for="(note, idx) in allusions" :key="idx" style="margin-bottom: 12px;">
                              <span style="font-weight: 600; color: var(--text-primary);">{{ note.text }}</span>
@@ -124,11 +124,11 @@
                         </div>
                     </div>
 
-                    <div v-if="poemHelper.author_bio" class="helper-block">
+                    <div v-if="poemHelper.author_bio" class="helper-block" style="animation-delay: 0.2s;">
                         <h4>作者</h4>
                         <p>{{ poemHelper.author_bio }}</p>
                     </div>
-                     <div v-if="poemHelper.appreciation" class="helper-block">
+                     <div v-if="poemHelper.appreciation" class="helper-block" style="animation-delay: 0.3s;">
                         <h4>赏析</h4>
                         <p>{{ poemHelper.appreciation }}</p>
                     </div>
@@ -147,19 +147,43 @@
     </main>
 
     <!-- Search Modal -->
-    <n-modal v-model:show="searchVisible" class="custom-modal">
-        <div class="search-panel glass-card">
-            <n-input v-model:value="searchQuery" placeholder="寻觅诗词..." size="large" @keyup.enter="handleSearch" class="search-bar-zen">
+    <n-modal v-model:show="searchVisible" class="custom-modal" :mask-closable="true" :closable="true">
+        <n-card class="search-panel glass-card" :bordered="false">
+            <div class="search-header">
+                <h3>寻觅诗词</h3>
+            </div>
+            <n-input 
+                v-model:value="searchQuery" 
+                placeholder="输入标题、作者或诗句..." 
+                size="large" 
+                @keyup.enter="handleSearch" 
+                class="search-bar-zen"
+                clearable
+            >
                  <template #prefix><n-icon><NSearch /></n-icon></template>
+                 <template #suffix>
+                     <n-button text @click="handleSearch" :disabled="!searchQuery.trim()">
+                         <n-icon><NSearch /></n-icon>
+                     </n-button>
+                 </template>
             </n-input>
-            <div class="search-results-list" v-if="searchResults.length">
-                 <div v-for="item in searchResults" :key="item.id" class="result-item" @click="selectPoemFromSearch(item)">
-                     <span class="r-title">{{ item.title }}</span>
-                     <span class="r-author">{{ item.author }}</span>
+            <div v-if="searchLoading" class="search-loading">
+                <n-spin size="medium" />
+                <span>寻觅中...</span>
+            </div>
+            <div v-else-if="searchResults.length" class="search-results-list">
+                 <div v-for="(item, index) in searchResults" :key="item.id" class="result-item" @click="selectPoemFromSearch(item)" :style="{ animationDelay: index * 0.05 + 's' }">
+                     <div class="result-content">
+                         <span class="r-title">{{ item.title }}</span>
+                         <span class="r-author">{{ item.author }}</span>
+                     </div>
+                     <n-icon class="result-arrow"><NArrowRight /></n-icon>
                  </div>
             </div>
-            <div v-else-if="searchQuery && !searchLoading" class="search-empty">...</div>
-        </div>
+            <div v-else-if="searchQuery && !searchLoading" class="search-empty">
+                <n-empty description="未找到相关诗词" />
+            </div>
+        </n-card>
     </n-modal>
 
   </div>
@@ -172,6 +196,7 @@ import axios from 'axios'
 // 导入 Naive UI 组件和图标
 import { 
   NModal, 
+  NCard,
   NInput, 
   NButton, 
   NIcon, 
@@ -183,6 +208,7 @@ import {
 } from 'naive-ui'
 import { 
   Search as NSearch, 
+  ArrowRight as NArrowRight, 
   Close as NClose, 
   Refresh as NRefresh, 
   Compass as NCompass, 
@@ -236,18 +262,18 @@ const formattedPoemContent = computed(() => {
 
 // 根据诗歌总字符数动态计算字体大小（无极适配）
 const poemFontSize = computed(() => {
-  if (!dailyPoem.value || !dailyPoem.value.content) return 'clamp(16px, 2.5cqw, 24px)'
+  if (!dailyPoem.value || !dailyPoem.value.content) return '20px'
   
   const totalChars = dailyPoem.value.content.replace(/\s+/g, '').length
-  const maxChars = 150 // 设定最大字符数阈值
+  const maxChars = 150
   const ratio = Math.min(1, maxChars / totalChars)
   
-  // 使用 clamp 实现无极适配，根据字符比例动态调整字体大小
   const baseSize = 24 * ratio
   const minSize = 16
   const maxSize = 24
   
-  return `clamp(${minSize}px, ${baseSize}cqw, ${maxSize}px)`
+  const finalSize = Math.max(minSize, Math.min(maxSize, baseSize))
+  return `${finalSize}px`
 })
 
 const fetchUserProfile = async () => {
@@ -335,10 +361,12 @@ const handleSearch = async () => {
   }
   searchLoading.value = true
   try {
-    const res = await axios.get(`http://127.0.0.1:5000/api/search_poems?q=${searchQuery.value}`)
+    const res = await axios.get(`http://127.0.0.1:5000/api/search_poems?q=${encodeURIComponent(searchQuery.value)}`)
     searchResults.value = res.data
+    console.log('搜索结果:', res.data)
   } catch (e) {
     console.error('搜索失败:', e)
+    searchResults.value = []
   } finally {
     searchLoading.value = false
   }
@@ -407,24 +435,35 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 clamp(20px, 5vw, 60px);
+  padding: 0 40px;
   height: var(--header-height);
-  margin: 20px clamp(20px, 5vw, 60px) 0;
-  max-width: calc(100% - clamp(40px, 10vw, 120px));
+  margin: 20px 40px 0;
+  max-width: calc(100% - 80px);
 }
 
 .nav-brand {
   display: flex;
   align-items: baseline;
   gap: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.nav-brand:hover {
+  transform: translateX(2px);
 }
 
 .logo-text {
   font-family: "Noto Serif SC", serif;
-  font-size: clamp(20px, 3vw, 28px);
+  font-size: 24px;
   font-weight: 600;
   letter-spacing: 0.3em;
   color: var(--ink-black);
+  transition: color 0.2s ease;
+}
+
+.nav-brand:hover .logo-text {
+  color: var(--cinnabar-red);
 }
 
 .edition-badge {
@@ -450,6 +489,12 @@ onMounted(() => {
   font-family: "Noto Serif SC", serif;
   letter-spacing: 0.05em;
   white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.nav-recommend:hover {
+  background: rgba(207, 63, 53, 0.12);
+  transform: translateX(-50%) translateY(-1px);
 }
 
 .nav-recommend .n-icon {
@@ -470,7 +515,7 @@ onMounted(() => {
   padding: 8px 16px;
   border-radius: 12px;
   cursor: pointer;
-  transition: var(--transition-fast);
+  transition: all 0.2s ease;
   color: var(--text-secondary);
   background: rgba(0, 0, 0, 0.02);
   font-size: 13px;
@@ -486,6 +531,11 @@ onMounted(() => {
 
 .nav-btn-card .n-icon {
   font-size: 16px;
+  transition: all 0.2s ease;
+}
+
+.nav-btn-card:hover .n-icon {
+  transform: scale(1.1);
 }
 
 .nav-btn-icon {
@@ -503,7 +553,6 @@ onMounted(() => {
 .nav-btn-icon:hover {
   background: rgba(0, 0, 0, 0.05);
   color: var(--ink-black);
-  transform: scale(1.1);
 }
 
 .divider-vertical {
@@ -524,11 +573,12 @@ onMounted(() => {
   cursor: pointer;
   padding: 8px 16px;
   border-radius: 20px;
-  transition: var(--transition-fast);
+  transition: all 0.2s ease;
 }
 
 .user-greeting:hover {
   background: rgba(0, 0, 0, 0.04);
+  transform: translateY(-1px);
 }
 
 .user-name {
@@ -551,11 +601,12 @@ onMounted(() => {
   cursor: pointer;
   padding: 8px 16px;
   border-radius: 20px;
-  transition: var(--transition-fast);
+  transition: all 0.2s ease;
 }
 
 .login-prompt:hover {
   background: rgba(207, 63, 53, 0.1);
+  transform: translateY(-1px);
 }
 
 /* ==================== MAIN STAGE ==================== */
@@ -608,6 +659,19 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.panel-header h3:hover {
+  transform: translateX(2px);
+}
+
+.panel-header h3 .n-icon {
+  transition: all 0.2s ease;
+}
+
+.panel-header h3:hover .n-icon {
+  transform: rotate(5deg);
 }
 
 /* ==================== CENTER STAGE: POEM CARD ==================== */
@@ -623,7 +687,7 @@ onMounted(() => {
 
 .poem-card {
   width: 100%;
-  padding: clamp(24px, 4vw, 36px);
+  padding: 24px;
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -632,12 +696,22 @@ onMounted(() => {
   
   background: var(--paper-white);
   
-  box-shadow: 
-    0 1px 2px rgba(0,0,0,0.05), 
-    0 15px 40px rgba(0,0,0,0.05),
-    0 0 0 1px rgba(0,0,0,0.02);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
     
   border-radius: var(--radius-sub);
+  transition: all 0.3s ease;
+  animation: cardEnter 0.4s ease;
+}
+
+@keyframes cardEnter {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 /* Poem Header - Horizontal Layout */
@@ -653,13 +727,18 @@ onMounted(() => {
 
 .poem-title {
   font-family: "Noto Serif SC", serif;
-  font-size: clamp(24px, 4cqw, 40px);
+  font-size: 32px;
   font-weight: 600;
   letter-spacing: 0.15em;
   color: var(--ink-black);
   margin: 0 0 10px 0;
   line-height: 1.4;
   text-align: center;
+  transition: all 0.2s ease;
+}
+
+.poem-card:hover .poem-title {
+  color: var(--cinnabar-red);
 }
 
 .author-info {
@@ -667,6 +746,12 @@ onMounted(() => {
   background: var(--cinnabar-red);
   border-radius: 16px;
   color: white;
+  transition: all 0.2s ease;
+}
+
+.author-info:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(207, 63, 53, 0.3);
 }
 
 .author-name {
@@ -702,21 +787,17 @@ onMounted(() => {
   justify-content: center;
   padding: 10px 16px;
   border-radius: 6px;
-  transition: all 0.3s ease;
-}
-
-.verse-line:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
 }
 
 .verse-text {
   font-family: "Noto Serif SC", serif;
-  font-size: clamp(16px, 2.5cqw, 24px);
+  font-size: 20px;
   line-height: 1.6;
   letter-spacing: 0.1em;
   color: var(--text-primary);
   text-align: center;
+  transition: all 0.2s ease;
 }
 
 /* Poem Footer */
@@ -738,15 +819,23 @@ onMounted(() => {
   justify-content: center;
   background: rgba(0, 0, 0, 0.03);
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.3s ease;
   color: var(--text-secondary);
+}
+
+.action-btn-circle .n-icon {
+  transition: all 0.2s ease;
 }
 
 .action-btn-circle:hover {
   background: var(--cinnabar-red);
   color: white;
   transform: scale(1.1);
-  box-shadow: 0 6px 16px rgba(207, 63, 53, 0.3);
+  box-shadow: 0 4px 12px rgba(207, 63, 53, 0.3);
+}
+
+.action-btn-circle:hover .n-icon {
+  transform: rotate(180deg);
 }
 
 /* ==================== REVIEWS & HELPERS ==================== */
@@ -782,13 +871,30 @@ onMounted(() => {
   min-height: calc(100vh - var(--header-height) - 230px);
   max-height: calc(100vh - var(--header-height) - 180px);
   overflow-y: auto;
+  transition: all 0.2s ease;
+}
+
+.empty-state-mini:hover {
+  color: var(--text-secondary);
 }
 
 .review-minimal {
   padding: 14px 16px;
   background: rgba(0, 0, 0, 0.02);
   border-radius: var(--radius-sub);
-  transition: var(--transition-fast);
+  transition: all 0.2s ease;
+  animation: fadeInUp 0.3s ease;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .review-minimal:hover {
@@ -807,13 +913,22 @@ onMounted(() => {
   font-size: 12px;
   font-weight: 500;
   color: var(--text-primary);
+  transition: all 0.2s ease;
+}
+
+.review-minimal:hover .r-user {
+  color: var(--cinnabar-red);
 }
 
 .r-content {
   font-size: 13px;
   line-height: 1.6;
   color: var(--text-secondary);
-  margin: 0;
+  transition: all 0.2s ease;
+}
+
+.review-minimal:hover .r-content {
+  color: var(--text-primary);
 }
 
 .quick-comment {
@@ -830,12 +945,22 @@ onMounted(() => {
   position: sticky;
   bottom: 0;
   z-index: 10;
+  transition: all 0.2s ease;
+}
+
+.quick-comment:hover {
+  background: rgba(255, 255, 255, 0.95);
 }
 
 .quick-comment.login-hint {
   justify-content: center;
   font-size: 13px;
   color: var(--text-tertiary);
+  transition: all 0.2s ease;
+}
+
+.quick-comment.login-hint:hover {
+  color: var(--text-secondary);
 }
 
 .helper-block {
@@ -843,6 +968,24 @@ onMounted(() => {
   background: rgba(0, 0, 0, 0.02);
   border-radius: var(--radius-sub);
   margin-bottom: 8px;
+  transition: all 0.2s ease;
+  animation: fadeInLeft 0.3s ease;
+}
+
+@keyframes fadeInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.helper-block:hover {
+  background: rgba(0, 0, 0, 0.04);
+  transform: translateX(2px);
 }
 
 .helper-block h4 {
@@ -852,6 +995,11 @@ onMounted(() => {
   color: var(--cinnabar-red);
   margin: 0 0 8px 0;
   letter-spacing: 0.1em;
+  transition: all 0.2s ease;
+}
+
+.helper-block:hover h4 {
+  transform: translateX(2px);
 }
 
 .helper-block p {
@@ -860,25 +1008,65 @@ onMounted(() => {
   color: var(--text-secondary);
   margin: 0;
   text-align: justify;
+  transition: all 0.2s ease;
+}
+
+.helper-block:hover p {
+  color: var(--text-primary);
 }
 
 /* ==================== SEARCH MODAL ==================== */
+.custom-modal {
+  --n-border-radius: 24px;
+}
+
 .search-panel {
-  padding: 40px;
+  padding: 32px;
   min-width: 600px;
   max-width: 90vw;
+  animation: slideDown 0.3s ease;
+}
+
+.search-header {
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.search-header h3 {
+  font-family: "Noto Serif SC", serif;
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .search-bar-zen :deep(.n-input__wrapper) {
   border-radius: 24px;
   padding: 12px 20px;
   border: 2px solid rgba(0, 0, 0, 0.08);
-  transition: var(--transition-fast);
+  transition: all 0.2s ease;
+  background: var(--paper-white);
 }
 
 .search-bar-zen :deep(.n-input__wrapper):focus-within {
   border-color: var(--cinnabar-red);
   box-shadow: 0 0 0 3px rgba(207, 63, 53, 0.1);
+  transform: scale(1.01);
+}
+
+.search-bar-zen :deep(.n-input__wrapper:hover) {
+  border-color: rgba(207, 63, 53, 0.3);
 }
 
 .search-results-list {
@@ -895,15 +1083,43 @@ onMounted(() => {
   background: rgba(0, 0, 0, 0.02);
   border-radius: var(--radius-sub);
   cursor: pointer;
-  transition: var(--transition-fast);
+  transition: all 0.2s ease;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  animation: slideInRight 0.3s ease;
+}
+
+.result-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.result-arrow {
+  color: var(--text-tertiary);
+  transition: all 0.2s ease;
+}
+
+.result-item:hover .result-arrow {
+  color: var(--cinnabar-red);
+  transform: translateX(4px);
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 .result-item:hover {
   background: rgba(207, 63, 53, 0.05);
-  transform: translateX(8px);
+  transform: translateX(4px);
 }
 
 .r-title {
@@ -917,6 +1133,24 @@ onMounted(() => {
   font-size: 13px;
   color: var(--cinnabar-red);
   letter-spacing: 0.1em;
+  transition: all 0.2s ease;
+}
+
+.result-item:hover .r-author {
+  transform: translateX(2px);
+}
+
+.search-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 30px;
+  padding: 40px;
+  color: var(--text-tertiary);
+  font-family: "Noto Serif SC", serif;
+  animation: pulse 1.5s ease-in-out infinite;
 }
 
 .search-empty {
@@ -927,6 +1161,15 @@ onMounted(() => {
   font-family: "Noto Serif SC", serif;
 }
 
+.search-empty :deep(.n-empty) {
+  --n-icon-color: var(--text-tertiary);
+}
+
+.search-empty :deep(.n-empty__description) {
+  font-family: "Noto Serif SC", serif;
+  color: var(--text-tertiary);
+}
+
 /* ==================== LOADING ==================== */
 .loading-screen {
   display: flex;
@@ -935,6 +1178,7 @@ onMounted(() => {
   justify-content: center;
   gap: 20px;
   min-height: 400px;
+  animation: fadeInUp 0.3s ease;
 }
 
 .loading-text {
@@ -942,12 +1186,16 @@ onMounted(() => {
   font-size: 16px;
   color: var(--text-tertiary);
   letter-spacing: 0.3em;
+  animation: pulse 2s ease-in-out infinite;
 }
 
 /* ==================== TRANSITIONS ==================== */
-.poem-fade-enter-active,
+.poem-fade-enter-active {
+  transition: all 0.3s ease;
+}
+
 .poem-fade-leave-active {
-  transition: opacity 0.6s var(--ease-smooth), transform 0.6s var(--ease-smooth);
+  transition: all 0.2s ease;
 }
 
 .poem-fade-enter-from {
@@ -1041,7 +1289,7 @@ onMounted(() => {
 
   .search-panel {
     min-width: auto;
-    padding: 30px 20px;
+    padding: 24px;
   }
 }
 </style>
