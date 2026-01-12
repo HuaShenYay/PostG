@@ -33,12 +33,24 @@ class Poem(db.Model):
     author = db.Column(db.String(50))
     content = db.Column(db.Text)
     
+    # Enhanced Fields for Real Data
+    dynasty = db.Column(db.String(20), default='Tang')
+    translation = db.Column(db.Text)  # Modern Chinese Translation
+    appreciation = db.Column(db.Text) # Shangxi
+    author_bio = db.Column(db.Text)   # Author Biography
+    notes = db.Column(db.Text)        # JSON string for Allusions/Notes
+    
     def to_dict(self):
         return {
             'id': self.id,
             'title': self.title,
             'author': self.author,
-            'content': self.content
+            'content': self.content,
+            'dynasty': self.dynasty,
+            'translation': self.translation,
+            'appreciation': self.appreciation,
+            'author_bio': self.author_bio
+            # notes are fetched separately usually, but good to have access
         }
 
 class Review(db.Model):

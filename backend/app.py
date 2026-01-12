@@ -226,7 +226,14 @@ def search_poems():
         (Poem.content.ilike(f'%{query}%'))
     ).limit(20).all()
     
-    return jsonify([p.to_dict() for p in results])
+    # 为搜索结果添加推荐理由
+    poems_with_reason = []
+    for p in results:
+        poem_dict = p.to_dict()
+        poem_dict['recommend_reason'] = f"匹配搜索\"{query}\""
+        poems_with_reason.append(poem_dict)
+    
+    return jsonify(poems_with_reason)
 
 @app.route('/api/topics')
 def get_topics():
@@ -290,70 +297,31 @@ def get_poem_reviews(poem_id):
 
 @app.route('/api/poem/<int:poem_id>/allusions')
 def get_poem_allusions(poem_id):
-    """获取诗歌的用典注释"""
-    # 模拟用典数据，实际应用中可以从数据库或外部API获取
-    mock_allusions = {
-        1: [
-            {
-                "text": "明月松间照",
-                "source": "出自唐代诗人王维《山居秋暝》",
-                "explanation": "此处化用王维诗句，营造出清幽宁静的月夜氛围，寄托诗人对自然之美的向往。"
-            },
-            {
-                "text": "清泉石上流",
-                "source": "出自唐代诗人王维《山居秋暝》",
-                "explanation": "化用王维经典意象，以清泉流动衬托环境的静谧，增强诗歌的画面感和意境美。"
-            }
-        ],
-        2: [
-            {
-                "text": "举头望明月",
-                "source": "出自唐代诗人李白《静夜思》",
-                "explanation": "借用李白名句，表达诗人对远方亲人的思念之情，引发读者共鸣。"
-            }
-        ],
-        3: [
-            {
-                "text": "春风又绿江南岸",
-                "source": "出自宋代诗人王安石《泊船瓜洲》",
-                "explanation": "化用王安石诗句，生动描绘春天到来时江南大地的生机盎然，表现时光流逝和季节更替。"
-            }
-        ]
-    }
-    
-    # 获取当前诗歌的用典注释，若无则返回空列表
-    poem_allusions = mock_allusions.get(poem_id, [])
-    return jsonify(poem_allusions)
+    """获取诗歌的用典注释 (Real Data)"""
+    poem = Poem.query.get(poem_id)
+    if poem and poem.notes:
+        try:
+            return jsonify(json.loads(poem.notes))
+        except:
+            return jsonify([])
+    return jsonify([])
 
 @app.route('/api/poem/<int:poem_id>/helper')
 def get_poem_helper(poem_id):
-    """获取诗歌辅助理解信息：作者简介、诗歌背景、诗歌赏析"""
-    # 模拟诗歌辅助数据，实际应用中可以从数据库或外部API获取
-    mock_helper_data = {
-        1: {
-            "author_bio": "王维（701年－761年），字摩诘，号摩诘居士，唐代著名诗人、画家。其诗多咏山水田园，与孟浩然合称'王孟'，有'诗佛'之称。书画特臻其妙，后人推其为'南宗山水画之祖'。",
-            "background": "此诗作于王维晚年隐居辋川时期，描绘了秋山雨后的自然风光，表现了诗人寄情山水田园的闲情逸致。",
-            "appreciation": "这首诗以自然景物为描绘对象，通过明月、松间、清泉、石上、竹喧、莲动等意象，营造出一幅清幽宁静的秋山月夜图，表达了诗人对自然之美的热爱和对隐居生活的向往。"
-        },
-        2: {
-            "author_bio": "李白（701年－762年），字太白，号青莲居士，唐代伟大的浪漫主义诗人，被后人誉为'诗仙'，与杜甫并称为'李杜'。其诗风格豪放飘逸，富有浪漫主义情怀。",
-            "background": "此诗作于李白客居他乡时，通过描写秋夜明月引发的思乡之情，表达了诗人对故乡和亲人的深切思念。",
-            "appreciation": "这首诗语言朴素自然，情感真挚深切，通过'举头望明月，低头思故乡'这一千古名句，将个人思乡之情升华到人类共有的情感体验，成为千古绝唱。"
-        },
-        3: {
-            "author_bio": "王安石（1021年－1086年），字介甫，号半山，北宋著名政治家、文学家、思想家。其散文简洁峻切，短小精悍，论点鲜明，逻辑严密，名列'唐宋八大家'。",
-            "background": "此诗作于王安石第二次拜相，赴汴京途中，通过描写泊船瓜洲时的所见所感，表达了诗人对故乡的思念和对变法前途的忧虑。",
-            "appreciation": "这首诗以'春风又绿江南岸'一句最为著名，其中'绿'字的运用堪称炼字的典范，生动描绘了春天到来时江南大地的生机盎然，表现了时光流逝和季节更替。"
-        }
-    }
+    """获取诗歌辅助理解信息 (Real Data)"""
+    poem = Poem.query.get(poem_id)
+    if not poem:
+         return jsonify({
+            "author_bio": "",
+            "background": "",
+            "appreciation": ""
+        })
     
-    # 获取当前诗歌的辅助信息，若无则返回空对象
-    poem_helper = mock_helper_data.get(poem_id, {
-        "author_bio": "",
-        "background": "",
-        "appreciation": ""
+    return jsonify({
+        "author_bio": poem.author_bio or "暂无作者生平信息",
+        "background": f"[{poem.dynasty}]" if poem.dynasty else "",
+        "appreciation": poem.appreciation or "暂无赏析"
     })
-    return jsonify(poem_helper)
 
 @app.route('/api/poem/review', methods=['POST'])
 def add_review():
