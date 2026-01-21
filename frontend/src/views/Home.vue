@@ -7,12 +7,6 @@
         <span class="edition-badge">Zen Edition</span>
       </div>
       
-      <!-- 推荐理由 - 居中显示 -->
-      <div v-if="dailyPoem && dailyPoem.recommend_reason" class="nav-recommend">
-        <n-icon><NSparkles /></n-icon>
-        <span>{{ dailyPoem.recommend_reason }}</span>
-      </div>
-      
       <div class="nav-actions">
         <!-- 搜索 -->
         <div class="nav-btn-card" @click="openSearch" title="Search">
@@ -44,100 +38,176 @@
     <!-- Main Stage -->
     <main class="main-stage">
       <transition name="poem-fade" mode="out-in">
-        <div v-if="dailyPoem" :key="dailyPoem.id" class="content-wrapper">
-            
-            <!-- LEFT PANEL: Reviews/Comments -->
-            <section class="panel-left glass-card">
-                <div class="panel-header">
-                    <h3><n-icon><NSend /></n-icon> 雅评</h3>
-                </div>
-                <div class="reviews-container">
-                    <div v-if="reviews.length === 0" class="empty-state-mini">
-                        <n-empty description="暂无雅评" />
+        <div v-if="dailyPoem" :key="dailyPoem.id" class="unified-card glass-card">
+            <!-- 三个功能区域 -->
+            <div class="unified-header">
+                <!-- 左侧：雅评 -->
+                <div class="unified-section left-section">
+                    <div class="section-header">
+                        <h3><n-icon><NSend /></n-icon> 雅评</h3>
                     </div>
-                    <div v-else class="review-scroll">
-                        <div v-for="(r, index) in reviews" :key="r.id" class="review-minimal">
-                            <div class="review-header">
-                                <span class="r-user">{{ r.user_id }}</span>
-                                <n-rate readonly :value="r.rating" size="small" />
+                    <div class="section-content reviews-content">
+                        <div v-if="reviews.length === 0" class="empty-state-mini">
+                            <n-empty description="暂无雅评" />
+                        </div>
+                        <div v-else class="review-scroll">
+                            <div v-for="(r, index) in reviews" :key="r.id" class="review-minimal">
+                                <div class="review-header">
+                                    <span class="r-user">{{ r.user_id }}</span>
+                                    <n-rate readonly :value="r.rating" size="small" />
+                                </div>
+                                <p class="r-content">{{ r.comment }}</p>
                             </div>
-                            <p class="r-content">{{ r.comment }}</p>
                         </div>
-                    </div>
-                    
-                    <!-- Simple Input - Fixed at Bottom -->
-                    <div class="quick-comment" v-if="currentUser !== '访客'">
-                        <n-input v-model:value="newComment" placeholder="留下雅言..." size="small" round />
-                        <n-button circle size="small" type="primary" @click="submitComment" :disabled="!newComment">
-                            <template #icon><n-icon><NSend /></n-icon></template>
-                        </n-button>
-                    </div>
-                    <div v-else class="quick-comment login-hint">
-                        <span>请先登录后发表评论</span>
+                        
+                        <!-- 评论输入框 -->
+                        <div class="quick-comment" v-if="currentUser !== '访客'">
+                            <n-input v-model:value="newComment" placeholder="留下雅言..." size="small" round />
+                            <n-button circle size="small" @click="submitComment" :disabled="!newComment" class="submit-btn">
+                                <template #icon><n-icon><NSend /></n-icon></template>
+                            </n-button>
+                        </div>
+                        <div v-else class="quick-comment login-hint">
+                            <span>请先登录后发表评论</span>
+                        </div>
                     </div>
                 </div>
-            </section>
 
-            <!-- CENTER STAGE: The Poem -->
-            <section class="center-stage">
-                <div class="poem-card glass-card">
-                    <!-- Poem Header - Horizontal Layout -->
-                    <div class="poem-header-horizontal">
-                        <h1 class="poem-title">{{ dailyPoem.title }}</h1>
-                        <div class="author-info">
-                            <span class="author-name">{{ dailyPoem.author }}</span>
-                        </div>
+                <!-- 中间：诗歌内容 -->
+                <div class="unified-section center-section">
+                    <div class="section-header">
+                        <h3><n-icon><NCompass /></n-icon> 诗词</h3>
                     </div>
-
-                    <!-- Poem Content - Horizontal Reading with Vertical Layout -->
-                    <div class="poem-body">
-                         <div class="poem-verses-horizontal">
-                            <div v-for="(line, index) in poemLines" :key="index" class="verse-line">
-                                <span class="verse-text" :style="{ fontSize: poemFontSize }">{{ line }}</span>
+                    <div class="section-content poem-content">
+                        <!-- 诗歌标题和作者 -->
+                        <div class="poem-header-horizontal">
+                            <h1 class="poem-title">{{ dailyPoem.title }}</h1>
+                            <div class="author-section">
+                                <div class="author-info">
+                                    <span class="author-name">{{ dailyPoem.author }}</span>
+                                </div>
+                                <!-- 推荐理由 - 并排放置 -->
+                                <div v-if="dailyPoem && dailyPoem.recommend_reason" class="recommend-reason">
+                                    <n-icon><NSparkles /></n-icon>
+                                    <span>{{ dailyPoem.recommend_reason }}</span>
+                                </div>
                             </div>
-                         </div>
-                    </div>
+                        </div>
 
-                    <!-- Action Footer -->
-                    <div class="poem-footer">
-                        <div class="action-btn-circle" @click="getAnotherPoem" title="Next Poem">
-                            <n-icon size="20"><NRefresh /></n-icon>
+                        <!-- 诗歌正文 -->
+                        <div class="poem-body">
+                            <div class="poem-verses-horizontal">
+                                <div v-for="(line, index) in poemLines" :key="index" class="verse-line">
+                                    <span class="verse-text" :style="{ fontSize: poemFontSize }">{{ line }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 操作按钮 -->
+                        <div class="poem-footer">
+                            <div class="action-btn-circle" @click="getAnotherPoem" title="Next Poem">
+                                <n-icon size="20"><NRefresh /></n-icon>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </section>
 
-             <!-- RIGHT PANEL: Annotations/Helper -->
-             <aside class="panel-right glass-card">
-                 <div class="panel-header">
-                     <h3><n-icon><NCompass /></n-icon> 注译</h3>
-                 </div>
-                 <div class="annotations-container">
-                    <!-- Real Annotations -->
-                    <div v-if="allusions && allusions.length > 0" class="helper-block">
-                        <h4>注释</h4>
-                        <div v-for="(note, idx) in allusions" :key="idx" style="margin-bottom: 12px;">
-                             <span style="font-weight: 600; color: var(--text-primary);">{{ note.text }}</span>
-                             <span style="margin: 0 4px; color: var(--text-tertiary);">:</span>
-                             <span style="color: var(--text-secondary);">{{ note.explanation }}</span>
-                             <div v-if="note.source" style="font-size: 12px; color: var(--text-tertiary); margin-top: 4px;">{{ note.source }}</div>
+                <!-- 右侧：诗韵可视化 -->
+                <div class="unified-section right-section">
+                    <div class="section-header">
+                        <h3><n-icon><NDataLine /></n-icon> 诗韵</h3>
+                    </div>
+                    <div class="section-content viz-content">
+                        <!-- 主题分析（单首） -->
+                        <div class="viz-card">
+                            <div class="viz-title">主题分析（单首）</div>
+                            <div class="sentiment-bars">
+                                <div class="sentiment-item">
+                                    <span class="sentiment-label">悠然</span>
+                                    <div class="sentiment-bar">
+                                        <div class="sentiment-fill" style="width: 75%; background: linear-gradient(90deg, #67c3cc, #4a90a4);"></div>
+                                    </div>
+                                    <span class="sentiment-value">75%</span>
+                                </div>
+                                <div class="sentiment-item">
+                                    <span class="sentiment-label">思乡</span>
+                                    <div class="sentiment-bar">
+                                        <div class="sentiment-fill" style="width: 60%; background: linear-gradient(90deg, #ff6b6b, #ee5a52);"></div>
+                                    </div>
+                                    <span class="sentiment-value">60%</span>
+                                </div>
+                                <div class="sentiment-item">
+                                    <span class="sentiment-label">壮志</span>
+                                    <div class="sentiment-bar">
+                                        <div class="sentiment-fill" style="width: 45%; background: linear-gradient(90deg, #4ecdc4, #44a39d);"></div>
+                                    </div>
+                                    <span class="sentiment-value">45%</span>
+                                </div>
+                                <div class="sentiment-item">
+                                    <span class="sentiment-label">愁绪</span>
+                                    <div class="sentiment-bar">
+                                        <div class="sentiment-fill" style="width: 30%; background: linear-gradient(90deg, #95e1d3, #78c4b8);"></div>
+                                    </div>
+                                    <span class="sentiment-value">30%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 主题意象（抽出单首诗的意象词云） -->
+                        <div class="viz-card">
+                            <div class="viz-title">主题意象</div>
+                            <div class="tag-cloud">
+                                <span class="tag-item" style="font-size: 18px; color: #e74c3c;">明月</span>
+                                <span class="tag-item" style="font-size: 16px; color: #3498db;">清风</span>
+                                <span class="tag-item" style="font-size: 14px; color: #2ecc71;">山川</span>
+                                <span class="tag-item" style="font-size: 20px; color: #f39c12;">故乡</span>
+                                <span class="tag-item" style="font-size: 15px; color: #9b59b6;">流水</span>
+                                <span class="tag-item" style="font-size: 17px; color: #1abc9c;">白云</span>
+                                <span class="tag-item" style="font-size: 13px; color: #34495e;">松柏</span>
+                                <span class="tag-item" style="font-size: 19px; color: #e67e22;">秋菊</span>
+                                <span class="tag-item" style="font-size: 14px; color: #16a085;">归雁</span>
+                                <span class="tag-item" style="font-size: 16px; color: #27ae60;">竹林</span>
+                            </div>
+                        </div>
+
+                        <!-- 时辰流转（伪代码实现说明） -->
+                        <div class="viz-card">
+                            <div class="viz-title">时辰流转</div>
+                            <div class="time-chart">
+                                <div class="time-circle">
+                                    <!-- 12个时辰标记 -->
+                                    <div class="time-segment" style="transform: rotate(0deg);"></div>
+                                    <div class="time-segment" style="transform: rotate(30deg);"></div>
+                                    <div class="time-segment" style="transform: rotate(60deg);"></div>
+                                    <div class="time-segment" style="transform: rotate(90deg);"></div>
+                                    <div class="time-segment" style="transform: rotate(120deg);"></div>
+                                    <div class="time-segment" style="transform: rotate(150deg);"></div>
+                                    <div class="time-segment" style="transform: rotate(180deg);"></div>
+                                    <div class="time-segment" style="transform: rotate(210deg);"></div>
+                                    <div class="time-segment" style="transform: rotate(240deg);"></div>
+                                    <div class="time-segment" style="transform: rotate(270deg);"></div>
+                                    <div class="time-segment" style="transform: rotate(300deg);"></div>
+                                    <div class="time-segment" style="transform: rotate(330deg);"></div>
+                                    
+                                    <!-- 当前时辰指针 -->
+                                    <div class="time-pointer" style="transform: rotate(45deg);">
+                                        <div class="pointer-dot"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 实现说明 -->
+                            <div class="implementation-note">
+                                <h4>实现方案：</h4>
+                                <p>1. 后端API分析诗歌中的时间词汇（如：晨、暮、夜、午等）</p>
+                                <p>2. 根据时间词汇映射到古代十二时辰系统</p>
+                                <p>3. 前端使用CSS动画或Canvas绘制时辰轮盘</p>
+                                <p>4. 实时指针指向当前诗歌的主要时辰</p>
+                            </div>
                         </div>
                     </div>
-
-                    <div v-if="poemHelper.author_bio" class="helper-block">
-                        <h4>作者</h4>
-                        <p>{{ poemHelper.author_bio }}</p>
-                    </div>
-                     <div v-if="poemHelper.appreciation" class="helper-block">
-                        <h4>赏析</h4>
-                        <p>{{ poemHelper.appreciation }}</p>
-                    </div>
-                    <div v-if="(!allusions || allusions.length === 0) && !poemHelper.author_bio && !poemHelper.appreciation" class="empty-state-mini">
-                        <p>暂无鉴赏信息</p>
-                    </div>
-                 </div>
-             </aside>
-
+                </div>
+            </div>
         </div>
         <div v-else class="loading-screen">
              <n-spin size="large" />
@@ -234,6 +304,36 @@ const poemHelper = ref({
   background: '',
   appreciation: ''
 })
+
+// 可视化数据
+const dynastyData = ref([
+  { name: '唐', count: 156, percentage: 85, color: 'linear-gradient(90deg, #ff6b6b, #ee5a6f)' },
+  { name: '宋', count: 89, percentage: 65, color: 'linear-gradient(90deg, #4ecdc4, #44a08d)' },
+  { name: '元', count: 45, percentage: 40, color: 'linear-gradient(90deg, #45b7d1, #2196f3)' },
+  { name: '明', count: 67, percentage: 55, color: 'linear-gradient(90deg, #f9ca24, #f0932b)' }
+])
+
+const themeTags = ref([
+  { name: '山水', size: 18, color: '#67c3cc' },
+  { name: '月色', size: 16, color: '#ff9a9e' },
+  { name: '春风', size: 14, color: '#a8e6cf' },
+  { name: '秋思', size: 15, color: '#ffd93d' },
+  { name: '梅雪', size: 13, color: '#c7ceea' },
+  { name: '江流', size: 12, color: '#ff8b94' },
+  { name: '松风', size: 11, color: '#b4a7d6' },
+  { name: '竹影', size: 10, color: '#8fcaca' }
+])
+
+const timeData = ref([
+  { angle: 0, height: 30, color: '#ffeaa7' },
+  { angle: 45, height: 60, color: '#fab1a0' },
+  { angle: 90, height: 45, color: '#ff7675' },
+  { angle: 135, height: 75, color: '#fd79a8' },
+  { angle: 180, height: 40, color: '#a29bfe' },
+  { angle: 225, height: 55, color: '#6c5ce7' },
+  { angle: 270, height: 65, color: '#74b9ff' },
+  { angle: 315, height: 35, color: '#81ecec' }
+])
 
 // 搜索功能相关状态
 const searchVisible = ref(false)
@@ -474,32 +574,6 @@ onMounted(() => {
   text-transform: uppercase;
 }
 
-.nav-recommend {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 20px;
-  background: rgba(207, 63, 53, 0.08);
-  border-radius: 24px;
-  font-size: 13px;
-  color: var(--text-secondary);
-  font-family: "Noto Serif SC", serif;
-  letter-spacing: 0.05em;
-  white-space: nowrap;
-  transition: all 0.2s ease;
-}
-
-.nav-recommend:hover {
-  background: rgba(207, 63, 53, 0.12);
-}
-
-.nav-recommend .n-icon {
-  color: var(--cinnabar-red);
-  font-size: 14px;
-}
 
 .nav-actions {
   display: flex;
@@ -609,95 +683,118 @@ onMounted(() => {
 .main-stage {
   flex: 1;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
-  padding: 20px 20px;
-  min-height: calc(100vh - var(--header-height) - 40px);
+  padding: 30px;
+  min-height: calc(100vh - var(--header-height) - 60px);
   width: 100%;
 }
 
-.content-wrapper {
+/* ==================== UNIFIED CARD ==================== */
+.unified-card {
   width: 100%;
   max-width: 1600px;
+  height: calc(100vh - var(--header-height) - 120px);
   display: flex;
-  gap: 24px;
-  align-items: stretch;
-  justify-content: center;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+  
+  background: var(--paper-white);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  border-radius: var(--radius-main);
+  transition: opacity 0.2s ease;
+  opacity: 0;
+  animation: simpleFadeIn 0.3s ease forwards;
 }
 
-/* ==================== PANELS (LEFT/RIGHT) ==================== */
-.panel-left, .panel-right {
-  width: 320px;
+.unified-header {
+  display: flex;
+  flex: 1;
+  height: 100%;
+  overflow: hidden;
+  gap: 1px;
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.unified-section {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  background: var(--paper-white);
+}
+
+.unified-section.left-section {
+  width: 380px;
   flex-shrink: 0;
-  max-height: calc(100vh - var(--header-height) - 80px);
-  overflow-y: hidden;
-  padding: 20px;
+}
+
+.unified-section.center-section {
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
 }
 
-.panel-left {
-  position: relative;
+.unified-section.right-section {
+  width: 380px;
+  flex-shrink: 0;
 }
 
-.panel-header {
-  margin-bottom: 16px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+.section-header {
+  height: 70px;
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  flex-shrink: 0;
+  background: rgba(248, 249, 250, 0.5);
 }
 
-.panel-header h3 {
+.section-header h3 {
   font-family: "Noto Serif SC", serif;
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 600;
   color: var(--cinnabar-red);
   margin: 0;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   transition: all 0.2s ease;
 }
 
-.panel-header h3:hover {
+.section-header h3:hover {
   color: var(--cinnabar-red);
 }
 
-.panel-header h3 .n-icon {
-  transition: all 0.2s ease;
-}
-
-.panel-header h3:hover .n-icon {
-  color: var(--cinnabar-red);
-}
-
-/* ==================== CENTER STAGE: POEM CARD ==================== */
-.center-stage {
+.section-content {
   flex: 1;
-  min-width: 0;
-  max-width: 700px;
-  display: flex;
-  justify-content: center;
-  padding-top: 20px;
-  padding-bottom: 40px;
-}
-
-.poem-card {
-  width: 100%;
-  padding: 24px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  position: relative;
   overflow: hidden;
-  
-  background: var(--paper-white);
-  
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-    
-  border-radius: var(--radius-sub);
-  transition: opacity 0.2s ease;
-  opacity: 0;
-  animation: simpleFadeIn 0.3s ease forwards;
+  padding: 28px;
+}
+
+.reviews-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.poem-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  justify-content: flex-start;
+  align-items: center;
+  padding: 20px 24px;
+}
+
+.viz-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+  padding: 0 8px;
 }
 
 @keyframes simpleFadeIn {
@@ -756,15 +853,61 @@ onMounted(() => {
   letter-spacing: 0.1em;
 }
 
+/* 作者区域 - 并排布局 */
+.author-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* 推荐理由 - 并排样式 */
+.recommend-reason {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: linear-gradient(135deg, rgba(207, 63, 53, 0.08), rgba(207, 63, 53, 0.12));
+  border-radius: 16px;
+  color: var(--cinnabar-red);
+  font-family: "Noto Serif SC", serif;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(207, 63, 53, 0.15);
+  box-shadow: 0 2px 6px rgba(207, 63, 53, 0.08);
+}
+
+.recommend-reason:hover {
+  background: linear-gradient(135deg, rgba(207, 63, 53, 0.12), rgba(207, 63, 53, 0.18));
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(207, 63, 53, 0.15);
+}
+
+.recommend-reason .n-icon {
+  font-size: 12px;
+  color: var(--cinnabar-red);
+  animation: sparkle 2s ease-in-out infinite;
+}
+
+@keyframes sparkle {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.1); }
+}
+
 /* Poem Body - Horizontal Reading with Vertical Layout */
 .poem-body {
   flex: 1;
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  padding: 16px 24px;
-  overflow-y: auto;
+  padding: 12px 24px 16px;
   min-height: 0;
+  overflow-y: auto;
+  max-height: calc(100% - 100px);
+  width: 100%;
 }
 
 .poem-verses-horizontal {
@@ -773,70 +916,115 @@ onMounted(() => {
   gap: 16px;
   width: 100%;
   max-width: 600px;
+  text-align: center;
 }
 
 .verse-line {
   display: flex;
-  align-items: center;
   justify-content: center;
-  padding: 10px 16px;
-  border-radius: 6px;
-  transition: all 0.2s ease;
+  align-items: center;
+  min-height: 32px;
 }
 
 .verse-text {
   font-family: "Noto Serif SC", serif;
-  font-size: 20px;
-  line-height: 1.6;
-  letter-spacing: 0.1em;
+  font-weight: 500;
   color: var(--text-primary);
-  text-align: center;
+  line-height: 1.8;
+  letter-spacing: 0.05em;
   transition: all 0.2s ease;
+  word-break: break-all;
+  overflow-wrap: break-word;
 }
 
 /* Poem Footer */
 .poem-footer {
   display: flex;
   justify-content: center;
-  gap: 12px;
-  padding-top: 16px;
-  border-top: 1px solid rgba(0, 0, 0, 0.04);
+  align-items: center;
+  padding: 24px 0 16px;
   flex-shrink: 0;
+  position: relative;
+}
+
+.poem-footer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(207, 63, 53, 0.3), transparent);
 }
 
 .action-btn-circle {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
+  width: 52px;
+  height: 52px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.03);
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(207, 63, 53, 0.1), rgba(207, 63, 53, 0.15));
+  color: var(--cinnabar-red);
   cursor: pointer;
-  transition: all 0.3s ease;
-  color: var(--text-secondary);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 2px solid rgba(207, 63, 53, 0.2);
+  font-size: 22px;
+  position: relative;
+  overflow: hidden;
 }
 
-.action-btn-circle .n-icon {
-  transition: all 0.2s ease;
+.action-btn-circle::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: var(--cinnabar-red);
+  transform: translate(-50%, -50%);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 0;
 }
 
 .action-btn-circle:hover {
-  background: var(--cinnabar-red);
-  color: white;
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 8px 25px rgba(207, 63, 53, 0.25);
+  border-color: var(--cinnabar-red);
+}
+
+.action-btn-circle:hover::before {
+  width: 100%;
+  height: 100%;
 }
 
 .action-btn-circle:hover .n-icon {
   color: white;
+  transform: rotate(180deg);
+  z-index: 1;
+  position: relative;
 }
+
+.action-btn-circle .n-icon {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1;
+  position: relative;
+}
+
+.action-btn-circle:active {
+  transform: translateY(0) scale(0.98);
+}
+
 
 /* ==================== REVIEWS & HELPERS ==================== */
 .reviews-container,
 .annotations-container {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  height: 100%;
-  max-height: calc(100vh - var(--header-height) - 100px);
+  min-height: 0;
   overflow: hidden;
 }
 
@@ -845,10 +1033,9 @@ onMounted(() => {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 0 4px 16px 0;
+  gap: 0;
+  padding: 0 8px 16px 0;
   min-height: 0;
-  max-height: calc(100vh - var(--header-height) - 180px);
 }
 
 .empty-state-mini {
@@ -860,10 +1047,7 @@ onMounted(() => {
   text-align: center;
   color: var(--text-tertiary);
   font-size: 13px;
-  min-height: calc(100vh - var(--header-height) - 230px);
-  max-height: calc(100vh - var(--header-height) - 180px);
-  overflow-y: auto;
-  transition: all 0.2s ease;
+  min-height: 200px;
 }
 
 .empty-state-mini:hover {
@@ -871,10 +1055,11 @@ onMounted(() => {
 }
 
 .review-minimal {
-  padding: 14px 16px;
+  padding: 18px 20px;
   background: rgba(0, 0, 0, 0.02);
   border-radius: var(--radius-sub);
   transition: background-color 0.2s ease;
+  margin-bottom: 14px;
 }
 
 
@@ -913,14 +1098,11 @@ onMounted(() => {
 
 .quick-comment {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   align-items: center;
-  padding: 12px 0 8px;
+  padding: 16px 0 12px;
   border-top: 1px solid rgba(0, 0, 0, 0.06);
   flex-shrink: 0;
-  flex-grow: 0;
-  height: auto;
-  min-height: 50px;
   background: var(--paper-white);
   position: sticky;
   bottom: 0;
@@ -943,44 +1125,264 @@ onMounted(() => {
   color: var(--text-secondary);
 }
 
-.helper-block {
-  padding: 16px;
-  background: rgba(0, 0, 0, 0.02);
-  border-radius: var(--radius-sub);
-  margin-bottom: 8px;
-  transition: background-color 0.2s ease;
+/* 发送按钮 - 红色主题 */
+.submit-btn {
+  background: var(--cinnabar-red) !important;
+  border-color: var(--cinnabar-red) !important;
+  color: white !important;
+  transition: all 0.3s ease !important;
 }
 
+.submit-btn:hover:not(:disabled) {
+  background: rgba(207, 63, 53, 0.9) !important;
+  border-color: rgba(207, 63, 53, 0.9) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(207, 63, 53, 0.3);
+}
 
-.helper-block:hover {
+.submit-btn:active:not(:disabled) {
+  background: rgba(207, 63, 53, 0.8) !important;
+  transform: translateY(0);
+}
+
+.submit-btn:disabled {
+  background: rgba(0, 0, 0, 0.1) !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
+  color: rgba(0, 0, 0, 0.3) !important;
+  cursor: not-allowed;
+}
+
+.submit-btn .n-icon {
+  color: white !important;
+}
+
+/* ==================== VISUALIZATION PANEL ==================== */
+.visualization-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 4px;
+}
+
+.viz-card {
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: var(--radius-sub);
+  padding: 24px;
+  transition: background-color 0.2s ease;
+  margin-bottom: 18px;
+}
+
+.viz-card:last-child {
+  margin-bottom: 0;
+}
+
+.viz-card:hover {
   background: rgba(0, 0, 0, 0.04);
 }
 
-.helper-block h4 {
+.viz-title {
   font-family: "Noto Serif SC", serif;
   font-size: 15px;
   font-weight: 600;
   color: var(--cinnabar-red);
-  margin: 0 0 8px 0;
-  letter-spacing: 0.1em;
-  transition: all 0.2s ease;
+  margin-bottom: 16px;
+  letter-spacing: 0.05em;
 }
 
-.helper-block:hover h4 {
-  color: var(--cinnabar-red);
+/* 情感分析条形图 */
+.sentiment-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-.helper-block p {
-  font-size: 13px;
-  line-height: 1.7;
+.sentiment-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sentiment-label {
+  font-family: "Noto Serif SC", serif;
+  font-size: 12px;
   color: var(--text-secondary);
-  margin: 0;
-  text-align: justify;
-  transition: all 0.2s ease;
+  min-width: 40px;
 }
 
-.helper-block:hover p {
+.sentiment-bar {
+  flex: 1;
+  height: 6px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.sentiment-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.sentiment-value {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  min-width: 35px;
+  text-align: right;
+}
+
+/* 朝代分布 */
+.dynasty-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dynasty-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.dynasty-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dynasty-name {
+  font-family: "Noto Serif SC", serif;
+  font-size: 13px;
   color: var(--text-primary);
+  font-weight: 500;
+}
+
+.dynasty-count {
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+.dynasty-bar {
+  height: 4px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.dynasty-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+/* 主题标签云 */
+.tag-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+}
+
+.tag-item {
+  font-family: "Noto Serif SC", serif;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  cursor: default;
+  line-height: 1.2;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.tag-item:hover {
+  background: rgba(207, 63, 53, 0.1);
+  transform: scale(1.05);
+}
+
+/* 时辰流转图 */
+.time-chart {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 24px;
+}
+
+.time-circle {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, #ffeaa7 0deg, #fab1a0 45deg, #ff7675 90deg, #fd79a8 135deg, #a29bfe 180deg, #6c5ce7 225deg, #74b9ff 270deg, #81ecec 315deg, #ffeaa7 360deg);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.time-segment {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 2px;
+  height: 50%;
+  transform-origin: bottom center;
+  border-radius: 1px;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.time-pointer {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 3px;
+  height: 40%;
+  transform-origin: bottom center;
+  background: var(--cinnabar-red);
+  border-radius: 2px;
+  transition: transform 0.5s ease;
+}
+
+.pointer-dot {
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--cinnabar-red);
+  box-shadow: 0 2px 6px rgba(207, 63, 53, 0.4);
+}
+
+/* 实现说明样式 */
+.implementation-note {
+  margin-top: 20px;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: 12px;
+  border-left: 4px solid var(--cinnabar-red);
+}
+
+.implementation-note h4 {
+  font-family: "Noto Serif SC", serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--cinnabar-red);
+  margin: 0 0 12px 0;
+}
+
+.implementation-note p {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin: 6px 0;
+}
+
+.time-label {
+  font-family: "Noto Serif SC", serif;
+  font-size: 10px;
+  color: var(--text-secondary);
+  font-weight: 500;
 }
 
 /* ==================== SEARCH MODAL ==================== */
@@ -1154,86 +1556,122 @@ onMounted(() => {
 
 /* ==================== RESPONSIVE ==================== */
 @media (max-width: 1200px) {
-  .content-wrapper {
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .panel-left, .panel-right {
-    width: 100%;
-    max-width: 800px;
-    position: static;
-    max-height: calc(100vh - var(--header-height) - 80px);
+  .unified-card {
+    max-width: 1200px;
   }
   
-  .center-stage {
-    order: -1; /* Keep poem on top for mobile/tablet */
-    width: 100%;
+  .unified-section.left-section,
+  .unified-section.right-section {
+    width: 340px;
   }
 }
 
-@media (max-width: 768px) {
-  .top-nav {
-    margin: 10px 10px 0;
-    max-width: calc(100% - 20px);
+@media (max-width: 900px) {
+  .unified-card {
+    max-width: 900px;
+    height: auto;
+    min-height: 650px;
+  }
+  
+  .unified-header {
+    flex-direction: column;
+    height: auto;
+    gap: 0;
+    background: transparent;
+  }
+  
+  .unified-section {
+    border: none;
+    width: 100%;
+  }
+  
+  .unified-section.left-section,
+  .unified-section.right-section {
+    width: 100%;
+    border: none;
+  }
+  
+  .unified-section.center-section {
+    order: -1;
+  }
+  
+  .section-header {
+    padding: 16px 24px;
+    height: auto;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  }
+  
+  .section-content {
+    padding: 20px 24px;
+  }
+  
+  .poem-content {
+    padding: 24px;
+  }
+  
+  .viz-content {
+    gap: 16px;
     padding: 0 12px;
   }
+}
 
-  .nav-recommend {
+@media (max-width: 600px) {
+  .main-stage {
+    padding: 16px;
+  }
+  
+  .unified-card {
+    min-height: 550px;
+  }
+  
+  .unified-header {
     display: none;
   }
-
-  .nav-btn-card {
-    padding: 6px 12px;
-    font-size: 12px;
-  }
-
-  .nav-btn-card span {
-    display: none;
-  }
-
-  .nav-btn-card .n-icon {
-    font-size: 18px;
-  }
-
-  .poem-header-vertical {
-    position: static;
-    writing-mode: horizontal-tb;
-    text-orientation: initial;
-    flex-direction: row;
-    justify-content: space-between;
+  
+  .unified-section {
     width: 100%;
-    margin-bottom: 30px;
+    border: none;
   }
-
-  .poem-title {
-    writing-mode: horizontal-tb;
-    text-orientation: initial;
+  
+  .unified-section.center-section {
+    order: -1;
   }
-
-  .author-seal {
-    writing-mode: horizontal-tb;
-    text-orientation: initial;
+  
+  .section-header {
+    padding: 16px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
   }
-
-  .poem-verses-vertical {
-    writing-mode: horizontal-tb;
-    text-orientation: initial;
-    flex-direction: column;
+  
+  .section-content {
+    padding: 16px;
   }
-
-  .verse-line {
-    writing-mode: horizontal-tb;
-    text-orientation: initial;
+  
+  .poem-content {
+    padding: 16px;
   }
-
-  .poem-body {
-    padding: 20px;
+  
+  .viz-card {
+    padding: 16px;
+    margin-bottom: 12px;
   }
-
-  .search-panel {
-    min-width: auto;
-    padding: 24px;
+  
+  .viz-title {
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+  
+  .tag-cloud {
+    padding: 8px;
+    gap: 8px;
+  }
+  
+  .time-chart {
+    padding: 16px;
+  }
+  
+  .time-circle {
+    width: 100px;
+    height: 100px;
   }
 }
 </style>
