@@ -218,6 +218,18 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* CSS Variables */
+:root {
+  --gradient-warm: #f3f6f9;
+  --modern-black: #1a1a1a;
+  --accent-red: #cf3f35;
+  --accent-red-dark: #8a1616;
+  --radius-lg: 24px;
+  --transition-smooth: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  --soft-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  --modern-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
 .analysis-container {
   min-height: 100vh;
   background: var(--gradient-warm);

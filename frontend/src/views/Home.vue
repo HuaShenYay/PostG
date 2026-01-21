@@ -56,7 +56,7 @@
                         <n-empty description="暂无雅评" />
                     </div>
                     <div v-else class="review-scroll">
-                        <div v-for="(r, index) in reviews" :key="r.id" class="review-minimal" :style="{ animationDelay: index * 0.05 + 's' }">
+                        <div v-for="(r, index) in reviews" :key="r.id" class="review-minimal">
                             <div class="review-header">
                                 <span class="r-user">{{ r.user_id }}</span>
                                 <n-rate readonly :value="r.rating" size="small" />
@@ -114,7 +114,7 @@
                  </div>
                  <div class="annotations-container">
                     <!-- Real Annotations -->
-                    <div v-if="allusions && allusions.length > 0" class="helper-block" style="animation-delay: 0.1s;">
+                    <div v-if="allusions && allusions.length > 0" class="helper-block">
                         <h4>注释</h4>
                         <div v-for="(note, idx) in allusions" :key="idx" style="margin-bottom: 12px;">
                              <span style="font-weight: 600; color: var(--text-primary);">{{ note.text }}</span>
@@ -124,11 +124,11 @@
                         </div>
                     </div>
 
-                    <div v-if="poemHelper.author_bio" class="helper-block" style="animation-delay: 0.2s;">
+                    <div v-if="poemHelper.author_bio" class="helper-block">
                         <h4>作者</h4>
                         <p>{{ poemHelper.author_bio }}</p>
                     </div>
-                     <div v-if="poemHelper.appreciation" class="helper-block" style="animation-delay: 0.3s;">
+                     <div v-if="poemHelper.appreciation" class="helper-block">
                         <h4>赏析</h4>
                         <p>{{ poemHelper.appreciation }}</p>
                     </div>
@@ -172,7 +172,7 @@
                 <span>寻觅中...</span>
             </div>
             <div v-else-if="searchResults.length" class="search-results-list">
-                 <div v-for="(item, index) in searchResults" :key="item.id" class="result-item" @click="selectPoemFromSearch(item)" :style="{ animationDelay: index * 0.05 + 's' }">
+                 <div v-for="(item, index) in searchResults" :key="item.id" class="result-item" @click="selectPoemFromSearch(item)">
                      <div class="result-content">
                          <span class="r-title">{{ item.title }}</span>
                          <span class="r-author">{{ item.author }}</span>
@@ -208,11 +208,11 @@ import {
 } from 'naive-ui'
 import { 
   Search as NSearch, 
-  ArrowRight as NArrowRight, 
+  ChevronForward as NArrowRight, 
   Close as NClose, 
   Refresh as NRefresh, 
   Compass as NCompass, 
-  Sparkles as NMagicStick, 
+  Sparkles as NSparkles,
   TrendingUp as NDataLine,
   Menu as NMenu,
   Send as NSend
@@ -450,7 +450,7 @@ onMounted(() => {
 }
 
 .nav-brand:hover {
-  transform: translateX(2px);
+  color: var(--cinnabar-red);
 }
 
 .logo-text {
@@ -494,7 +494,6 @@ onMounted(() => {
 
 .nav-recommend:hover {
   background: rgba(207, 63, 53, 0.12);
-  transform: translateX(-50%) translateY(-1px);
 }
 
 .nav-recommend .n-icon {
@@ -526,7 +525,6 @@ onMounted(() => {
 .nav-btn-card:hover {
   background: rgba(0, 0, 0, 0.06);
   color: var(--ink-black);
-  transform: translateY(-1px);
 }
 
 .nav-btn-card .n-icon {
@@ -535,7 +533,7 @@ onMounted(() => {
 }
 
 .nav-btn-card:hover .n-icon {
-  transform: scale(1.1);
+  color: var(--cinnabar-red);
 }
 
 .nav-btn-icon {
@@ -578,7 +576,6 @@ onMounted(() => {
 
 .user-greeting:hover {
   background: rgba(0, 0, 0, 0.04);
-  transform: translateY(-1px);
 }
 
 .user-name {
@@ -606,7 +603,6 @@ onMounted(() => {
 
 .login-prompt:hover {
   background: rgba(207, 63, 53, 0.1);
-  transform: translateY(-1px);
 }
 
 /* ==================== MAIN STAGE ==================== */
@@ -663,7 +659,7 @@ onMounted(() => {
 }
 
 .panel-header h3:hover {
-  transform: translateX(2px);
+  color: var(--cinnabar-red);
 }
 
 .panel-header h3 .n-icon {
@@ -671,7 +667,7 @@ onMounted(() => {
 }
 
 .panel-header h3:hover .n-icon {
-  transform: rotate(5deg);
+  color: var(--cinnabar-red);
 }
 
 /* ==================== CENTER STAGE: POEM CARD ==================== */
@@ -699,18 +695,17 @@ onMounted(() => {
   box-shadow: 0 1px 2px rgba(0,0,0,0.05);
     
   border-radius: var(--radius-sub);
-  transition: all 0.3s ease;
-  animation: cardEnter 0.4s ease;
+  transition: opacity 0.2s ease;
+  opacity: 0;
+  animation: simpleFadeIn 0.3s ease forwards;
 }
 
-@keyframes cardEnter {
+@keyframes simpleFadeIn {
   from {
     opacity: 0;
-    transform: translateY(10px) scale(0.98);
   }
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
   }
 }
 
@@ -750,8 +745,7 @@ onMounted(() => {
 }
 
 .author-info:hover {
-  transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(207, 63, 53, 0.3);
+  background: rgba(207, 63, 53, 0.8);
 }
 
 .author-name {
@@ -830,12 +824,10 @@ onMounted(() => {
 .action-btn-circle:hover {
   background: var(--cinnabar-red);
   color: white;
-  transform: scale(1.1);
-  box-shadow: 0 4px 12px rgba(207, 63, 53, 0.3);
 }
 
 .action-btn-circle:hover .n-icon {
-  transform: rotate(180deg);
+  color: white;
 }
 
 /* ==================== REVIEWS & HELPERS ==================== */
@@ -882,24 +874,12 @@ onMounted(() => {
   padding: 14px 16px;
   background: rgba(0, 0, 0, 0.02);
   border-radius: var(--radius-sub);
-  transition: all 0.2s ease;
-  animation: fadeInUp 0.3s ease;
+  transition: background-color 0.2s ease;
 }
 
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
 
 .review-minimal:hover {
   background: rgba(0, 0, 0, 0.04);
-  transform: translateX(2px);
 }
 
 .review-header {
@@ -968,24 +948,12 @@ onMounted(() => {
   background: rgba(0, 0, 0, 0.02);
   border-radius: var(--radius-sub);
   margin-bottom: 8px;
-  transition: all 0.2s ease;
-  animation: fadeInLeft 0.3s ease;
+  transition: background-color 0.2s ease;
 }
 
-@keyframes fadeInLeft {
-  from {
-    opacity: 0;
-    transform: translateX(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
 
 .helper-block:hover {
   background: rgba(0, 0, 0, 0.04);
-  transform: translateX(2px);
 }
 
 .helper-block h4 {
@@ -999,7 +967,7 @@ onMounted(() => {
 }
 
 .helper-block:hover h4 {
-  transform: translateX(2px);
+  color: var(--cinnabar-red);
 }
 
 .helper-block p {
@@ -1024,7 +992,7 @@ onMounted(() => {
   padding: 32px;
   min-width: 600px;
   max-width: 90vw;
-  animation: slideDown 0.3s ease;
+  animation: simpleFadeIn 0.2s ease;
 }
 
 .search-header {
@@ -1040,16 +1008,6 @@ onMounted(() => {
   margin: 0;
 }
 
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
 
 .search-bar-zen :deep(.n-input__wrapper) {
   border-radius: 24px;
@@ -1083,11 +1041,10 @@ onMounted(() => {
   background: rgba(0, 0, 0, 0.02);
   border-radius: var(--radius-sub);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  animation: slideInRight 0.3s ease;
 }
 
 .result-content {
@@ -1103,23 +1060,11 @@ onMounted(() => {
 
 .result-item:hover .result-arrow {
   color: var(--cinnabar-red);
-  transform: translateX(4px);
 }
 
-@keyframes slideInRight {
-  from {
-    opacity: 0;
-    transform: translateX(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
 
 .result-item:hover {
   background: rgba(207, 63, 53, 0.05);
-  transform: translateX(4px);
 }
 
 .r-title {
@@ -1137,7 +1082,7 @@ onMounted(() => {
 }
 
 .result-item:hover .r-author {
-  transform: translateX(2px);
+  color: var(--cinnabar-red);
 }
 
 .search-loading {
@@ -1150,7 +1095,6 @@ onMounted(() => {
   padding: 40px;
   color: var(--text-tertiary);
   font-family: "Noto Serif SC", serif;
-  animation: pulse 1.5s ease-in-out infinite;
 }
 
 .search-empty {
