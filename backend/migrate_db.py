@@ -9,7 +9,10 @@ def run_migration():
                 ("translation", "TEXT"),
                 ("appreciation", "TEXT"),
                 ("author_bio", "TEXT"),
-                ("notes", "TEXT")
+                ("notes", "TEXT"),
+                ("rhythm_name", "VARCHAR(50)"),
+                ("rhythm_type", "VARCHAR(20)"),
+                ("tonal_summary", "TEXT")
             ]
             
             for col_name, col_type in cols:

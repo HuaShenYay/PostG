@@ -1,5 +1,11 @@
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Noto+Serif+SC:wght@200;300;400;500;700&family=Inter:wght@200;300;400;500&display=swap');
 
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
 :root {
   /* Modern Zen Palette */
   --ink-black: #1a1a1a;
@@ -23,9 +29,11 @@
   --muted-gold: var(--antique-gold);
   
   /* Layout & Spacing */
-  --header-height: 72px;
+  --header-height: 70px;
   --radius-main: 24px;
   --radius-sub: 12px;
+  --content-max-width: 1750px;
+  --content-padding: 40px;
   
   /* Shadows & Glass */
   --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
@@ -115,3 +123,171 @@ body {
 }
 ::-webkit-scrollbar-thumb:hover { background: rgba(0, 0, 0, 0.2); }
 
+/* Shared Navigation Layout */
+.top-nav {
+  position: sticky;
+  top: 24px;
+  z-index: 1000;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 var(--content-padding);
+  height: var(--header-height);
+  margin: 0 auto;
+  width: 100%;
+  max-width: var(--content-max-width);
+  box-sizing: border-box;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.4);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+}
+
+.nav-brand {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.nav-brand:hover {
+  color: var(--cinnabar-red);
+}
+
+.logo-text {
+  font-family: "Noto Serif SC", serif;
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: 0.35em;
+  color: var(--ink-black);
+  transition: color 0.2s ease;
+}
+
+.nav-brand:hover .logo-text {
+  color: var(--cinnabar-red);
+}
+
+.edition-badge {
+  font-size: 10px;
+  font-weight: 300;
+  letter-spacing: 0.2em;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  margin-left: 4px;
+  opacity: 0.8;
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.nav-btn-card {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  height: 48px;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: var(--text-secondary);
+  background: rgba(0, 0, 0, 0.02);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  box-sizing: border-box;
+}
+
+.nav-btn-card:hover {
+  background: rgba(0, 0, 0, 0.06);
+  color: var(--ink-black);
+  transform: translateY(-1px);
+}
+
+.nav-btn-card .n-icon {
+  font-size: 18px;
+  transition: all 0.2s ease;
+}
+
+.nav-btn-card:hover .n-icon {
+  color: var(--cinnabar-red);
+}
+
+.nav-btn-card.active {
+  background: var(--cinnabar-red) !important;
+  color: white !important;
+  box-shadow: 0 4px 12px rgba(166, 27, 27, 0.2);
+}
+
+.nav-btn-card.active .n-icon {
+  color: white !important;
+}
+
+.divider-vertical {
+  width: 1px;
+  height: 24px;
+  background: rgba(0, 0, 0, 0.08);
+  margin: 0 8px;
+}
+
+.user-area {
+  display: flex;
+  align-items: center;
+}
+
+.user-greeting {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  padding: 8px 18px;
+  height: 48px;
+  border-radius: 24px;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.user-greeting:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.user-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.user-icon {
+  font-size: 18px;
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+}
+
+.user-greeting:hover .user-icon {
+  color: var(--cinnabar-red);
+}
+
+.logout-hint {
+  font-size: 11px;
+  color: var(--cinnabar-red);
+  opacity: 0.8;
+  letter-spacing: 0.1em;
+}
+
+.login-prompt {
+  font-size: 14px;
+  color: var(--cinnabar-red);
+  cursor: pointer;
+  padding: 8px 20px;
+  border-radius: 24px;
+  transition: all 0.2s ease;
+}
+
+.login-prompt:hover {
+  background: rgba(207, 63, 53, 0.1);
+}

@@ -2,6 +2,8 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 from config import Config
 from models import db, User, Poem, Review
+from datetime import datetime
+from datetime import datetime
 import pandas as pd
 from sqlalchemy import text
 import os
@@ -208,10 +210,51 @@ def register():
         db.session.rollback()
         return jsonify({"message": f"注册失败: {str(e)}", "status": "error"}), 500
 
+@app.route('/api/user/update', methods=['POST'])
+def update_user():
+    data = request.json
+    old_username = data.get('old_username')
+    new_username = data.get('new_username')
+    new_password = data.get('new_password')
+    
+    if not old_username:
+        return jsonify({"message": "无效的操作", "status": "error"}), 400
+        
+    user = User.query.filter_by(username=old_username).first()
+    if not user:
+        return jsonify({"message": "用户不存在", "status": "error"}), 404
+        
+    if new_username and new_username != old_username:
+        existing = User.query.filter_by(username=new_username).first()
+        if existing:
+            return jsonify({"message": "新称谓已被占用", "status": "error"}), 400
+        user.username = new_username
+        
+    if new_password:
+        user.password_hash = new_password
+        
+    try:
+        db.session.commit()
+        return jsonify({
+            "message": "修缮成功", 
+            "status": "success",
+            "user": user.to_dict()
+        })
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"message": f"修缮失败: {str(e)}", "status": "error"}), 500
+
 @app.route('/api/poems')
 def get_poems():
     poems = Poem.query.limit(20).all()
     return jsonify([p.to_dict() for p in poems])
+
+@app.route('/api/poem/<int:poem_id>')
+def get_poem(poem_id):
+    poem = Poem.query.get(poem_id)
+    if not poem:
+        return jsonify({"error": "Poem not found"}), 404
+    return jsonify(poem.to_dict())
 
 @app.route('/api/search_poems')
 def search_poems():
@@ -321,6 +364,107 @@ def get_poem_helper(poem_id):
         "author_bio": poem.author_bio or "暂无作者生平信息",
         "background": f"[{poem.dynasty}]" if poem.dynasty else "",
         "appreciation": poem.appreciation or "暂无赏析"
+    })
+
+@app.route('/api/poem/<int:poem_id>/analysis')
+def get_single_poem_analysis(poem_id):
+    """获取单首诗的深度分析：格律矩阵与韵脚流转"""
+    poem = Poem.query.get(poem_id)
+    if not poem:
+        return jsonify({"matrix": [], "rhymes": []})
+        
+    import re
+    from pypinyin import pinyin, Style
+    
+    # 1. 声律矩阵 (Tonal Matrix)
+    # 按行拆分内容
+    lines = [l.strip() for l in re.split(r'[，。！？；\n]', poem.content) if l.strip()]
+    matrix = []
+    for line in lines:
+        # 使用 TONE2 风格，声调数字总是在末尾
+        line_pinyin = pinyin(line, style=Style.TONE3, neutral_tone_with_five=True)
+        line_matrix = []
+        for char, py in zip(line, line_pinyin):
+            s = py[0]
+            tone = "?"
+            # 过滤非汉字
+            if re.match(r'[\u4e00-\u9fa5]', char):
+                if s and s[-1].isdigit():
+                    t_num = int(s[-1])
+                    if t_num in [1, 2]: tone = "平"
+                    elif t_num in [3, 4, 5]: tone = "仄" # 5也是仄声（入声在普通话中多转为仄）
+                else:
+                    # 备用方案：如果 TONE3 没拿到数字，尝试 TONE2
+                    s2 = pinyin(char, style=Style.TONE2)[0][0]
+                    if s2 and s2[-1].isdigit():
+                        t_num = int(s2[-1])
+                        tone = "平" if t_num in [1, 2] else "仄"
+            
+            line_matrix.append({"char": char, "tone": tone})
+        matrix.append(line_matrix)
+        
+    # 2. 韵脚流转 (Rhyme Flow)
+    rhymes = []
+    for idx, line in enumerate(lines):
+        if not line: continue
+        last_char = line[-1]
+        # 获取不带声调的拼音作为韵部近似
+        py_full = pinyin(last_char, style=Style.NORMAL)[0][0]
+        # 简单的韵母提取（取最后一部分）
+        vowels = "aeiouü"
+        rhyme_part = py_full
+        for i in range(len(py_full)):
+            if py_full[i] in vowels:
+                rhyme_part = py_full[i:]
+                break
+        
+        rhymes.append({
+            "line": idx + 1,
+            "char": last_char,
+            "rhyme": rhyme_part
+        })
+        
+    # 3. 情感倾向分析 (Sentiment Profile)
+    # Simple keyword-based sentiment for demonstration of "interesting" viz
+    sentiment_dict = {
+        "雄浑": ["大", "长", "云", "山", "河", "壮", "万", "天", "高"],
+        "忧思": ["愁", "悲", "泪", "苦", "孤", "恨", "断", "老", "梦"],
+        "闲适": ["悠", "闲", "醉", "卧", "月", "酒", "归", "眠", "静"],
+        "清丽": ["花", "香", "翠", "色", "红", "绿", "秀", "春", "嫩"],
+        "羁旅": ["客", "路", "远", "家", "乡", "雁", "征", "帆", "渡"]
+    }
+    sentiment_scores = {k: 10 for k in sentiment_dict} # Base 10
+    for char in poem.content:
+        for k, words in sentiment_dict.items():
+            if char in words:
+                sentiment_scores[k] += 15
+    
+    # 4. 为了平仄心跳图，需要整理一维序列
+    tonal_chart_data = [] 
+    char_labels = []
+    
+    if matrix:
+        for row in matrix:
+            for cell in row:
+                char_labels.append(cell['char'])
+                # 这里的 1 和 -1 用于 ECharts 绘图
+                tonal_chart_data.append(1 if cell['tone'] == '平' else -1 if cell['tone'] == '仄' else 0)
+    
+    # Ensure some data even if parsing failed
+    if not tonal_chart_data:
+        tonal_chart_data = [0] * len(poem.content.replace('\n', ''))
+        char_labels = list(poem.content.replace('\n', ''))
+
+    return jsonify({
+        "matrix": matrix,
+        "rhymes": rhymes,
+        "chart_data": {
+            "tonal_sequence": tonal_chart_data,
+            "char_labels": char_labels,
+            "sentiment": [
+                {"name": k, "value": v} for k, v in sentiment_scores.items()
+            ]
+        }
     })
 
 @app.route('/api/poem/review', methods=['POST'])
@@ -638,79 +782,112 @@ def get_system_stats():
             "sankey_data": {"nodes": [], "links": []}
         })
 
-    # --- A. 雷达图数据：系统的主题倾向 (System Topic Profile) ---
-    # 统计评论中，各个 Topic 的总权重
-    topic_weights = {}
+    # --- A. 雷达图数据：诗韵音律分析 (Rhythm & Tonal Analysis) ---
+    # We will gather stats on Tonal Patterns (Ping vs Ze) and Rhythm Types
     
-    # --- B. 桑基图数据：作者 -> 主题流向 (Author-Topic Flow) ---
-    # 统计 {Author: {TopicID: Weight}}
+    # Base query for poems involved (either all or user-specific)
+    if user_id:
+        # User's history
+        target_poems_query = db.session.query(Poem).join(Review).filter(Review.user_id == user.id)
+    else:
+        # System average (Up to 1000 poems for better coverage)
+        target_poems_query = db.session.query(Poem).filter(Poem.tonal_summary != None).limit(1000)
+        
+    poems_list = target_poems_query.all()
+    
+    # Aggregators
+    total_ping = 0
+    total_ze = 0
+    count_shi = 0
+    count_ci = 0
+    count_yuefu = 0
+    total_chars = 0
+    
+    # Init map for Sankey
     author_topic_map = {}
-    
-    for row in raw_data:
-        author = row[0]
-        dist = json.loads(row[1])
+
+    for p in poems_list:
+        # Type count
+        if p.rhythm_type == '词':
+            count_ci += 1
+        elif '府' in (p.rhythm_name or '') or '歌' in (p.rhythm_name or ''):
+            count_yuefu += 1
+        else:
+            count_shi += 1
+            
+        # Tonal stats
+        if p.tonal_summary:
+            try:
+                ts = json.loads(p.tonal_summary)
+                total_ping += ts.get('ping', 0)
+                total_ze += ts.get('ze', 0)
+                total_chars += ts.get('total', 0)
+            except:
+                pass
         
-        if author not in author_topic_map:
-            author_topic_map[author] = {}
-            
-        for tid, prob in dist.items():
-            tid_int = int(tid)
-            # 累加权重
-            topic_weights[tid_int] = topic_weights.get(tid_int, 0) + prob
-            # 作者累加
-            author_topic_map[author][tid_int] = author_topic_map[author].get(tid_int, 0) + prob
-            
-    # 如果当前用户没有评论数据，使用全局数据作为默认
-    if user_id and not raw_data:
-        # 使用全局数据作为默认
-        sql = text("""
-            SELECT p.author, r.topic_distribution 
-            FROM reviews r
-            JOIN poems p ON r.poem_id = p.id
-            WHERE r.topic_distribution IS NOT NULL
-            LIMIT 100
-        """)
-        try:
-            raw_data = db.session.connection().execute(sql).fetchall()
-        except:
-            raw_data = []
-        
-        # 重新计算权重
-        topic_weights = {}
-        author_topic_map = {}
-        for row in raw_data:
-            author = row[0]
-            dist = json.loads(row[1])
-            
-            if author not in author_topic_map:
-                author_topic_map[author] = {}
+        # Sankey Data Aggregation (Author -> Topic)
+        # Iterate reviews for this poem to get topic distribution
+        # Optimziation: If user_id is set, we only care about THAT user's reviews, 
+        # but p.reviews has ALL. We should filter if generic.
+        # Actually for 'System Stats' using all reviews of these sampled poems is fine.
+        if p.reviews:
+            for r in p.reviews:
+                # If specific user requested, only partial filter? 
+                # The query for poems was already filtered by user if user_id present.
+                # But p.reviews relationship loads all. 
+                # It's safer to just process all for the "Author Flow" or check user_id match if strict.
+                # Let's keep it simple: Aggregate available reviews.
+                if r.topic_distribution:
+                    try:
+                        dist = json.loads(r.topic_distribution)
+                        author = p.author or "未知"
+                        if author not in author_topic_map:
+                            author_topic_map[author] = {}
+                        for tid, prob in dist.items():
+                            tid_int = int(tid)
+                            author_topic_map[author][tid_int] = author_topic_map[author].get(tid_int, 0) + prob
+                    except:
+                        pass
                 
-            for tid, prob in dist.items():
-                tid_int = int(tid)
-                topic_weights[tid_int] = topic_weights.get(tid_int, 0) + prob
-                author_topic_map[author][tid_int] = author_topic_map[author].get(tid_int, 0) + prob
+    # Calculate Ratios
+    # 1. Ping Ratio (Level Tone)
+    # 2. Ze Ratio (Oblique Tone)
+    # 3. Formality (Regulated verse vs irregular) - simple proxy via Shi vs Ci
+    # 4. Melodic (Ci usually more melodic/varied)
+    # 5. Density (Chars per poem avg - maybe not radar suitable, let's use 'Complexity')
     
-    # 处理雷达数据：取权重最高的 6 个主题
-    sorted_topics = sorted(topic_weights.items(), key=lambda x: x[1], reverse=True)[:6]
-    radar_indicator = []
-    radar_values = []
-    
-    max_val = sorted_topics[0][1] if sorted_topics else 100
-    
-    for tid, weight in sorted_topics:
-        # 获取该主题的代表词 (前2个)
-        kw = topic_keywords.get(tid, ["未知"])[0] 
-        label = f"主题{tid}-{kw}" # 如 "主题1-明月"
-        radar_indicator.append({"name": label, "max": max_val})
-        radar_values.append(weight)
+    # Normalize to 0-100 scales approx
+    if total_chars > 0:
+        score_ping = (total_ping / total_chars) * 100 * 1.5 # Scale up a bit, usually around 50%
+        score_ze = (total_ze / total_chars) * 100 * 1.5
+    else:
+        score_ping = 50
+        score_ze = 50
         
+    total_count = len(poems_list) or 1
+    score_shi = (count_shi / total_count) * 100
+    score_ci = (count_ci / total_count) * 100
+    score_yuefu = (count_yuefu / total_count) * 100 * 2 # Boost smaller category
+    
     radar_data = {
-        "indicator": radar_indicator,
-        "value": radar_values
+        "indicator": [
+            {"name": "平声韵 (Level)", "max": 100},
+            {"name": "仄声韵 (Oblique)", "max": 100},
+            {"name": "格律 (Formal)", "max": 100},
+            {"name": "词牌 (Lyrical)", "max": 100},
+            {"name": "乐府 (Folk)", "max": 100}
+        ],
+        "value": [
+            round(min(score_ping, 100), 1), 
+            round(min(score_ze, 100), 1), 
+            round(min(score_shi, 100), 1),
+            round(min(score_ci, 100), 1),
+            round(min(score_yuefu, 100), 1)
+        ]
     }
     
-    # 处理桑基数据：Top 5 作者 -> Top 5 关联主题
-    # 1. 找出 Top Authors
+    # --- B. 桑基图数据：作者 -> 主题流向 (Author-Topic Flow) ---
+    # Keep existing Logic for Sankey as it uses Topics which are still valid and cool
     sorted_authors = sorted(author_topic_map.items(), 
                           key=lambda item: sum(item[1].values()), 
                           reverse=True)[:8] # 取前8位诗人
@@ -754,6 +931,161 @@ def get_system_stats():
         }
     })
 
+
+# --- User Profile & Analysis APIs ---
+
+@app.route('/api/user/<username>/stats')
+def get_user_profile_stats(username):
+    user = User.query.filter_by(username=username).first()
+    if not user:
+        return jsonify({"totalReads": 0, "avgRating": 0, "reviewCount": 0, "activeDays": 0})
+    
+    reviews = Review.query.filter_by(user_id=user.id).all()
+    review_count = len(reviews)
+    avg_rating = sum([r.rating for r in reviews]) / review_count if review_count > 0 else 0
+    
+    # Simple active days count based on created_at (mock for real login tracking)
+    active_days = (datetime.utcnow() - user.created_at).days + 1
+    
+    # Reads: using reviews as proxy for interaction
+    total_reads = review_count * 3 + 5 # Mocking some extra views
+    
+    return jsonify({
+        "totalReads": total_reads,
+        "avgRating": round(avg_rating, 1),
+        "reviewCount": review_count,
+        "activeDays": active_days
+    })
+
+@app.route('/api/user/<username>/preferences')
+def get_user_prefs_api(username):
+    user = User.query.filter_by(username=username).first()
+    if not user or not user.preference_topics:
+        # Default/Initial fallback
+        return jsonify({"preferences": [
+            {"topic_name": "山水田园", "percentage": 40, "color": "#cf3f35"},
+            {"topic_name": "思乡情怀", "percentage": 35, "color": "#bfa46f"},
+            {"topic_name": "豪迈边塞", "percentage": 25, "color": "#1a1a1a"}
+        ]})
+    
+    prefs = json.loads(user.preference_topics)
+    formatted = []
+    colors = ["#cf3f35", "#bfa46f", "#1a1a1a", "#1b1a8a", "#1b8a1a"]
+    
+    for i, p in enumerate(prefs[:5]):
+        tid = p['topic_id']
+        keywords = topic_keywords.get(tid, ["通用"])
+        formatted.append({
+            "topic_id": tid,
+            "topic_name": keywords[0],
+            "percentage": int(p['score'] * 100),
+            "color": colors[i % len(colors)]
+        })
+    return jsonify({"preferences": formatted})
+
+@app.route('/api/user/<username>/form-stats')
+def get_user_form_stats(username):
+    """个人格律偏好：五律、七律、五绝、七绝等"""
+    user = User.query.filter_by(username=username).first()
+    if not user:
+        return jsonify([])
+        
+    reviews = Review.query.filter_by(user_id=user.id).all()
+    if not reviews:
+        # Fallback to general favorites
+        return jsonify([
+            {"name": "七言律诗", "value": 35},
+            {"name": "五言律诗", "value": 25},
+            {"name": "七言绝句", "value": 20},
+            {"name": "五言绝句", "value": 15},
+            {"name": "宋词/其他", "value": 5}
+        ])
+        
+    form_counts = Counter()
+    for r in reviews:
+        p = Poem.query.get(r.poem_id)
+        if p and p.rhythm_name:
+            # 统一格律称谓
+            name = p.rhythm_name
+            if "五" in name and "律" in name: form_counts["五律"] += 1
+            elif "七" in name and "律" in name: form_counts["七律"] += 1
+            elif "五" in name and "绝" in name: form_counts["五绝"] += 1
+            elif "七" in name and "绝" in name: form_counts["七绝"] += 1
+            elif p.rhythm_type == "词": form_counts["词/曲"] += 1
+            else: form_counts["其他"] += 1
+            
+    if not form_counts:
+         return jsonify([{"name": "七律", "value": 40}, {"name": "五律", "value": 30}, {"name": "其他", "value": 30}])
+
+    return jsonify([{"name": k, "value": v} for k, v in form_counts.items()])
+
+@app.route('/api/user/<username>/time-analysis')
+def get_user_time_analysis(username):
+    # Mocked time analysis for user behavior
+    return jsonify({
+        "insights": [
+            {"time": "子时", "value": 15},
+            {"time": "卯时", "value": 10},
+            {"time": "午时", "value": 40},
+            {"time": "酉时", "value": 85},
+            {"time": "亥时", "value": 30}
+        ]
+    })
+
+@app.route('/api/user/<username>/recommendations')
+def get_user_recommendations_v2(username):
+    # Use existing internal logic
+    data, code = _get_user_preference_data(username)
+    if code != 200 or not data['preference']:
+        # Fallback to generic
+        poems = Poem.query.limit(3).all()
+        return jsonify({"poems": [{
+            "id": p.id,
+            "title": p.title,
+            "author": p.author,
+            "content": p.content,
+            "reason": "为您初步挑选的佳作"
+        } for p in poems]})
+    
+    top_topic_id = data['preference'][0]['topic_id']
+    # Use the logic from recommend_by_topic but return formatted for list
+    recs = recommend_by_topic(top_topic_id).get_json()
+    
+    result = []
+    for r in recs:
+        p = Poem.query.filter_by(title=r['title']).first()
+        if p:
+            result.append({
+                "id": p.id,
+                "title": p.title,
+                "author": p.author,
+                "content": p.content,
+                "reason": r['reason']
+            })
+            
+    return jsonify({"poems": result[:4]})
+
+@app.route('/api/user/<username>/wordcloud')
+def get_user_wordcloud(username):
+    """个人雅评关键词词云"""
+    user = User.query.filter_by(username=username).first()
+    if not user:
+        return jsonify([])
+        
+    reviews = Review.query.filter_by(user_id=user.id).all()
+    if not reviews:
+        # Fallback to preference keywords from LDA
+        return get_wordcloud_data() # reuse global but with user_id arg from request
+        
+    all_comments = " ".join([r.comment for r in reviews])
+    
+    import jieba
+    stopwords = load_stopwords()
+    words = jieba.cut(all_comments)
+    filtered = [w for w in words if len(w) > 1 and w not in stopwords]
+    
+    word_counts = Counter(filtered)
+    return jsonify([{"name": k, "value": v} for k, v in word_counts.most_common(50)])
 
 if __name__ == '__main__':
     # 仅在 Flask 热重载的子进程中运行初始化逻辑，避免跑两遍

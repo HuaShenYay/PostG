@@ -9,6 +9,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@antv/g2": "^5.4.8",
+    "@antv/g6": "^5.0.51",
     "@formkit/auto-animate": "^0.9.0",
     "@vicons/ionicons5": "^0.13.0",
     "amfe-flexible": "^2.2.1",

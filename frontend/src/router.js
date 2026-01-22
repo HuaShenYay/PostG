@@ -3,14 +3,22 @@ import Login from './views/Login.vue'
 import Register from './views/Register.vue'
 import Home from './views/Home.vue'
 import Analysis from './views/Analysis.vue'
+import PersonalAnalysis from './views/PersonalAnalysis.vue'
+import GlobalAnalysis from './views/GlobalAnalysis.vue'
 import PreferenceGuide from './views/PreferenceGuide.vue'
+import Search from './views/Search.vue'
+import Profile from './views/Profile.vue'
 
 const routes = [
     { path: '/', component: Home }, // 首页就是每日一诗
     { path: '/login', component: Login },
     { path: '/register', component: Register },
     { path: '/guide', component: PreferenceGuide },
-    { path: '/analysis', component: Analysis }
+    { path: '/analysis', component: Analysis },
+    { path: '/personal-analysis', component: PersonalAnalysis },
+    { path: '/global-analysis', component: GlobalAnalysis },
+    { path: '/search', component: Search },
+    { path: '/profile', component: Profile }
 ]
 
 const router = createRouter({

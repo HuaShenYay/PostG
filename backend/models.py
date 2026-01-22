@@ -40,6 +40,11 @@ class Poem(db.Model):
     author_bio = db.Column(db.Text)   # Author Biography
     notes = db.Column(db.Text)        # JSON string for Allusions/Notes
     
+    # Rhythm Fields
+    rhythm_name = db.Column(db.String(50))   # e.g. "Dian Jiang Chun"
+    rhythm_type = db.Column(db.String(20))   # e.g. "Ci", "Shi"
+    tonal_summary = db.Column(db.Text)       # JSON string for tonal analysis metrics
+    
     def to_dict(self):
         return {
             'id': self.id,
@@ -49,7 +54,10 @@ class Poem(db.Model):
             'dynasty': self.dynasty,
             'translation': self.translation,
             'appreciation': self.appreciation,
-            'author_bio': self.author_bio
+            'author_bio': self.author_bio,
+            'rhythm_name': self.rhythm_name,
+            'rhythm_type': self.rhythm_type,
+            'tonal_summary': self.tonal_summary
             # notes are fetched separately usually, but good to have access
         }
 

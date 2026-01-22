@@ -9,24 +9,30 @@
       
       <div class="nav-actions">
         <!-- 搜索 -->
-        <div class="nav-btn-card" @click="openSearch" title="Search">
+        <div class="nav-btn-card" @click="router.push('/search')" title="Search">
             <n-icon><NSearch /></n-icon>
             <span>搜索</span>
         </div>
         
-        <!-- 观象 -->
-        <div class="nav-btn-card" @click="goToAnalysis" title="Analysis">
-             <n-icon><NDataLine /></n-icon>
-             <span>观象</span>
+        <!-- 个人万象 -->
+        <div class="nav-btn-card" @click="goToPersonalAnalysis" title="Personal Analysis">
+             <n-icon><NPersonOutline /></n-icon>
+             <span>个人万象</span>
+        </div>
+        
+        <!-- 全站万象 -->
+        <div class="nav-btn-card" @click="goToGlobalAnalysis" title="Global Analysis">
+             <n-icon><NGlobeOutline /></n-icon>
+             <span>全站万象</span>
         </div>
 
         <div class="divider-vertical"></div>
 
         <!-- User Profile -->
         <div class="user-area">
-             <div v-if="currentUser !== '访客'" class="user-greeting" @click="logout" title="Logout">
+             <div v-if="currentUser !== '访客'" class="user-greeting" @click="$router.push('/profile')" title="个人信息">
+                <n-icon class="user-icon"><NPersonOutline /></n-icon>
                 <span class="user-name">{{ currentUser }}</span>
-                <span class="logout-hint">离席</span>
              </div>
              <div v-else class="login-prompt" @click="$router.push('/login')">
                 Login
@@ -81,7 +87,7 @@
                     <div class="section-content poem-content">
                         <!-- 诗歌标题和作者 -->
                         <div class="poem-header-horizontal">
-                            <h1 class="poem-title">{{ dailyPoem.title }}</h1>
+                                <h1 class="poem-title">{{ dailyPoem.title }}</h1>
                             <div class="author-section">
                                 <div class="author-info">
                                     <span class="author-name">{{ dailyPoem.author }}</span>
@@ -118,93 +124,38 @@
                         <h3><n-icon><NDataLine /></n-icon> 诗韵</h3>
                     </div>
                     <div class="section-content viz-content">
-                        <!-- 主题分析（单首） -->
-                        <div class="viz-card">
-                            <div class="viz-title">主题分析（单首）</div>
-                            <div class="sentiment-bars">
-                                <div class="sentiment-item">
-                                    <span class="sentiment-label">悠然</span>
-                                    <div class="sentiment-bar">
-                                        <div class="sentiment-fill" style="width: 75%; background: linear-gradient(90deg, #67c3cc, #4a90a4);"></div>
-                                    </div>
-                                    <span class="sentiment-value">75%</span>
-                                </div>
-                                <div class="sentiment-item">
-                                    <span class="sentiment-label">思乡</span>
-                                    <div class="sentiment-bar">
-                                        <div class="sentiment-fill" style="width: 60%; background: linear-gradient(90deg, #ff6b6b, #ee5a52);"></div>
-                                    </div>
-                                    <span class="sentiment-value">60%</span>
-                                </div>
-                                <div class="sentiment-item">
-                                    <span class="sentiment-label">壮志</span>
-                                    <div class="sentiment-bar">
-                                        <div class="sentiment-fill" style="width: 45%; background: linear-gradient(90deg, #4ecdc4, #44a39d);"></div>
-                                    </div>
-                                    <span class="sentiment-value">45%</span>
-                                </div>
-                                <div class="sentiment-item">
-                                    <span class="sentiment-label">愁绪</span>
-                                    <div class="sentiment-bar">
-                                        <div class="sentiment-fill" style="width: 30%; background: linear-gradient(90deg, #95e1d3, #78c4b8);"></div>
-                                    </div>
-                                    <span class="sentiment-value">30%</span>
+                            <!-- 1. 文体特征 (Moved to Top) -->
+                            <div class="viz-card" v-if="dailyPoem">
+                                <div class="viz-title">文体特征</div>
+                                <div class="feature-tags">
+                                    <n-tag :bordered="false" type="error" size="small">{{ dailyPoem.rhythm_type }}</n-tag>
+                                    <n-tag v-if="dailyPoem.dynasty" :bordered="false" type="warning" size="small">{{ dailyPoem.dynasty }}</n-tag>
+                                    <n-tag v-if="dailyPoem.rhythm_name && dailyPoem.rhythm_name !== '未知'" :bordered="false" type="info" size="small">{{ dailyPoem.rhythm_name }}</n-tag>
                                 </div>
                             </div>
-                        </div>
 
-                        <!-- 主题意象（抽出单首诗的意象词云） -->
-                        <div class="viz-card">
-                            <div class="viz-title">主题意象</div>
-                            <div class="tag-cloud">
-                                <span class="tag-item" style="font-size: 18px; color: #e74c3c;">明月</span>
-                                <span class="tag-item" style="font-size: 16px; color: #3498db;">清风</span>
-                                <span class="tag-item" style="font-size: 14px; color: #2ecc71;">山川</span>
-                                <span class="tag-item" style="font-size: 20px; color: #f39c12;">故乡</span>
-                                <span class="tag-item" style="font-size: 15px; color: #9b59b6;">流水</span>
-                                <span class="tag-item" style="font-size: 17px; color: #1abc9c;">白云</span>
-                                <span class="tag-item" style="font-size: 13px; color: #34495e;">松柏</span>
-                                <span class="tag-item" style="font-size: 19px; color: #e67e22;">秋菊</span>
-                                <span class="tag-item" style="font-size: 14px; color: #16a085;">归雁</span>
-                                <span class="tag-item" style="font-size: 16px; color: #27ae60;">竹林</span>
+                            <!-- 2. 意境画像 (ECharts Radar) -->
+                            <div class="viz-card">
+                                <div class="viz-title">意境画像 (Atmosphere Profile)</div>
+                                <div ref="sentimentRef" style="height: 180px;"></div>
                             </div>
-                        </div>
 
-                        <!-- 时辰流转（伪代码实现说明） -->
-                        <div class="viz-card">
-                            <div class="viz-title">时辰流转</div>
-                            <div class="time-chart">
-                                <div class="time-circle">
-                                    <!-- 12个时辰标记 -->
-                                    <div class="time-segment" style="transform: rotate(0deg);"></div>
-                                    <div class="time-segment" style="transform: rotate(30deg);"></div>
-                                    <div class="time-segment" style="transform: rotate(60deg);"></div>
-                                    <div class="time-segment" style="transform: rotate(90deg);"></div>
-                                    <div class="time-segment" style="transform: rotate(120deg);"></div>
-                                    <div class="time-segment" style="transform: rotate(150deg);"></div>
-                                    <div class="time-segment" style="transform: rotate(180deg);"></div>
-                                    <div class="time-segment" style="transform: rotate(210deg);"></div>
-                                    <div class="time-segment" style="transform: rotate(240deg);"></div>
-                                    <div class="time-segment" style="transform: rotate(270deg);"></div>
-                                    <div class="time-segment" style="transform: rotate(300deg);"></div>
-                                    <div class="time-segment" style="transform: rotate(330deg);"></div>
-                                    
-                                    <!-- 当前时辰指针 -->
-                                    <div class="time-pointer" style="transform: rotate(45deg);">
-                                        <div class="pointer-dot"></div>
-                                    </div>
+                            <!-- 3. 音律心跳 (ECharts Line) -->
+                            <div class="viz-card">
+                                <div class="viz-title">音律心跳 (Rhythmic Wave)</div>
+                                <div ref="heartbeatRef" style="height: 80px;"></div>
+                            </div>
+
+                            <!-- 4. 韵脚序列 (Compact) -->
+                            <div class="viz-card" v-if="poemAnalysis.rhymes && poemAnalysis.rhymes.length">
+                                <div class="viz-title">韵脚序列 (Rhyme Seq)</div>
+                                <div class="rhyme-flow-compact">
+                                    <span v-for="r in poemAnalysis.rhymes" :key="r.line" 
+                                          class="rhyme-capsule" :class="{ 'gold-border': r.line % 2 === 0 }">
+                                        {{ r.char }}<small>/{{ r.rhyme }}/</small>
+                                    </span>
                                 </div>
                             </div>
-                            
-                            <!-- 实现说明 -->
-                            <div class="implementation-note">
-                                <h4>实现方案：</h4>
-                                <p>1. 后端API分析诗歌中的时间词汇（如：晨、暮、夜、午等）</p>
-                                <p>2. 根据时间词汇映射到古代十二时辰系统</p>
-                                <p>3. 前端使用CSS动画或Canvas绘制时辰轮盘</p>
-                                <p>4. 实时指针指向当前诗歌的主要时辰</p>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -216,53 +167,15 @@
       </transition>
     </main>
 
-    <!-- Search Modal -->
-    <n-modal v-model:show="searchVisible" class="custom-modal" :mask-closable="true" :closable="true">
-        <n-card class="search-panel glass-card" :bordered="false">
-            <div class="search-header">
-                <h3>寻觅诗词</h3>
-            </div>
-            <n-input 
-                v-model:value="searchQuery" 
-                placeholder="输入标题、作者或诗句..." 
-                size="large" 
-                @keyup.enter="handleSearch" 
-                class="search-bar-zen"
-                clearable
-            >
-                 <template #prefix><n-icon><NSearch /></n-icon></template>
-                 <template #suffix>
-                     <n-button text @click="handleSearch" :disabled="!searchQuery.trim()">
-                         <n-icon><NSearch /></n-icon>
-                     </n-button>
-                 </template>
-            </n-input>
-            <div v-if="searchLoading" class="search-loading">
-                <n-spin size="medium" />
-                <span>寻觅中...</span>
-            </div>
-            <div v-else-if="searchResults.length" class="search-results-list">
-                 <div v-for="(item, index) in searchResults" :key="item.id" class="result-item" @click="selectPoemFromSearch(item)">
-                     <div class="result-content">
-                         <span class="r-title">{{ item.title }}</span>
-                         <span class="r-author">{{ item.author }}</span>
-                     </div>
-                     <n-icon class="result-arrow"><NArrowRight /></n-icon>
-                 </div>
-            </div>
-            <div v-else-if="searchQuery && !searchLoading" class="search-empty">
-                <n-empty description="未找到相关诗词" />
-            </div>
-        </n-card>
-    </n-modal>
 
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, onMounted, onUnmounted, computed, nextTick, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import axios from 'axios'
+import * as echarts from 'echarts'
 // 导入 Naive UI 组件和图标
 import { 
   NModal, 
@@ -274,7 +187,9 @@ import {
   NRate,
   NTabs,
   NTabPane,
-  NSpin
+  NSpin,
+  NProgress,
+  NTag
 } from 'naive-ui'
 import { 
   Search as NSearch, 
@@ -285,11 +200,17 @@ import {
   Sparkles as NSparkles,
   TrendingUp as NDataLine,
   Menu as NMenu,
-  Send as NSend
+  Send as NSend,
+  PersonOutline as NPersonOutline,
+  GlobeOutline as NGlobeOutline
 } from '@vicons/ionicons5'
 
 const router = useRouter()
-const goToAnalysis = () => router.push('/analysis')
+const route = useRoute()
+
+// 导航函数
+const goToPersonalAnalysis = () => router.push('/personal-analysis')
+const goToGlobalAnalysis = () => router.push('/global-analysis')
 const currentUser = localStorage.getItem('user') || '访客'
 const dailyPoem = ref(null)
 const reviews = ref([])
@@ -303,6 +224,109 @@ const poemHelper = ref({
   author_bio: '',
   background: '',
   appreciation: ''
+})
+const poemAnalysis = ref({ 
+  matrix: [], 
+  rhymes: [], 
+  chart_data: { 
+    tonal_sequence: [], 
+    char_labels: [], 
+    sentiment: [], 
+    colors: [] 
+  } 
+})
+
+const heartbeatRef = ref(null)
+const sentimentRef = ref(null)
+let hbChart = null
+let stChart = null
+
+const initCharts = () => {
+  // 1. 音律心跳
+  if (heartbeatRef.value && poemAnalysis.value?.chart_data?.tonal_sequence?.length) {
+    if (hbChart) hbChart.dispose()
+    hbChart = echarts.init(heartbeatRef.value)
+    hbChart.setOption({
+      grid: { top: 10, bottom: 20, left: 10, right: 10 },
+      xAxis: { type: 'category', data: poemAnalysis.value.chart_data.char_labels, show: false },
+      yAxis: { show: false, min: -1.5, max: 1.5 },
+      series: [{
+        data: poemAnalysis.value.chart_data.tonal_sequence,
+        type: 'line',
+        smooth: true,
+        symbol: 'none',
+        lineStyle: { color: '#A61B1B', width: 2 },
+        areaStyle: {
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: 'rgba(166, 27, 27, 0.4)' },
+            { offset: 1, color: 'rgba(166, 27, 27, 0)' }
+          ])
+        }
+      }],
+      tooltip: { trigger: 'axis', formatter: p => `${p[0].name}: ${p[0].value === 1 ? '平' : '仄'}` }
+    })
+  }
+
+  // 2. 意境雷达
+  if (sentimentRef.value && poemAnalysis.value?.chart_data?.sentiment?.length) {
+    if (stChart) stChart.dispose()
+    stChart = echarts.init(sentimentRef.value)
+    const indicators = poemAnalysis.value.chart_data.sentiment.map(s => ({ name: s.name, max: 100 }))
+    const values = poemAnalysis.value.chart_data.sentiment.map(s => s.value)
+    stChart.setOption({
+      radar: {
+        indicator: indicators,
+        shape: 'circle',
+        splitNumber: 3,
+        axisName: { color: '#666', fontSize: 10 },
+        splitLine: { lineStyle: { color: 'rgba(166, 27, 27, 0.1)' } },
+        splitArea: { show: false },
+        axisLine: { lineStyle: { color: 'rgba(166, 27, 27, 0.1)' } }
+      },
+      series: [{
+        type: 'radar',
+        data: [{
+          value: values,
+          itemStyle: { color: '#A61B1B' },
+          areaStyle: { color: 'rgba(166, 27, 27, 0.3)' }
+        }]
+      }]
+    })
+  }
+}
+
+const updatePoemCharts = () => {
+  // 使用 nextTick 并稍微延迟，确保 DOM 稳定且尺寸就绪
+  nextTick(() => {
+    setTimeout(initCharts, 200)
+  })
+}
+
+const handleResize = () => {
+  if (hbChart) hbChart.resize()
+  if (stChart) stChart.resize()
+}
+
+let resizeObserver = null
+
+onMounted(() => {
+  window.addEventListener('resize', handleResize)
+  
+  // 使用 ResizeObserver 监听容器，防止尺寸为0时加载失败
+  if (window.ResizeObserver) {
+    resizeObserver = new ResizeObserver(() => {
+      handleResize()
+    })
+    if (heartbeatRef.value) resizeObserver.observe(heartbeatRef.value)
+    if (sentimentRef.value) resizeObserver.observe(sentimentRef.value)
+  }
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', handleResize)
+  if (resizeObserver) resizeObserver.disconnect()
+  if (hbChart) hbChart.dispose()
+  if (stChart) stChart.dispose()
 })
 
 // 可视化数据
@@ -335,11 +359,6 @@ const timeData = ref([
   { angle: 315, height: 35, color: '#81ecec' }
 ])
 
-// 搜索功能相关状态
-const searchVisible = ref(false)
-const searchQuery = ref('')
-const searchLoading = ref(false)
-const searchResults = ref([])
 // showSidePanel removed
 
 // Computed: Split poem content into lines for vertical display
@@ -376,6 +395,15 @@ const poemFontSize = computed(() => {
   return `${finalSize}px`
 })
 
+const parsedTonalSummary = computed(() => {
+  if (!dailyPoem.value || !dailyPoem.value.tonal_summary) return { ping: 0, ze: 0, ratio: 0 }
+  try {
+    return JSON.parse(dailyPoem.value.tonal_summary)
+  } catch (e) {
+    return { ping: 0, ze: 0, ratio: 0 }
+  }
+})
+
 const fetchUserProfile = async () => {
   if (currentUser === '访客') {
     userProfile.value = null
@@ -407,6 +435,7 @@ const getAnotherPoem = async () => {
     fetchReviews(dailyPoem.value.id)
     fetchAllusions(dailyPoem.value.id)
     fetchPoemHelper(dailyPoem.value.id)
+    fetchPoemAnalysis(dailyPoem.value.id)
   } catch (e) { 
     console.error('获取诗歌失败:', e)
   }
@@ -443,45 +472,17 @@ const fetchPoemHelper = async (id) => {
   }
 }
 
-// 搜索控制逻辑
-const openSearch = () => {
-  searchVisible.value = true
-  searchQuery.value = ''
-  searchResults.value = []
-}
-
-const closeSearch = () => {
-  searchVisible.value = false
-}
-
-const handleSearch = async () => {
-  if (!searchQuery.value.trim()) {
-    searchResults.value = []
-    return
-  }
-  searchLoading.value = true
+const fetchPoemAnalysis = async (id) => {
   try {
-    const res = await axios.get(`http://127.0.0.1:5000/api/search_poems?q=${encodeURIComponent(searchQuery.value)}`)
-    searchResults.value = res.data
-    console.log('搜索结果:', res.data)
-  } catch (e) {
-    console.error('搜索失败:', e)
-    searchResults.value = []
-  } finally {
-    searchLoading.value = false
+    const res = await axios.get(`http://127.0.0.1:5000/api/poem/${id}/analysis`)
+    poemAnalysis.value = res.data
+    // 触发图表更新
+    updatePoemCharts()
+  } catch(e) { 
+    console.error('获取诗歌分析失败:', e)
   }
 }
 
-const selectPoemFromSearch = (poem) => {
-  dailyPoem.value = poem
-  fetchReviews(poem.id)
-  fetchAllusions(poem.id)
-  fetchPoemHelper(poem.id)
-  closeSearch()
-  if (scrollContainer.value) {
-    scrollContainer.value.scrollTop = 0
-  }
-}
 
 const submitComment = async () => {
   if(!newComment.value) {
@@ -510,9 +511,33 @@ const logout = () => {
   router.push('/login')
 }
 
+const fetchPoemById = async (id) => {
+  try {
+    const res = await axios.get(`http://127.0.0.1:5000/api/poem/${id}`)
+    dailyPoem.value = res.data
+    fetchReviews(id)
+    fetchAllusions(id)
+    fetchPoemHelper(id)
+    fetchPoemAnalysis(id)
+  } catch (e) {
+    console.error('获取指定诗歌失败:', e)
+  }
+}
+
 onMounted(() => {
-  getAnotherPoem()
+  if (route.query.poemId) {
+    fetchPoemById(route.query.poemId)
+  } else {
+    getAnotherPoem()
+  }
   fetchUserProfile()
+})
+
+// 监听路由参数变化，支持搜索结果切换
+watch(() => route.query.poemId, (newId) => {
+  if (newId) {
+    fetchPoemById(newId)
+  }
 })
 </script>
 
@@ -527,174 +552,23 @@ onMounted(() => {
   position: relative;
 }
 
-/* ==================== NAVIGATION ==================== */
-.top-nav {
-  position: sticky;
-  top: 20px;
-  z-index: 1000;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 40px;
-  height: var(--header-height);
-  margin: 20px 40px 0;
-  max-width: calc(100% - 80px);
-}
-
-.nav-brand {
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.nav-brand:hover {
-  color: var(--cinnabar-red);
-}
-
-.logo-text {
-  font-family: "Noto Serif SC", serif;
-  font-size: 24px;
-  font-weight: 600;
-  letter-spacing: 0.3em;
-  color: var(--ink-black);
-  transition: color 0.2s ease;
-}
-
-.nav-brand:hover .logo-text {
-  color: var(--cinnabar-red);
-}
-
-.edition-badge {
-  font-size: 10px;
-  font-weight: 300;
-  letter-spacing: 0.15em;
-  color: var(--text-tertiary);
-  text-transform: uppercase;
-}
-
-
-.nav-actions {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.nav-btn-card {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  color: var(--text-secondary);
-  background: rgba(0, 0, 0, 0.02);
-  font-size: 13px;
-  font-weight: 500;
-  letter-spacing: 0.05em;
-}
-
-.nav-btn-card:hover {
-  background: rgba(0, 0, 0, 0.06);
-  color: var(--ink-black);
-}
-
-.nav-btn-card .n-icon {
-  font-size: 16px;
-  transition: all 0.2s ease;
-}
-
-.nav-btn-card:hover .n-icon {
-  color: var(--cinnabar-red);
-}
-
-.nav-btn-icon {
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  cursor: pointer;
-  transition: var(--transition-fast);
-  color: var(--text-secondary);
-}
-
-.nav-btn-icon:hover {
-  background: rgba(0, 0, 0, 0.05);
-  color: var(--ink-black);
-}
-
-.divider-vertical {
-  width: 1px;
-  height: 20px;
-  background: rgba(0, 0, 0, 0.1);
-}
-
-.user-area {
-  display: flex;
-  align-items: center;
-}
-
-.user-greeting {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  padding: 8px 16px;
-  border-radius: 20px;
-  transition: all 0.2s ease;
-}
-
-.user-greeting:hover {
-  background: rgba(0, 0, 0, 0.04);
-}
-
-.user-name {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text-primary);
-  letter-spacing: 0.05em;
-}
-
-.logout-hint {
-  font-size: 11px;
-  color: var(--cinnabar-red);
-  opacity: 0.7;
-  letter-spacing: 0.1em;
-}
-
-.login-prompt {
-  font-size: 13px;
-  color: var(--cinnabar-red);
-  cursor: pointer;
-  padding: 8px 16px;
-  border-radius: 20px;
-  transition: all 0.2s ease;
-}
-
-.login-prompt:hover {
-  background: rgba(207, 63, 53, 0.1);
-}
 
 /* ==================== MAIN STAGE ==================== */
 .main-stage {
   flex: 1;
   display: flex;
-  align-items: center;
+  align-items: flex-start; /* Fix top position */
   justify-content: center;
-  padding: 30px;
-  min-height: calc(100vh - var(--header-height) - 60px);
+  padding: 45px var(--content-padding);
   width: 100%;
+  overflow-y: hidden;
 }
 
 /* ==================== UNIFIED CARD ==================== */
 .unified-card {
   width: 100%;
-  max-width: 1600px;
-  height: calc(100vh - var(--header-height) - 120px);
+  max-width: var(--content-max-width);
+  height: calc(100vh - var(--header-height) - 90px); /* Taller at the bottom */
   display: flex;
   flex-direction: column;
   padding: 0;
@@ -1183,15 +1057,39 @@ onMounted(() => {
   background: rgba(0, 0, 0, 0.04);
 }
 
-.viz-title {
+.poem-title {
   font-family: "Noto Serif SC", serif;
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--cinnabar-red);
-  margin-bottom: 16px;
-  letter-spacing: 0.05em;
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--ink-black);
+  margin: 0;
+  letter-spacing: 0.1em;
 }
 
+.title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.rhythm-tag {
+  font-size: 14px;
+  color: var(--cinnabar-red);
+  background: rgba(166, 27, 27, 0.08);
+  padding: 2px 10px;
+  border-radius: 4px;
+  font-weight: 500;
+  border: 1px solid rgba(166, 27, 27, 0.2);
+}
+
+.author-section {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+  justify-content: center;
+}
 /* 情感分析条形图 */
 .sentiment-bars {
   display: flex;
@@ -1385,136 +1283,6 @@ onMounted(() => {
   font-weight: 500;
 }
 
-/* ==================== SEARCH MODAL ==================== */
-.custom-modal {
-  --n-border-radius: 24px;
-}
-
-.search-panel {
-  padding: 32px;
-  min-width: 600px;
-  max-width: 90vw;
-  animation: simpleFadeIn 0.2s ease;
-}
-
-.search-header {
-  margin-bottom: 24px;
-  text-align: center;
-}
-
-.search-header h3 {
-  font-family: "Noto Serif SC", serif;
-  font-size: 24px;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0;
-}
-
-
-.search-bar-zen :deep(.n-input__wrapper) {
-  border-radius: 24px;
-  padding: 12px 20px;
-  border: 2px solid rgba(0, 0, 0, 0.08);
-  transition: all 0.2s ease;
-  background: var(--paper-white);
-}
-
-.search-bar-zen :deep(.n-input__wrapper):focus-within {
-  border-color: var(--cinnabar-red);
-  box-shadow: 0 0 0 3px rgba(207, 63, 53, 0.1);
-  transform: scale(1.01);
-}
-
-.search-bar-zen :deep(.n-input__wrapper:hover) {
-  border-color: rgba(207, 63, 53, 0.3);
-}
-
-.search-results-list {
-  margin-top: 30px;
-  max-height: 50vh;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.result-item {
-  padding: 20px;
-  background: rgba(0, 0, 0, 0.02);
-  border-radius: var(--radius-sub);
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.result-content {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.result-arrow {
-  color: var(--text-tertiary);
-  transition: all 0.2s ease;
-}
-
-.result-item:hover .result-arrow {
-  color: var(--cinnabar-red);
-}
-
-
-.result-item:hover {
-  background: rgba(207, 63, 53, 0.05);
-}
-
-.r-title {
-  font-family: "Noto Serif SC", serif;
-  font-size: 16px;
-  font-weight: 500;
-  color: var(--text-primary);
-}
-
-.r-author {
-  font-size: 13px;
-  color: var(--cinnabar-red);
-  letter-spacing: 0.1em;
-  transition: all 0.2s ease;
-}
-
-.result-item:hover .r-author {
-  color: var(--cinnabar-red);
-}
-
-.search-loading {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  margin-top: 30px;
-  padding: 40px;
-  color: var(--text-tertiary);
-  font-family: "Noto Serif SC", serif;
-}
-
-.search-empty {
-  text-align: center;
-  padding: 60px 20px;
-  font-size: 16px;
-  color: var(--text-tertiary);
-  font-family: "Noto Serif SC", serif;
-}
-
-.search-empty :deep(.n-empty) {
-  --n-icon-color: var(--text-tertiary);
-}
-
-.search-empty :deep(.n-empty__description) {
-  font-family: "Noto Serif SC", serif;
-  color: var(--text-tertiary);
-}
 
 /* ==================== LOADING ==================== */
 .loading-screen {
@@ -1674,4 +1442,222 @@ onMounted(() => {
     height: 100px;
   }
 }
+/* 音律分析相关样式 */
+.rhythm-stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.rhythm-stat-box {
+  background: rgba(0, 0, 0, 0.03);
+  padding: 12px;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.rhythm-stat-box.wide {
+  grid-column: span 2;
+  align-items: flex-start;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  margin-bottom: 4px;
+}
+
+.stat-val {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--cinnabar-red);
+  font-family: "Arial";
+}
+
+.stat-hint {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  margin-top: 4px;
+}
+
+.feature-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.appreciation-text {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  text-align: justify;
+  margin-top: 10px;
+}
+
+.scrollable-note {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+/* 声律矩阵样式 */
+.tonal-matrix {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px;
+  background: rgba(0,0,0,0.02);
+  border-radius: 8px;
+  align-items: center;
+}
+
+.matrix-row {
+  display: flex;
+  gap: 4px;
+}
+
+.matrix-cell {
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+  font-size: 10px;
+  transition: all 0.2s;
+}
+
+.is-ping { background: rgba(166, 27, 27, 0.1); color: #A61B1B; }
+.is-ze { background: rgba(0, 0, 0, 0.7); color: #fff; }
+.is-unknown { background: rgba(0, 0, 0, 0.05); color: #999; }
+
+.matrix-legend {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  font-size: 11px;
+  margin-top: 8px;
+  color: var(--text-tertiary);
+}
+
+.dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 4px;
+}
+.dot.ping { background: #A61B1B; opacity: 0.5; }
+.dot.ze { background: #000; }
+
+/* 韵脚流转样式 */
+.rhyme-flow-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px;
+}
+
+.rhyme-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.rhyme-marker {
+  font-size: 10px;
+  color: #999;
+  width: 14px;
+}
+
+.rhyme-char-box {
+  flex: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 10px;
+  background: rgba(0,0,0,0.02);
+  border-radius: 4px;
+  font-family: "Noto Serif SC", serif;
+}
+
+.is-rhyming {
+  background: rgba(166, 27, 27, 0.05);
+  border-left: 2px solid #A61B1B;
+}
+
+.r-char { font-weight: 700; color: #333; }
+.r-pinyin { font-size: 11px; color: #A61B1B; font-family: "Arial"; font-style: italic; }
+
+.viz-hint {
+  font-size: 10px;
+  color: #999;
+  text-align: center;
+  margin-top: 5px;
+}
+
+.rhyme-flow-compact {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+.rhyme-capsule {
+  padding: 4px 8px;
+  background: rgba(0,0,0,0.02);
+  border-radius: 12px;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.rhyme-capsule small {
+  font-size: 10px;
+  color: #A61B1B;
+}
+
+.gold-border {
+  border: 1px solid rgba(166, 27, 27, 0.2);
+  background: rgba(166, 27, 27, 0.03);
+}
+
+/* 调色盘样式 */
+.color-palette {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  padding: 10px 0;
+}
+
+.color-drop {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  border: 2px solid #fff;
+  transition: transform 0.2s;
+  cursor: help;
+}
+
+.color-drop:hover {
+  transform: scale(1.1) translateY(-4px);
+}
+
+.color-name {
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 0 4px rgba(0,0,0,0.5);
+  filter: invert(1) grayscale(1) contrast(100); /* 简单根据背景反转对比 */
+  mix-blend-mode: difference;
+}
+
 </style>
