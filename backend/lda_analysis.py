@@ -1,6 +1,8 @@
 import pandas as pd
 import jieba
+import jieba.posseg as pseg
 from gensim import corpora, models
+from collections import Counter
 import os
 
 # 1. 配置路径
@@ -34,10 +36,66 @@ def preprocess_text(text, stopwords):
     meaningful_words = [w for w in words if w not in stopwords and len(w) > 1]
     return meaningful_words # 返回列表，供 Gensim 使用
 
-def train_lda_model(df=None):
+def preprocess_text_advanced(text, stopwords, valid_words=None):
+    """高级文本预处理：分词 + 词性过滤 + 去停用词"""
+    # jieba分词 + 词性标注
+    words_with_pos = pseg.cut(text)
+    
+    # 词性过滤：只保留名词、动词、形容词、副词
+    meaningful_words = []
+    for word, flag in words_with_pos:
+        if word not in stopwords and len(word) > 1:
+            # 只保留有意义的词性
+            if flag in ['n', 'v', 'a', 'd', 'vn', 'an', 'nz', 'z']:
+                meaningful_words.append(word)
+    
+    # 如果提供了有效词汇表，进一步过滤
+    if valid_words:
+        meaningful_words = [w for w in meaningful_words if w in valid_words]
+    
+    return meaningful_words
+
+def filter_by_frequency(tokenized_texts, min_freq=2, max_doc_ratio=0.8):
+    """基于词频过滤特征词
+    min_freq: 词至少出现min_freq次
+    max_doc_ratio: 词最多出现在max_doc_ratio比例的文档中
+    """
+    # 统计词频
+    all_words = [w for words in tokenized_texts for w in words]
+    word_freq = Counter(all_words)
+    
+    # 统计文档频率
+    doc_freq = {}
+    for words in tokenized_texts:
+        unique_words = set(words)
+        for w in unique_words:
+            doc_freq[w] = doc_freq.get(w, 0) + 1
+    
+    total_docs = len(tokenized_texts)
+    
+    # 确定有效词汇
+    valid_words = set()
+    for word, freq in word_freq.items():
+        doc_ratio = doc_freq.get(word, 0) / total_docs
+        if freq >= min_freq and doc_ratio <= max_doc_ratio:
+            valid_words.add(word)
+    
+    print(f"词频过滤: 原始词数={len(word_freq)}, 有效词数={len(valid_words)}")
+    
+    # 过滤文本
+    filtered_texts = [[w for w in words if w in valid_words] 
+                     for words in tokenized_texts]
+    
+    return filtered_texts, valid_words
+
+def train_lda_model(df=None, use_advanced_preprocessing=True):
     """
     训练LDA模型 (学术增强版：使用评估指标自动寻找最优 K 值)
     方案 B：Perplexity (困惑度) 评估法
+    
+    Args:
+        df: 数据框，如果为None则从文件加载
+        use_advanced_preprocessing: 是否使用高级预处理（词性过滤+词频过滤）
     """
     if df is None:
         df = load_data()
@@ -46,11 +104,34 @@ def train_lda_model(df=None):
 
     # 1. 预处理评论
     print("正在进行分词和预处理...")
-    tokenized_texts = df['comment'].apply(lambda x: preprocess_text(str(x), stopwords)).tolist()
+    
+    if use_advanced_preprocessing:
+        # 使用高级预处理
+        tokenized_texts = df['comment'].apply(
+            lambda x: preprocess_text(str(x), stopwords)
+        ).tolist()
+        
+        # 词频过滤
+        tokenized_texts, valid_words = filter_by_frequency(
+            tokenized_texts, 
+            min_freq=2,  # 至少出现2次
+            max_doc_ratio=0.8  # 最多出现在80%的文档中
+        )
+        
+        # 使用词性过滤重新处理
+        tokenized_texts = [
+            preprocess_text_advanced(str(text), stopwords, valid_words)
+            for text in df['comment']
+        ]
+    else:
+        # 使用简单预处理
+        tokenized_texts = df['comment'].apply(
+            lambda x: preprocess_text(str(x), stopwords)
+        ).tolist()
     
     # 2. 构建 Gensim 字典和语料库
     dictionary = corpora.Dictionary(tokenized_texts)
-    dictionary.filter_extremes(no_below=1, no_above=1.0) 
+    dictionary.filter_extremes(no_below=2, no_above=0.8) 
     corpus = [dictionary.doc2bow(text) for text in tokenized_texts]
 
     if not corpus:
@@ -106,6 +187,19 @@ def train_lda_model(df=None):
         words = lda.show_topic(topic_id, topn=10)
         topic_keywords[topic_id] = [w[0] for w in words]
     
+    # 6. 计算主题一致性分数
+    try:
+        coherence_model = models.CoherenceModel(
+            model=lda,
+            texts=tokenized_texts,
+            dictionary=dictionary,
+            coherence='c_v'
+        )
+        coherence_score = coherence_model.get_coherence()
+        print(f"\n[模型评估] 主题一致性分数: {coherence_score:.4f}")
+    except:
+        print("\n[模型评估] 无法计算主题一致性分数")
+    
     return lda, dictionary, df, topic_keywords
 
 def save_lda_model(lda, dictionary, topic_keywords):
@@ -144,7 +238,7 @@ def load_lda_model():
 
 if __name__ == "__main__":
     # 如果直接运行此脚本，则进行测试
-    lda, dictionary, df, keywords = train_lda_model()
+    lda, dictionary, df, keywords = train_lda_model(use_advanced_preprocessing=True)
     if keywords:
         for tid, words in list(keywords.items())[:5]:
             print(f"主题 #{tid}: {' '.join(words)}")

@@ -1,0 +1,1213 @@
+2026-01-24 01:26:58,611 - INFO - 🎯 推荐更新系统初始化完成
+2026-01-24 01:26:58,611 - INFO -    - 触发延迟: 30秒
+2026-01-24 01:26:58,611 - INFO -    - 最大处理时间: 300秒
+2026-01-24 01:26:58,611 - INFO -    - CPU阈值: 80.0%
+2026-01-24 01:26:58,611 - INFO -    - 内存阈值: 80.0%
+2026-01-24 01:26:58,612 - INFO -    - 最大重试次数: 3
+2026-01-24 01:26:58,652 - INFO - loading LdaModel object from C:\PostG\backend\saved_models\lda.model
+2026-01-24 01:26:58,654 - INFO - loading expElogbeta from C:\PostG\backend\saved_models\lda.model.expElogbeta.npy with mmap=None
+2026-01-24 01:26:58,657 - INFO - setting ignored attribute state to None
+2026-01-24 01:26:58,657 - INFO - setting ignored attribute dispatcher to None
+2026-01-24 01:26:58,657 - INFO - setting ignored attribute id2word to None
+2026-01-24 01:26:58,671 - INFO - LdaModel lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.model', 'datetime': '2026-01-24T01:26:58.657608', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:26:58,672 - INFO - loading LdaState object from C:\PostG\backend\saved_models\lda.model.state
+2026-01-24 01:26:58,672 - INFO - LdaState lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.model.state', 'datetime': '2026-01-24T01:26:58.672549', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:26:58,673 - INFO - loading Dictionary object from C:\PostG\backend\saved_models\lda.dict
+2026-01-24 01:26:58,673 - INFO - Dictionary lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.dict', 'datetime': '2026-01-24T01:26:58.673658', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:26:58,692 - WARNING -  * Debugger is active!
+2026-01-24 01:26:58,698 - INFO -  * Debugger PIN: 236-035-687
+2026-01-24 01:27:31,567 - INFO - 测试日志记录
+2026-01-24 01:27:49,806 - INFO - 127.0.0.1 - - [24/Jan/2026 01:27:49] "GET /api/global/stats HTTP/1.1" 200 -
+2026-01-24 01:27:49,854 - INFO - 127.0.0.1 - - [24/Jan/2026 01:27:49] "GET /api/global/wordcloud HTTP/1.1" 200 -
+2026-01-24 01:27:49,887 - INFO - 127.0.0.1 - - [24/Jan/2026 01:27:49] "GET /api/global/theme-distribution HTTP/1.1" 200 -
+2026-01-24 01:27:49,904 - INFO - 127.0.0.1 - - [24/Jan/2026 01:27:49] "GET /api/global/dynasty-distribution HTTP/1.1" 200 -
+2026-01-24 01:27:49,917 - INFO - 127.0.0.1 - - [24/Jan/2026 01:27:49] "GET /api/global/trends?period=week HTTP/1.1" 200 -
+2026-01-24 01:27:50,682 - INFO - 127.0.0.1 - - [24/Jan/2026 01:27:50] "GET /api/global/popular-poems?time_range=week HTTP/1.1" 200 -
+2026-01-24 01:28:19,693 - INFO - 127.0.0.1 - - [24/Jan/2026 01:28:19] "GET /api/user_preference/testuser1 HTTP/1.1" 200 -
+2026-01-24 01:28:19,782 - INFO - 127.0.0.1 - - [24/Jan/2026 01:28:19] "GET /api/recommend_one/testuser1?current_id=&skip_count=1 HTTP/1.1" 200 -
+2026-01-24 01:28:19,808 - INFO - 127.0.0.1 - - [24/Jan/2026 01:28:19] "GET /api/poem/208/allusions HTTP/1.1" 200 -
+2026-01-24 01:28:19,809 - INFO - 127.0.0.1 - - [24/Jan/2026 01:28:19] "GET /api/poem/208/helper HTTP/1.1" 200 -
+2026-01-24 01:28:19,830 - INFO - 127.0.0.1 - - [24/Jan/2026 01:28:19] "GET /api/poem/208/reviews HTTP/1.1" 200 -
+2026-01-24 01:28:20,253 - INFO - 127.0.0.1 - - [24/Jan/2026 01:28:20] "GET /api/poem/208/analysis HTTP/1.1" 200 -
+2026-01-24 01:28:33,853 - INFO - 127.0.0.1 - - [24/Jan/2026 01:28:33] "GET /api/user_preference/testuser1 HTTP/1.1" 200 -
+2026-01-24 01:28:33,944 - INFO - 127.0.0.1 - - [24/Jan/2026 01:28:33] "GET /api/recommend_one/testuser1?current_id=&skip_count=1 HTTP/1.1" 200 -
+2026-01-24 01:28:33,967 - INFO - 127.0.0.1 - - [24/Jan/2026 01:28:33] "GET /api/poem/5/helper HTTP/1.1" 200 -
+2026-01-24 01:28:33,967 - INFO - 127.0.0.1 - - [24/Jan/2026 01:28:33] "GET /api/poem/5/allusions HTTP/1.1" 200 -
+2026-01-24 01:28:33,977 - INFO - 127.0.0.1 - - [24/Jan/2026 01:28:33] "GET /api/poem/5/analysis HTTP/1.1" 200 -
+2026-01-24 01:28:33,990 - INFO - 127.0.0.1 - - [24/Jan/2026 01:28:33] "GET /api/poem/5/reviews HTTP/1.1" 200 -
+2026-01-24 01:28:35,890 - INFO - 127.0.0.1 - - [24/Jan/2026 01:28:35] "GET /api/user_preference/testuser1 HTTP/1.1" 200 -
+2026-01-24 01:28:35,968 - INFO - 127.0.0.1 - - [24/Jan/2026 01:28:35] "GET /api/recommend_one/testuser1?current_id=&skip_count=1 HTTP/1.1" 200 -
+2026-01-24 01:28:35,985 - INFO - 127.0.0.1 - - [24/Jan/2026 01:28:35] "GET /api/poem/143/allusions HTTP/1.1" 200 -
+2026-01-24 01:28:35,989 - INFO - 127.0.0.1 - - [24/Jan/2026 01:28:35] "GET /api/poem/143/helper HTTP/1.1" 200 -
+2026-01-24 01:28:35,997 - INFO - 127.0.0.1 - - [24/Jan/2026 01:28:35] "GET /api/poem/143/analysis HTTP/1.1" 200 -
+2026-01-24 01:28:36,010 - INFO - 127.0.0.1 - - [24/Jan/2026 01:28:36] "GET /api/poem/143/reviews HTTP/1.1" 200 -
+2026-01-24 01:30:58,226 - INFO - 🎯 推荐更新系统初始化完成
+2026-01-24 01:30:58,226 - INFO -    - 触发延迟: 30秒
+2026-01-24 01:30:58,226 - INFO -    - 最大处理时间: 300秒
+2026-01-24 01:30:58,226 - INFO -    - CPU阈值: 80.0%
+2026-01-24 01:30:58,226 - INFO -    - 内存阈值: 80.0%
+2026-01-24 01:30:58,227 - INFO -    - 最大重试次数: 3
+2026-01-24 01:30:58,272 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2026-01-24 01:30:58,272 - INFO - [33mPress CTRL+C to quit[0m
+2026-01-24 01:30:58,282 - INFO -  * Restarting with watchdog (windowsapi)
+2026-01-24 01:31:00,418 - INFO - 🎯 推荐更新系统初始化完成
+2026-01-24 01:31:00,418 - INFO -    - 触发延迟: 30秒
+2026-01-24 01:31:00,418 - INFO -    - 最大处理时间: 300秒
+2026-01-24 01:31:00,418 - INFO -    - CPU阈值: 80.0%
+2026-01-24 01:31:00,418 - INFO -    - 内存阈值: 80.0%
+2026-01-24 01:31:00,418 - INFO -    - 最大重试次数: 3
+2026-01-24 01:31:00,475 - INFO - loading LdaModel object from C:\PostG\backend\saved_models\lda.model
+2026-01-24 01:31:00,476 - INFO - loading expElogbeta from C:\PostG\backend\saved_models\lda.model.expElogbeta.npy with mmap=None
+2026-01-24 01:31:00,482 - INFO - setting ignored attribute state to None
+2026-01-24 01:31:00,482 - INFO - setting ignored attribute dispatcher to None
+2026-01-24 01:31:00,482 - INFO - setting ignored attribute id2word to None
+2026-01-24 01:31:00,497 - INFO - LdaModel lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.model', 'datetime': '2026-01-24T01:31:00.483215', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:31:00,497 - INFO - loading LdaState object from C:\PostG\backend\saved_models\lda.model.state
+2026-01-24 01:31:00,497 - INFO - LdaState lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.model.state', 'datetime': '2026-01-24T01:31:00.497898', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:31:00,498 - INFO - loading Dictionary object from C:\PostG\backend\saved_models\lda.dict
+2026-01-24 01:31:00,499 - INFO - Dictionary lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.dict', 'datetime': '2026-01-24T01:31:00.499430', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:31:00,520 - WARNING -  * Debugger is active!
+2026-01-24 01:31:00,533 - INFO -  * Debugger PIN: 236-035-687
+2026-01-24 01:34:56,478 - INFO - 127.0.0.1 - - [24/Jan/2026 01:34:56] "GET /api/recommend_one/testuser1?current_id=143&skip_count=2 HTTP/1.1" 200 -
+2026-01-24 01:34:56,541 - INFO - 127.0.0.1 - - [24/Jan/2026 01:34:56] "GET /api/poem/5/allusions HTTP/1.1" 200 -
+2026-01-24 01:34:56,541 - INFO - 127.0.0.1 - - [24/Jan/2026 01:34:56] "GET /api/poem/5/helper HTTP/1.1" 200 -
+2026-01-24 01:34:56,559 - INFO - 127.0.0.1 - - [24/Jan/2026 01:34:56] "GET /api/poem/5/reviews HTTP/1.1" 200 -
+2026-01-24 01:34:57,077 - INFO - 127.0.0.1 - - [24/Jan/2026 01:34:57] "GET /api/poem/5/analysis HTTP/1.1" 200 -
+2026-01-24 01:37:25,664 - INFO -  * Detected change in 'C:\\PostG\\backend\\recommendation_update.py', reloading
+2026-01-24 01:37:25,664 - INFO -  * Detected change in 'C:\\PostG\\backend\\recommendation_update.py', reloading
+2026-01-24 01:37:26,561 - INFO -  * Restarting with watchdog (windowsapi)
+2026-01-24 01:39:13,066 - INFO - 🎯 监听器启动，当前诗歌数: 367
+2026-01-24 01:39:13,070 - INFO - 🎯 推荐更新系统初始化完成
+2026-01-24 01:39:13,070 - INFO -    - 触发延迟: 30秒
+2026-01-24 01:39:13,070 - INFO -    - 最大处理时间: 300秒
+2026-01-24 01:39:13,070 - INFO -    - CPU阈值: 80.0%
+2026-01-24 01:39:13,070 - INFO -    - 内存阈值: 80.0%
+2026-01-24 01:39:13,071 - INFO -    - 最大重试次数: 3
+2026-01-24 01:39:13,098 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2026-01-24 01:39:13,098 - INFO - [33mPress CTRL+C to quit[0m
+2026-01-24 01:39:13,112 - INFO -  * Restarting with watchdog (windowsapi)
+2026-01-24 01:39:15,580 - INFO - 🎯 监听器启动，当前诗歌数: 367
+2026-01-24 01:39:15,582 - INFO - 🎯 推荐更新系统初始化完成
+2026-01-24 01:39:15,583 - INFO -    - 触发延迟: 30秒
+2026-01-24 01:39:15,583 - INFO -    - 最大处理时间: 300秒
+2026-01-24 01:39:15,583 - INFO -    - CPU阈值: 80.0%
+2026-01-24 01:39:15,583 - INFO -    - 内存阈值: 80.0%
+2026-01-24 01:39:15,583 - INFO -    - 最大重试次数: 3
+2026-01-24 01:39:15,605 - INFO - loading LdaModel object from C:\PostG\backend\saved_models\lda.model
+2026-01-24 01:39:15,605 - INFO - loading expElogbeta from C:\PostG\backend\saved_models\lda.model.expElogbeta.npy with mmap=None
+2026-01-24 01:39:15,609 - INFO - setting ignored attribute state to None
+2026-01-24 01:39:15,610 - INFO - setting ignored attribute dispatcher to None
+2026-01-24 01:39:15,610 - INFO - setting ignored attribute id2word to None
+2026-01-24 01:39:15,622 - INFO - LdaModel lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.model', 'datetime': '2026-01-24T01:39:15.610169', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:39:15,624 - INFO - loading LdaState object from C:\PostG\backend\saved_models\lda.model.state
+2026-01-24 01:39:15,624 - INFO - LdaState lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.model.state', 'datetime': '2026-01-24T01:39:15.624206', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:39:15,625 - INFO - loading Dictionary object from C:\PostG\backend\saved_models\lda.dict
+2026-01-24 01:39:15,625 - INFO - Dictionary lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.dict', 'datetime': '2026-01-24T01:39:15.625399', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:39:15,644 - WARNING -  * Debugger is active!
+2026-01-24 01:39:15,650 - INFO -  * Debugger PIN: 236-035-687
+2026-01-24 01:39:33,078 - INFO - 📝 检测到 1 首新诗歌, 最新ID: 368
+2026-01-24 01:39:33,079 - INFO - 📝 检测到新诗歌 (ID: 368), 将在 30 秒后触发推荐更新
+2026-01-24 01:39:35,591 - INFO - 📝 检测到 1 首新诗歌, 最新ID: 368
+2026-01-24 01:39:35,593 - INFO - 📝 检测到新诗歌 (ID: 368), 将在 30 秒后触发推荐更新
+2026-01-24 01:40:03,116 - INFO -  * Detected change in 'C:\\Users\\25656\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python311\\site-packages\\flask_sqlalchemy\\model.py', reloading
+2026-01-24 01:40:03,135 - INFO -  * Detected change in 'C:\\Users\\25656\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python311\\site-packages\\sqlalchemy\\orm\\scoping.py', reloading
+2026-01-24 01:40:03,151 - INFO -  * Detected change in 'C:\\Users\\25656\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python311\\site-packages\\sqlalchemy\\util\\_collections.py', reloading
+2026-01-24 01:40:03,164 - INFO -  * Detected change in 'C:\\Users\\25656\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python311\\site-packages\\flask_sqlalchemy\\session.py', reloading
+2026-01-24 01:40:03,177 - INFO -  * Detected change in 'C:\\Users\\25656\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python311\\site-packages\\werkzeug\\local.py', reloading
+2026-01-24 01:40:03,879 - INFO -  * Restarting with watchdog (windowsapi)
+2026-01-24 01:40:06,042 - INFO - 🎯 监听器启动，当前诗歌数: 368
+2026-01-24 01:40:06,044 - INFO - 🎯 推荐更新系统初始化完成
+2026-01-24 01:40:06,045 - INFO -    - 触发延迟: 30秒
+2026-01-24 01:40:06,045 - INFO -    - 最大处理时间: 300秒
+2026-01-24 01:40:06,045 - INFO -    - CPU阈值: 80.0%
+2026-01-24 01:40:06,045 - INFO -    - 内存阈值: 80.0%
+2026-01-24 01:40:06,046 - INFO -    - 最大重试次数: 3
+2026-01-24 01:40:06,072 - INFO - loading LdaModel object from C:\PostG\backend\saved_models\lda.model
+2026-01-24 01:40:06,073 - INFO - loading expElogbeta from C:\PostG\backend\saved_models\lda.model.expElogbeta.npy with mmap=None
+2026-01-24 01:40:06,076 - INFO - setting ignored attribute state to None
+2026-01-24 01:40:06,076 - INFO - setting ignored attribute dispatcher to None
+2026-01-24 01:40:06,076 - INFO - setting ignored attribute id2word to None
+2026-01-24 01:40:06,088 - INFO - LdaModel lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.model', 'datetime': '2026-01-24T01:40:06.076416', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:40:06,088 - INFO - loading LdaState object from C:\PostG\backend\saved_models\lda.model.state
+2026-01-24 01:40:06,090 - INFO - LdaState lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.model.state', 'datetime': '2026-01-24T01:40:06.090358', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:40:06,090 - INFO - loading Dictionary object from C:\PostG\backend\saved_models\lda.dict
+2026-01-24 01:40:06,091 - INFO - Dictionary lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.dict', 'datetime': '2026-01-24T01:40:06.090358', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:40:06,109 - WARNING -  * Debugger is active!
+2026-01-24 01:40:06,116 - INFO -  * Debugger PIN: 236-035-687
+2026-01-24 01:40:50,226 - INFO - 127.0.0.1 - - [24/Jan/2026 01:40:50] "GET /api/user/testuser1/stats HTTP/1.1" 200 -
+2026-01-24 01:40:50,241 - INFO - 127.0.0.1 - - [24/Jan/2026 01:40:50] "GET /api/user/testuser1/time-analysis HTTP/1.1" 200 -
+2026-01-24 01:40:50,265 - INFO - 127.0.0.1 - - [24/Jan/2026 01:40:50] "GET /api/user/testuser1/form-stats HTTP/1.1" 200 -
+2026-01-24 01:40:50,269 - INFO - 127.0.0.1 - - [24/Jan/2026 01:40:50] "GET /api/user/testuser1/preferences HTTP/1.1" 200 -
+2026-01-24 01:40:50,278 - DEBUG - Building prefix dict from the default dictionary ...
+2026-01-24 01:40:50,283 - DEBUG - Loading model from cache C:\Users\25656\AppData\Local\Temp\jieba.cache
+2026-01-24 01:40:50,307 - INFO - 127.0.0.1 - - [24/Jan/2026 01:40:50] "GET /api/user/testuser1/recommendations HTTP/1.1" 200 -
+2026-01-24 01:40:51,471 - DEBUG - Loading model cost 1.192 seconds.
+2026-01-24 01:40:51,472 - DEBUG - Prefix dict has been built successfully.
+2026-01-24 01:40:51,475 - INFO - 127.0.0.1 - - [24/Jan/2026 01:40:51] "GET /api/user/testuser1/wordcloud HTTP/1.1" 200 -
+2026-01-24 01:40:54,176 - INFO - 127.0.0.1 - - [24/Jan/2026 01:40:54] "GET /api/user_preference/testuser1 HTTP/1.1" 200 -
+2026-01-24 01:40:54,307 - INFO - 127.0.0.1 - - [24/Jan/2026 01:40:54] "GET /api/recommend_one/testuser1?current_id=&skip_count=1 HTTP/1.1" 200 -
+2026-01-24 01:40:54,349 - INFO - 127.0.0.1 - - [24/Jan/2026 01:40:54] "GET /api/poem/9/allusions HTTP/1.1" 200 -
+2026-01-24 01:40:54,349 - INFO - 127.0.0.1 - - [24/Jan/2026 01:40:54] "GET /api/poem/9/reviews HTTP/1.1" 200 -
+2026-01-24 01:40:54,350 - INFO - 127.0.0.1 - - [24/Jan/2026 01:40:54] "GET /api/poem/9/helper HTTP/1.1" 200 -
+2026-01-24 01:40:54,785 - INFO - 127.0.0.1 - - [24/Jan/2026 01:40:54] "GET /api/poem/9/analysis HTTP/1.1" 200 -
+2026-01-24 01:40:57,441 - INFO -  * Detected change in 'C:\\PostG\\backend\\recommendation_update.py', reloading
+2026-01-24 01:40:57,442 - INFO -  * Detected change in 'C:\\PostG\\backend\\recommendation_update.py', reloading
+2026-01-24 01:40:58,880 - INFO -  * Restarting with watchdog (windowsapi)
+2026-01-24 01:41:01,627 - INFO - 🎯 监听器启动，当前诗歌数: 368
+2026-01-24 01:41:01,631 - INFO - 🎯 推荐更新系统初始化完成
+2026-01-24 01:41:01,631 - INFO -    - 触发延迟: 30秒
+2026-01-24 01:41:01,631 - INFO -    - 最大处理时间: 300秒
+2026-01-24 01:41:01,632 - INFO -    - CPU阈值: 80.0%
+2026-01-24 01:41:01,632 - INFO -    - 内存阈值: 80.0%
+2026-01-24 01:41:01,632 - INFO -    - 最大重试次数: 3
+2026-01-24 01:41:01,664 - INFO - loading LdaModel object from C:\PostG\backend\saved_models\lda.model
+2026-01-24 01:41:01,664 - INFO - loading expElogbeta from C:\PostG\backend\saved_models\lda.model.expElogbeta.npy with mmap=None
+2026-01-24 01:41:01,668 - INFO - setting ignored attribute state to None
+2026-01-24 01:41:01,668 - INFO - setting ignored attribute dispatcher to None
+2026-01-24 01:41:01,668 - INFO - setting ignored attribute id2word to None
+2026-01-24 01:41:01,680 - INFO - LdaModel lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.model', 'datetime': '2026-01-24T01:41:01.668611', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:41:01,680 - INFO - loading LdaState object from C:\PostG\backend\saved_models\lda.model.state
+2026-01-24 01:41:01,680 - INFO - LdaState lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.model.state', 'datetime': '2026-01-24T01:41:01.680969', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:41:01,682 - INFO - loading Dictionary object from C:\PostG\backend\saved_models\lda.dict
+2026-01-24 01:41:01,682 - INFO - Dictionary lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.dict', 'datetime': '2026-01-24T01:41:01.682543', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:41:01,701 - WARNING -  * Debugger is active!
+2026-01-24 01:41:01,709 - INFO -  * Debugger PIN: 236-035-687
+2026-01-24 01:41:29,146 - INFO -  * Detected change in 'C:\\PostG\\backend\\recommendation_update.py', reloading
+2026-01-24 01:41:29,146 - INFO -  * Detected change in 'C:\\PostG\\backend\\recommendation_update.py', reloading
+2026-01-24 01:41:30,289 - INFO -  * Restarting with watchdog (windowsapi)
+2026-01-24 01:41:32,537 - INFO - 🎯 监听器启动，当前诗歌数: 368
+2026-01-24 01:41:32,540 - INFO - 🎯 推荐更新系统初始化完成
+2026-01-24 01:41:32,540 - INFO -    - 触发延迟: 30秒
+2026-01-24 01:41:32,540 - INFO -    - 最大处理时间: 300秒
+2026-01-24 01:41:32,540 - INFO -    - CPU阈值: 80.0%
+2026-01-24 01:41:32,540 - INFO -    - 内存阈值: 80.0%
+2026-01-24 01:41:32,540 - INFO -    - 最大重试次数: 3
+2026-01-24 01:41:32,563 - INFO - loading LdaModel object from C:\PostG\backend\saved_models\lda.model
+2026-01-24 01:41:32,565 - INFO - loading expElogbeta from C:\PostG\backend\saved_models\lda.model.expElogbeta.npy with mmap=None
+2026-01-24 01:41:32,568 - INFO - setting ignored attribute state to None
+2026-01-24 01:41:32,568 - INFO - setting ignored attribute dispatcher to None
+2026-01-24 01:41:32,568 - INFO - setting ignored attribute id2word to None
+2026-01-24 01:41:32,583 - INFO - LdaModel lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.model', 'datetime': '2026-01-24T01:41:32.568572', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:41:32,583 - INFO - loading LdaState object from C:\PostG\backend\saved_models\lda.model.state
+2026-01-24 01:41:32,583 - INFO - LdaState lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.model.state', 'datetime': '2026-01-24T01:41:32.583899', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:41:32,585 - INFO - loading Dictionary object from C:\PostG\backend\saved_models\lda.dict
+2026-01-24 01:41:32,585 - INFO - Dictionary lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.dict', 'datetime': '2026-01-24T01:41:32.585444', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:41:32,608 - WARNING -  * Debugger is active!
+2026-01-24 01:41:32,615 - INFO -  * Debugger PIN: 236-035-687
+2026-01-24 01:41:41,459 - INFO -  * Detected change in 'C:\\PostG\\backend\\recommendation_update.py', reloading
+2026-01-24 01:41:41,461 - INFO -  * Detected change in 'C:\\PostG\\backend\\recommendation_update.py', reloading
+2026-01-24 01:41:41,461 - INFO -  * Detected change in 'C:\\PostG\\backend\\recommendation_update.py', reloading
+2026-01-24 01:41:42,998 - INFO -  * Restarting with watchdog (windowsapi)
+2026-01-24 01:41:45,279 - INFO - 🎯 监听器启动，当前诗歌数: 368
+2026-01-24 01:41:45,281 - INFO - 🎯 推荐更新系统初始化完成
+2026-01-24 01:41:45,282 - INFO -    - 触发延迟: 30秒
+2026-01-24 01:41:45,282 - INFO -    - 最大处理时间: 300秒
+2026-01-24 01:41:45,282 - INFO -    - CPU阈值: 80.0%
+2026-01-24 01:41:45,282 - INFO -    - 内存阈值: 80.0%
+2026-01-24 01:41:45,282 - INFO -    - 最大重试次数: 3
+2026-01-24 01:41:45,306 - INFO - loading LdaModel object from C:\PostG\backend\saved_models\lda.model
+2026-01-24 01:41:45,307 - INFO - loading expElogbeta from C:\PostG\backend\saved_models\lda.model.expElogbeta.npy with mmap=None
+2026-01-24 01:41:45,311 - INFO - setting ignored attribute state to None
+2026-01-24 01:41:45,311 - INFO - setting ignored attribute dispatcher to None
+2026-01-24 01:41:45,311 - INFO - setting ignored attribute id2word to None
+2026-01-24 01:41:45,326 - INFO - LdaModel lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.model', 'datetime': '2026-01-24T01:41:45.311874', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:41:45,326 - INFO - loading LdaState object from C:\PostG\backend\saved_models\lda.model.state
+2026-01-24 01:41:45,327 - INFO - LdaState lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.model.state', 'datetime': '2026-01-24T01:41:45.327088', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:41:45,327 - INFO - loading Dictionary object from C:\PostG\backend\saved_models\lda.dict
+2026-01-24 01:41:45,328 - INFO - Dictionary lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.dict', 'datetime': '2026-01-24T01:41:45.328606', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:41:45,352 - WARNING -  * Debugger is active!
+2026-01-24 01:41:45,360 - INFO -  * Debugger PIN: 236-035-687
+2026-01-24 01:41:54,639 - INFO -  * Detected change in 'C:\\PostG\\backend\\recommendation_update.py', reloading
+2026-01-24 01:41:54,639 - INFO -  * Detected change in 'C:\\PostG\\backend\\recommendation_update.py', reloading
+2026-01-24 01:41:54,641 - INFO -  * Detected change in 'C:\\PostG\\backend\\recommendation_update.py', reloading
+2026-01-24 01:41:55,471 - INFO -  * Restarting with watchdog (windowsapi)
+2026-01-24 01:41:57,707 - INFO - 🎯 监听器启动，当前诗歌数: 368
+2026-01-24 01:41:57,710 - INFO - 🎯 推荐更新系统初始化完成
+2026-01-24 01:41:57,710 - INFO -    - 触发延迟: 30秒
+2026-01-24 01:41:57,710 - INFO -    - 最大处理时间: 300秒
+2026-01-24 01:41:57,710 - INFO -    - CPU阈值: 80.0%
+2026-01-24 01:41:57,710 - INFO -    - 内存阈值: 80.0%
+2026-01-24 01:41:57,710 - INFO -    - 最大重试次数: 3
+2026-01-24 01:41:57,730 - INFO - loading LdaModel object from C:\PostG\backend\saved_models\lda.model
+2026-01-24 01:41:57,731 - INFO - loading expElogbeta from C:\PostG\backend\saved_models\lda.model.expElogbeta.npy with mmap=None
+2026-01-24 01:41:57,734 - INFO - setting ignored attribute state to None
+2026-01-24 01:41:57,734 - INFO - setting ignored attribute dispatcher to None
+2026-01-24 01:41:57,734 - INFO - setting ignored attribute id2word to None
+2026-01-24 01:41:57,747 - INFO - LdaModel lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.model', 'datetime': '2026-01-24T01:41:57.734949', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:41:57,749 - INFO - loading LdaState object from C:\PostG\backend\saved_models\lda.model.state
+2026-01-24 01:41:57,750 - INFO - LdaState lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.model.state', 'datetime': '2026-01-24T01:41:57.750707', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:41:57,752 - INFO - loading Dictionary object from C:\PostG\backend\saved_models\lda.dict
+2026-01-24 01:41:57,752 - INFO - Dictionary lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.dict', 'datetime': '2026-01-24T01:41:57.752326', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:41:57,772 - WARNING -  * Debugger is active!
+2026-01-24 01:41:57,778 - INFO -  * Debugger PIN: 236-035-687
+2026-01-24 01:43:05,522 - INFO - 🎯 监听器启动，当前诗歌数: 367
+2026-01-24 01:43:05,524 - INFO - 🎯 推荐更新系统初始化完成
+2026-01-24 01:43:05,525 - INFO -    - 触发延迟: 30秒
+2026-01-24 01:43:05,525 - INFO -    - 最大处理时间: 300秒
+2026-01-24 01:43:05,525 - INFO -    - CPU阈值: 80.0%
+2026-01-24 01:43:05,525 - INFO -    - 内存阈值: 80.0%
+2026-01-24 01:43:05,525 - INFO -    - 最大重试次数: 3
+2026-01-24 01:43:05,550 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2026-01-24 01:43:05,551 - INFO - [33mPress CTRL+C to quit[0m
+2026-01-24 01:43:05,563 - INFO -  * Restarting with watchdog (windowsapi)
+2026-01-24 01:43:07,744 - INFO - 🎯 监听器启动，当前诗歌数: 367
+2026-01-24 01:43:07,746 - INFO - 🎯 推荐更新系统初始化完成
+2026-01-24 01:43:07,746 - INFO -    - 触发延迟: 30秒
+2026-01-24 01:43:07,746 - INFO -    - 最大处理时间: 300秒
+2026-01-24 01:43:07,746 - INFO -    - CPU阈值: 80.0%
+2026-01-24 01:43:07,746 - INFO -    - 内存阈值: 80.0%
+2026-01-24 01:43:07,748 - INFO -    - 最大重试次数: 3
+2026-01-24 01:43:07,782 - INFO - loading LdaModel object from C:\PostG\backend\saved_models\lda.model
+2026-01-24 01:43:07,783 - INFO - loading expElogbeta from C:\PostG\backend\saved_models\lda.model.expElogbeta.npy with mmap=None
+2026-01-24 01:43:07,786 - INFO - setting ignored attribute state to None
+2026-01-24 01:43:07,787 - INFO - setting ignored attribute dispatcher to None
+2026-01-24 01:43:07,787 - INFO - setting ignored attribute id2word to None
+2026-01-24 01:43:07,800 - INFO - LdaModel lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.model', 'datetime': '2026-01-24T01:43:07.787162', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:43:07,800 - INFO - loading LdaState object from C:\PostG\backend\saved_models\lda.model.state
+2026-01-24 01:43:07,802 - INFO - LdaState lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.model.state', 'datetime': '2026-01-24T01:43:07.802123', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:43:07,802 - INFO - loading Dictionary object from C:\PostG\backend\saved_models\lda.dict
+2026-01-24 01:43:07,802 - INFO - Dictionary lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.dict', 'datetime': '2026-01-24T01:43:07.802123', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:43:07,822 - WARNING -  * Debugger is active!
+2026-01-24 01:43:07,829 - INFO -  * Debugger PIN: 236-035-687
+2026-01-24 01:43:17,751 - INFO - 📝 检测到 1 首新诗歌, 最新ID: 369
+2026-01-24 01:43:17,752 - INFO - 📝 检测到新诗歌 (ID: 369), 将在 30 秒后触发推荐更新
+2026-01-24 01:43:25,535 - INFO - 📝 检测到 1 首新诗歌, 最新ID: 369
+2026-01-24 01:43:25,537 - INFO - 📝 检测到新诗歌 (ID: 369), 将在 30 秒后触发推荐更新
+2026-01-24 01:43:47,757 - INFO - 🔄 推荐更新开始 - 触发类型: new_poem, 诗歌ID: 369
+2026-01-24 01:43:55,542 - INFO - 🔄 推荐更新开始 - 触发类型: new_poem, 诗歌ID: 369
+2026-01-24 01:44:06,094 - INFO - 127.0.0.1 - - [24/Jan/2026 01:44:06] "GET /api/recommend_one/testuser1?current_id=9&skip_count=2 HTTP/1.1" 200 -
+2026-01-24 01:44:06,119 - INFO - 127.0.0.1 - - [24/Jan/2026 01:44:06] "GET /api/poem/7/reviews HTTP/1.1" 200 -
+2026-01-24 01:44:06,135 - INFO - 127.0.0.1 - - [24/Jan/2026 01:44:06] "GET /api/poem/7/allusions HTTP/1.1" 200 -
+2026-01-24 01:44:06,135 - INFO - 127.0.0.1 - - [24/Jan/2026 01:44:06] "GET /api/poem/7/helper HTTP/1.1" 200 -
+2026-01-24 01:44:06,667 - INFO - 127.0.0.1 - - [24/Jan/2026 01:44:06] "GET /api/poem/7/analysis HTTP/1.1" 200 -
+2026-01-24 01:44:11,690 - INFO -  * Detected change in 'C:\\PostG\\backend\\recommendation_update.py', reloading
+2026-01-24 01:44:11,693 - INFO -  * Detected change in 'C:\\PostG\\backend\\recommendation_update.py', reloading
+2026-01-24 01:44:12,567 - INFO -  * Restarting with watchdog (windowsapi)
+2026-01-24 01:44:14,804 - INFO - 🎯 监听器启动，当前诗歌数: 368
+2026-01-24 01:44:14,805 - INFO - 🎯 推荐更新系统初始化完成
+2026-01-24 01:44:14,805 - INFO -    - 触发延迟: 30秒
+2026-01-24 01:44:14,807 - INFO -    - 最大处理时间: 300秒
+2026-01-24 01:44:14,807 - INFO -    - CPU阈值: 80.0%
+2026-01-24 01:44:14,807 - INFO -    - 内存阈值: 80.0%
+2026-01-24 01:44:14,807 - INFO -    - 最大重试次数: 3
+2026-01-24 01:44:14,830 - INFO - loading LdaModel object from C:\PostG\backend\saved_models\lda.model
+2026-01-24 01:44:14,831 - INFO - loading expElogbeta from C:\PostG\backend\saved_models\lda.model.expElogbeta.npy with mmap=None
+2026-01-24 01:44:14,833 - INFO - setting ignored attribute state to None
+2026-01-24 01:44:14,833 - INFO - setting ignored attribute dispatcher to None
+2026-01-24 01:44:14,833 - INFO - setting ignored attribute id2word to None
+2026-01-24 01:44:14,847 - INFO - LdaModel lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.model', 'datetime': '2026-01-24T01:44:14.835167', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:44:14,847 - INFO - loading LdaState object from C:\PostG\backend\saved_models\lda.model.state
+2026-01-24 01:44:14,848 - INFO - LdaState lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.model.state', 'datetime': '2026-01-24T01:44:14.848621', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:44:14,849 - INFO - loading Dictionary object from C:\PostG\backend\saved_models\lda.dict
+2026-01-24 01:44:14,849 - INFO - Dictionary lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.dict', 'datetime': '2026-01-24T01:44:14.849738', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:44:14,869 - WARNING -  * Debugger is active!
+2026-01-24 01:44:14,874 - INFO -  * Debugger PIN: 236-035-687
+2026-01-24 01:44:25,428 - INFO -  * Detected change in 'C:\\PostG\\backend\\recommendation_update.py', reloading
+2026-01-24 01:44:25,429 - INFO -  * Detected change in 'C:\\PostG\\backend\\recommendation_update.py', reloading
+2026-01-24 01:44:25,430 - INFO -  * Detected change in 'C:\\PostG\\backend\\recommendation_update.py', reloading
+2026-01-24 01:44:26,141 - INFO -  * Restarting with watchdog (windowsapi)
+2026-01-24 01:44:28,525 - INFO - 🎯 监听器启动，当前诗歌数: 368
+2026-01-24 01:44:28,526 - INFO - 🎯 推荐更新系统初始化完成
+2026-01-24 01:44:28,526 - INFO -    - 触发延迟: 30秒
+2026-01-24 01:44:28,526 - INFO -    - 最大处理时间: 300秒
+2026-01-24 01:44:28,528 - INFO -    - CPU阈值: 80.0%
+2026-01-24 01:44:28,528 - INFO -    - 内存阈值: 80.0%
+2026-01-24 01:44:28,528 - INFO -    - 最大重试次数: 3
+2026-01-24 01:44:28,560 - INFO - loading LdaModel object from C:\PostG\backend\saved_models\lda.model
+2026-01-24 01:44:28,560 - INFO - loading expElogbeta from C:\PostG\backend\saved_models\lda.model.expElogbeta.npy with mmap=None
+2026-01-24 01:44:28,565 - INFO - setting ignored attribute state to None
+2026-01-24 01:44:28,565 - INFO - setting ignored attribute dispatcher to None
+2026-01-24 01:44:28,565 - INFO - setting ignored attribute id2word to None
+2026-01-24 01:44:28,579 - INFO - LdaModel lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.model', 'datetime': '2026-01-24T01:44:28.566636', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:44:28,579 - INFO - loading LdaState object from C:\PostG\backend\saved_models\lda.model.state
+2026-01-24 01:44:28,580 - INFO - LdaState lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.model.state', 'datetime': '2026-01-24T01:44:28.580890', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:44:28,580 - INFO - loading Dictionary object from C:\PostG\backend\saved_models\lda.dict
+2026-01-24 01:44:28,582 - INFO - Dictionary lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.dict', 'datetime': '2026-01-24T01:44:28.580890', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:44:28,601 - WARNING -  * Debugger is active!
+2026-01-24 01:44:28,607 - INFO -  * Debugger PIN: 236-035-687
+2026-01-24 01:44:36,414 - INFO -  * Detected change in 'C:\\PostG\\backend\\recommendation_update.py', reloading
+2026-01-24 01:44:36,414 - INFO -  * Detected change in 'C:\\PostG\\backend\\recommendation_update.py', reloading
+2026-01-24 01:44:36,716 - INFO -  * Restarting with watchdog (windowsapi)
+2026-01-24 01:44:39,248 - INFO - 🎯 监听器启动，当前诗歌数: 367
+2026-01-24 01:44:39,251 - INFO - 🎯 推荐更新系统初始化完成
+2026-01-24 01:44:39,251 - INFO -    - 触发延迟: 30秒
+2026-01-24 01:44:39,251 - INFO -    - 最大处理时间: 300秒
+2026-01-24 01:44:39,251 - INFO -    - CPU阈值: 80.0%
+2026-01-24 01:44:39,251 - INFO -    - 内存阈值: 80.0%
+2026-01-24 01:44:39,251 - INFO -    - 最大重试次数: 3
+2026-01-24 01:44:39,273 - INFO - loading LdaModel object from C:\PostG\backend\saved_models\lda.model
+2026-01-24 01:44:39,274 - INFO - loading expElogbeta from C:\PostG\backend\saved_models\lda.model.expElogbeta.npy with mmap=None
+2026-01-24 01:44:39,277 - INFO - setting ignored attribute state to None
+2026-01-24 01:44:39,277 - INFO - setting ignored attribute dispatcher to None
+2026-01-24 01:44:39,278 - INFO - setting ignored attribute id2word to None
+2026-01-24 01:44:39,293 - INFO - LdaModel lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.model', 'datetime': '2026-01-24T01:44:39.278781', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:44:39,293 - INFO - loading LdaState object from C:\PostG\backend\saved_models\lda.model.state
+2026-01-24 01:44:39,294 - INFO - LdaState lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.model.state', 'datetime': '2026-01-24T01:44:39.294165', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:44:39,295 - INFO - loading Dictionary object from C:\PostG\backend\saved_models\lda.dict
+2026-01-24 01:44:39,295 - INFO - Dictionary lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.dict', 'datetime': '2026-01-24T01:44:39.295681', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:44:39,316 - WARNING -  * Debugger is active!
+2026-01-24 01:44:39,325 - INFO -  * Debugger PIN: 236-035-687
+2026-01-24 01:44:53,335 - INFO - 127.0.0.1 - - [24/Jan/2026 01:44:53] "GET /api/user_preference/testuser1 HTTP/1.1" 200 -
+2026-01-24 01:44:53,428 - INFO - 127.0.0.1 - - [24/Jan/2026 01:44:53] "GET /api/recommend_one/testuser1?current_id=&skip_count=1 HTTP/1.1" 200 -
+2026-01-24 01:44:53,450 - INFO - 127.0.0.1 - - [24/Jan/2026 01:44:53] "GET /api/poem/9/reviews HTTP/1.1" 200 -
+2026-01-24 01:44:53,456 - INFO - 127.0.0.1 - - [24/Jan/2026 01:44:53] "GET /api/poem/9/allusions HTTP/1.1" 200 -
+2026-01-24 01:44:53,504 - INFO - 127.0.0.1 - - [24/Jan/2026 01:44:53] "GET /api/poem/9/helper HTTP/1.1" 200 -
+2026-01-24 01:44:53,831 - INFO - 127.0.0.1 - - [24/Jan/2026 01:44:53] "GET /api/poem/9/analysis HTTP/1.1" 200 -
+2026-01-24 01:45:17,493 - INFO - 🎯 监听器启动，当前诗歌数: 367
+2026-01-24 01:45:17,496 - INFO - 🎯 推荐更新系统初始化完成
+2026-01-24 01:45:17,496 - INFO -    - 触发延迟: 30秒
+2026-01-24 01:45:17,496 - INFO -    - 最大处理时间: 300秒
+2026-01-24 01:45:17,496 - INFO -    - CPU阈值: 80.0%
+2026-01-24 01:45:17,496 - INFO -    - 内存阈值: 80.0%
+2026-01-24 01:45:17,496 - INFO -    - 最大重试次数: 3
+2026-01-24 01:45:17,526 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2026-01-24 01:45:17,526 - INFO - [33mPress CTRL+C to quit[0m
+2026-01-24 01:45:17,535 - INFO -  * Restarting with watchdog (windowsapi)
+2026-01-24 01:45:19,833 - INFO - 🎯 监听器启动，当前诗歌数: 367
+2026-01-24 01:45:19,835 - INFO - 🎯 推荐更新系统初始化完成
+2026-01-24 01:45:19,835 - INFO -    - 触发延迟: 30秒
+2026-01-24 01:45:19,835 - INFO -    - 最大处理时间: 300秒
+2026-01-24 01:45:19,835 - INFO -    - CPU阈值: 80.0%
+2026-01-24 01:45:19,837 - INFO -    - 内存阈值: 80.0%
+2026-01-24 01:45:19,837 - INFO -    - 最大重试次数: 3
+2026-01-24 01:45:19,862 - INFO - loading LdaModel object from C:\PostG\backend\saved_models\lda.model
+2026-01-24 01:45:19,864 - INFO - loading expElogbeta from C:\PostG\backend\saved_models\lda.model.expElogbeta.npy with mmap=None
+2026-01-24 01:45:19,867 - INFO - setting ignored attribute state to None
+2026-01-24 01:45:19,867 - INFO - setting ignored attribute dispatcher to None
+2026-01-24 01:45:19,867 - INFO - setting ignored attribute id2word to None
+2026-01-24 01:45:19,883 - INFO - LdaModel lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.model', 'datetime': '2026-01-24T01:45:19.867190', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:45:19,884 - INFO - loading LdaState object from C:\PostG\backend\saved_models\lda.model.state
+2026-01-24 01:45:19,884 - INFO - LdaState lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.model.state', 'datetime': '2026-01-24T01:45:19.884834', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:45:19,886 - INFO - loading Dictionary object from C:\PostG\backend\saved_models\lda.dict
+2026-01-24 01:45:19,886 - INFO - Dictionary lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.dict', 'datetime': '2026-01-24T01:45:19.886553', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:45:19,910 - WARNING -  * Debugger is active!
+2026-01-24 01:45:19,920 - INFO -  * Debugger PIN: 236-035-687
+2026-01-24 01:45:37,505 - INFO - 📝 检测到 1 首新诗歌, 最新ID: 368
+2026-01-24 01:45:37,506 - INFO - 📝 检测到新诗歌 (ID: 368), 将在 30 秒后触发推荐更新
+2026-01-24 01:45:39,846 - INFO - 📝 检测到 1 首新诗歌, 最新ID: 368
+2026-01-24 01:45:39,847 - INFO - 📝 检测到新诗歌 (ID: 368), 将在 30 秒后触发推荐更新
+2026-01-24 01:46:07,521 - INFO - 🔄 推荐更新开始 - 触发类型: new_poem, 诗歌ID: 368
+2026-01-24 01:46:09,859 - INFO - 🔄 推荐更新开始 - 触发类型: new_poem, 诗歌ID: 368
+2026-01-24 01:46:59,058 - INFO -  * Detected change in 'C:\\PostG\\backend\\recommendation_update.py', reloading
+2026-01-24 01:46:59,062 - INFO -  * Detected change in 'C:\\PostG\\backend\\recommendation_update.py', reloading
+2026-01-24 01:46:59,767 - INFO -  * Restarting with watchdog (windowsapi)
+2026-01-24 01:47:02,220 - INFO - 🎯 监听器启动，当前诗歌数: 368
+2026-01-24 01:47:02,223 - INFO - 🎯 推荐更新系统初始化完成
+2026-01-24 01:47:02,223 - INFO -    - 触发延迟: 30秒
+2026-01-24 01:47:02,223 - INFO -    - 最大处理时间: 300秒
+2026-01-24 01:47:02,223 - INFO -    - CPU阈值: 80.0%
+2026-01-24 01:47:02,224 - INFO -    - 内存阈值: 80.0%
+2026-01-24 01:47:02,224 - INFO -    - 最大重试次数: 3
+2026-01-24 01:47:02,245 - INFO - loading LdaModel object from C:\PostG\backend\saved_models\lda.model
+2026-01-24 01:47:02,246 - INFO - loading expElogbeta from C:\PostG\backend\saved_models\lda.model.expElogbeta.npy with mmap=None
+2026-01-24 01:47:02,249 - INFO - setting ignored attribute state to None
+2026-01-24 01:47:02,249 - INFO - setting ignored attribute dispatcher to None
+2026-01-24 01:47:02,249 - INFO - setting ignored attribute id2word to None
+2026-01-24 01:47:02,262 - INFO - LdaModel lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.model', 'datetime': '2026-01-24T01:47:02.249378', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:47:02,263 - INFO - loading LdaState object from C:\PostG\backend\saved_models\lda.model.state
+2026-01-24 01:47:02,263 - INFO - LdaState lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.model.state', 'datetime': '2026-01-24T01:47:02.263818', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:47:02,264 - INFO - loading Dictionary object from C:\PostG\backend\saved_models\lda.dict
+2026-01-24 01:47:02,265 - INFO - Dictionary lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.dict', 'datetime': '2026-01-24T01:47:02.265099', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:47:02,286 - WARNING -  * Debugger is active!
+2026-01-24 01:47:02,293 - INFO -  * Debugger PIN: 236-035-687
+2026-01-24 01:47:10,340 - INFO -  * Detected change in 'C:\\PostG\\backend\\recommendation_update.py', reloading
+2026-01-24 01:47:10,342 - INFO -  * Detected change in 'C:\\PostG\\backend\\recommendation_update.py', reloading
+2026-01-24 01:47:10,342 - INFO -  * Detected change in 'C:\\PostG\\backend\\recommendation_update.py', reloading
+2026-01-24 01:47:11,471 - INFO -  * Restarting with watchdog (windowsapi)
+2026-01-24 01:47:13,734 - INFO - 🎯 监听器启动，当前诗歌数: 368
+2026-01-24 01:47:13,736 - INFO - 🎯 推荐更新系统初始化完成
+2026-01-24 01:47:13,737 - INFO -    - 触发延迟: 30秒
+2026-01-24 01:47:13,737 - INFO -    - 最大处理时间: 300秒
+2026-01-24 01:47:13,737 - INFO -    - CPU阈值: 80.0%
+2026-01-24 01:47:13,737 - INFO -    - 内存阈值: 80.0%
+2026-01-24 01:47:13,737 - INFO -    - 最大重试次数: 3
+2026-01-24 01:47:13,760 - INFO - loading LdaModel object from C:\PostG\backend\saved_models\lda.model
+2026-01-24 01:47:13,760 - INFO - loading expElogbeta from C:\PostG\backend\saved_models\lda.model.expElogbeta.npy with mmap=None
+2026-01-24 01:47:13,764 - INFO - setting ignored attribute state to None
+2026-01-24 01:47:13,765 - INFO - setting ignored attribute dispatcher to None
+2026-01-24 01:47:13,765 - INFO - setting ignored attribute id2word to None
+2026-01-24 01:47:13,778 - INFO - LdaModel lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.model', 'datetime': '2026-01-24T01:47:13.765671', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:47:13,778 - INFO - loading LdaState object from C:\PostG\backend\saved_models\lda.model.state
+2026-01-24 01:47:13,779 - INFO - LdaState lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.model.state', 'datetime': '2026-01-24T01:47:13.779216', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:47:13,779 - INFO - loading Dictionary object from C:\PostG\backend\saved_models\lda.dict
+2026-01-24 01:47:13,780 - INFO - Dictionary lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.dict', 'datetime': '2026-01-24T01:47:13.780410', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:47:13,799 - WARNING -  * Debugger is active!
+2026-01-24 01:47:13,806 - INFO -  * Debugger PIN: 236-035-687
+2026-01-24 01:47:21,673 - INFO -  * Detected change in 'C:\\PostG\\backend\\recommendation_update.py', reloading
+2026-01-24 01:47:21,673 - INFO -  * Detected change in 'C:\\PostG\\backend\\recommendation_update.py', reloading
+2026-01-24 01:47:22,835 - INFO -  * Restarting with watchdog (windowsapi)
+2026-01-24 01:47:25,411 - INFO - 🎯 监听器启动，当前诗歌数: 368
+2026-01-24 01:47:25,414 - INFO - 🎯 推荐更新系统初始化完成
+2026-01-24 01:47:25,414 - INFO -    - 触发延迟: 30秒
+2026-01-24 01:47:25,414 - INFO -    - 最大处理时间: 300秒
+2026-01-24 01:47:25,414 - INFO -    - CPU阈值: 80.0%
+2026-01-24 01:47:25,414 - INFO -    - 内存阈值: 80.0%
+2026-01-24 01:47:25,414 - INFO -    - 最大重试次数: 3
+2026-01-24 01:47:25,436 - INFO - loading LdaModel object from C:\PostG\backend\saved_models\lda.model
+2026-01-24 01:47:25,438 - INFO - loading expElogbeta from C:\PostG\backend\saved_models\lda.model.expElogbeta.npy with mmap=None
+2026-01-24 01:47:25,439 - INFO - setting ignored attribute state to None
+2026-01-24 01:47:25,441 - INFO - setting ignored attribute dispatcher to None
+2026-01-24 01:47:25,441 - INFO - setting ignored attribute id2word to None
+2026-01-24 01:47:25,455 - INFO - LdaModel lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.model', 'datetime': '2026-01-24T01:47:25.441353', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:47:25,455 - INFO - loading LdaState object from C:\PostG\backend\saved_models\lda.model.state
+2026-01-24 01:47:25,455 - INFO - LdaState lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.model.state', 'datetime': '2026-01-24T01:47:25.455416', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:47:25,456 - INFO - loading Dictionary object from C:\PostG\backend\saved_models\lda.dict
+2026-01-24 01:47:25,456 - INFO - Dictionary lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.dict', 'datetime': '2026-01-24T01:47:25.456572', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:47:25,475 - WARNING -  * Debugger is active!
+2026-01-24 01:47:25,483 - INFO -  * Debugger PIN: 236-035-687
+2026-01-24 01:48:05,417 - INFO - 🎯 监听器启动，当前诗歌数: 368
+2026-01-24 01:48:05,418 - INFO - 🎯 推荐更新系统初始化完成
+2026-01-24 01:48:05,418 - INFO -    - 触发延迟: 30秒
+2026-01-24 01:48:05,420 - INFO -    - 最大处理时间: 300秒
+2026-01-24 01:48:05,420 - INFO -    - CPU阈值: 80.0%
+2026-01-24 01:48:05,420 - INFO -    - 内存阈值: 80.0%
+2026-01-24 01:48:05,420 - INFO -    - 最大重试次数: 3
+2026-01-24 01:48:05,447 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2026-01-24 01:48:05,447 - INFO - [33mPress CTRL+C to quit[0m
+2026-01-24 01:48:05,457 - INFO -  * Restarting with watchdog (windowsapi)
+2026-01-24 01:48:08,824 - INFO - 🎯 监听器启动，当前诗歌数: 368
+2026-01-24 01:48:08,832 - INFO - 🎯 推荐更新系统初始化完成
+2026-01-24 01:48:08,832 - INFO -    - 触发延迟: 30秒
+2026-01-24 01:48:08,832 - INFO -    - 最大处理时间: 300秒
+2026-01-24 01:48:08,832 - INFO -    - CPU阈值: 80.0%
+2026-01-24 01:48:08,833 - INFO -    - 内存阈值: 80.0%
+2026-01-24 01:48:08,833 - INFO -    - 最大重试次数: 3
+2026-01-24 01:48:08,862 - INFO - loading LdaModel object from C:\PostG\backend\saved_models\lda.model
+2026-01-24 01:48:08,864 - INFO - loading expElogbeta from C:\PostG\backend\saved_models\lda.model.expElogbeta.npy with mmap=None
+2026-01-24 01:48:08,869 - INFO - setting ignored attribute state to None
+2026-01-24 01:48:08,869 - INFO - setting ignored attribute dispatcher to None
+2026-01-24 01:48:08,869 - INFO - setting ignored attribute id2word to None
+2026-01-24 01:48:08,885 - INFO - LdaModel lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.model', 'datetime': '2026-01-24T01:48:08.869498', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:48:08,885 - INFO - loading LdaState object from C:\PostG\backend\saved_models\lda.model.state
+2026-01-24 01:48:08,885 - INFO - LdaState lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.model.state', 'datetime': '2026-01-24T01:48:08.885754', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:48:08,886 - INFO - loading Dictionary object from C:\PostG\backend\saved_models\lda.dict
+2026-01-24 01:48:08,887 - INFO - Dictionary lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.dict', 'datetime': '2026-01-24T01:48:08.887202', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:48:08,908 - WARNING -  * Debugger is active!
+2026-01-24 01:48:08,917 - INFO -  * Debugger PIN: 236-035-687
+2026-01-24 01:48:09,077 - INFO - 127.0.0.1 - - [24/Jan/2026 01:48:09] "GET /api/user_preference/testuser1 HTTP/1.1" 200 -
+2026-01-24 01:48:09,175 - INFO - 127.0.0.1 - - [24/Jan/2026 01:48:09] "GET /api/recommend_one/testuser1?current_id=&skip_count=1 HTTP/1.1" 200 -
+2026-01-24 01:48:09,205 - INFO - 127.0.0.1 - - [24/Jan/2026 01:48:09] "GET /api/poem/143/allusions HTTP/1.1" 200 -
+2026-01-24 01:48:09,216 - INFO - 127.0.0.1 - - [24/Jan/2026 01:48:09] "GET /api/poem/143/helper HTTP/1.1" 200 -
+2026-01-24 01:48:09,272 - INFO - 127.0.0.1 - - [24/Jan/2026 01:48:09] "GET /api/poem/143/reviews HTTP/1.1" 200 -
+2026-01-24 01:48:09,522 - INFO - 127.0.0.1 - - [24/Jan/2026 01:48:09] "GET /api/poem/143/analysis HTTP/1.1" 200 -
+2026-01-24 01:48:13,103 - INFO - 127.0.0.1 - - [24/Jan/2026 01:48:13] "GET /api/user_preference/testuser1 HTTP/1.1" 200 -
+2026-01-24 01:48:13,201 - INFO - 127.0.0.1 - - [24/Jan/2026 01:48:13] "GET /api/recommend_one/testuser1?current_id=&skip_count=1 HTTP/1.1" 200 -
+2026-01-24 01:48:13,217 - INFO - 127.0.0.1 - - [24/Jan/2026 01:48:13] "GET /api/poem/143/allusions HTTP/1.1" 200 -
+2026-01-24 01:48:13,217 - INFO - 127.0.0.1 - - [24/Jan/2026 01:48:13] "GET /api/poem/143/helper HTTP/1.1" 200 -
+2026-01-24 01:48:13,222 - INFO - 127.0.0.1 - - [24/Jan/2026 01:48:13] "GET /api/poem/143/analysis HTTP/1.1" 200 -
+2026-01-24 01:48:13,235 - INFO - 127.0.0.1 - - [24/Jan/2026 01:48:13] "GET /api/poem/143/reviews HTTP/1.1" 200 -
+2026-01-24 01:48:35,432 - INFO - 📝 检测到 1 首新诗歌, 最新ID: 370
+2026-01-24 01:48:35,434 - INFO - 📝 检测到新诗歌 (ID: 370), 将在 30 秒后触发推荐更新
+2026-01-24 01:48:38,845 - INFO - 📝 检测到 1 首新诗歌, 最新ID: 370
+2026-01-24 01:48:38,847 - INFO - 📝 检测到新诗歌 (ID: 370), 将在 30 秒后触发推荐更新
+2026-01-24 01:49:05,444 - INFO - 🔄 推荐更新开始 - 触发类型: new_poem, 诗歌ID: 370
+2026-01-24 01:49:06,645 - INFO - 📊 更新进度: 10/52 (19.2%), 耗时: 1.18秒
+2026-01-24 01:49:07,757 - INFO - 📊 更新进度: 20/52 (38.5%), 耗时: 2.31秒
+2026-01-24 01:49:08,862 - INFO - 🔄 推荐更新开始 - 触发类型: new_poem, 诗歌ID: 370
+2026-01-24 01:49:08,879 - INFO - 📊 更新进度: 30/52 (57.7%), 耗时: 3.42秒
+2026-01-24 01:49:09,905 - INFO - 📊 更新进度: 10/52 (19.2%), 耗时: 1.03秒
+2026-01-24 01:49:10,004 - INFO - 📊 更新进度: 40/52 (76.9%), 耗时: 4.55秒
+2026-01-24 01:49:10,983 - INFO - 📊 更新进度: 20/52 (38.5%), 耗时: 2.12秒
+2026-01-24 01:49:11,124 - INFO - 📊 更新进度: 50/52 (96.2%), 耗时: 5.67秒
+2026-01-24 01:49:11,433 - INFO - 📈 性能指标 - CPU: 0.0%, 内存: 1.4%, 耗时: 5.99秒
+2026-01-24 01:49:11,433 - ERROR - ❌ 推荐更新失败 - 错误: Working outside of application context.
+
+This typically means that you attempted to use functionality that needed
+the current application. To solve this, set up an application context
+with app.app_context(). See the documentation for more information., 重试次数: 0
+2026-01-24 01:49:11,437 - ERROR - 堆栈跟踪: Traceback (most recent call last):
+  File "C:\PostG\backend\recommendation_update.py", line 382, in batch_update_recommendations
+    poem_count = Poem.query.count()
+                 ^^^^^^^^^^
+  File "C:\Users\25656\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\flask_sqlalchemy\model.py", line 23, in __get__
+    cls, session=cls.__fsa__.session()  # type: ignore[arg-type]
+                 ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\25656\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\sqlalchemy\orm\scoping.py", line 218, in __call__
+    sess = self.registry()
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\25656\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\sqlalchemy\util\_collections.py", line 634, in __call__
+    key = self.scopefunc()
+          ^^^^^^^^^^^^^^^^
+  File "C:\Users\25656\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\flask_sqlalchemy\session.py", line 111, in _app_ctx_id
+    return id(app_ctx._get_current_object())  # type: ignore[attr-defined]
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\25656\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\werkzeug\local.py", line 508, in _get_current_object
+    raise RuntimeError(unbound_message) from None
+RuntimeError: Working outside of application context.
+
+This typically means that you attempted to use functionality that needed
+the current application. To solve this, set up an application context
+with app.app_context(). See the documentation for more information.
+
+2026-01-24 01:49:11,437 - INFO - 🔄 计划重试推荐更新 (尝试 1/3), 等待 60 秒
+2026-01-24 01:49:12,112 - INFO - 📊 更新进度: 30/52 (57.7%), 耗时: 3.24秒
+2026-01-24 01:49:13,255 - INFO - 📊 更新进度: 40/52 (76.9%), 耗时: 4.38秒
+2026-01-24 01:49:14,360 - INFO - 📊 更新进度: 50/52 (96.2%), 耗时: 5.50秒
+2026-01-24 01:49:14,671 - INFO - 📈 性能指标 - CPU: 0.0%, 内存: 1.7%, 耗时: 5.81秒
+2026-01-24 01:49:14,671 - ERROR - ❌ 推荐更新失败 - 错误: Working outside of application context.
+
+This typically means that you attempted to use functionality that needed
+the current application. To solve this, set up an application context
+with app.app_context(). See the documentation for more information., 重试次数: 0
+2026-01-24 01:49:14,674 - ERROR - 堆栈跟踪: Traceback (most recent call last):
+  File "C:\PostG\backend\recommendation_update.py", line 382, in batch_update_recommendations
+    poem_count = Poem.query.count()
+                 ^^^^^^^^^^
+  File "C:\Users\25656\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\flask_sqlalchemy\model.py", line 23, in __get__
+    cls, session=cls.__fsa__.session()  # type: ignore[arg-type]
+                 ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\25656\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\sqlalchemy\orm\scoping.py", line 218, in __call__
+    sess = self.registry()
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\25656\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\sqlalchemy\util\_collections.py", line 634, in __call__
+    key = self.scopefunc()
+          ^^^^^^^^^^^^^^^^
+  File "C:\Users\25656\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\flask_sqlalchemy\session.py", line 111, in _app_ctx_id
+    return id(app_ctx._get_current_object())  # type: ignore[attr-defined]
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\25656\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\werkzeug\local.py", line 508, in _get_current_object
+    raise RuntimeError(unbound_message) from None
+RuntimeError: Working outside of application context.
+
+This typically means that you attempted to use functionality that needed
+the current application. To solve this, set up an application context
+with app.app_context(). See the documentation for more information.
+
+2026-01-24 01:49:14,674 - INFO - 🔄 计划重试推荐更新 (尝试 1/3), 等待 60 秒
+2026-01-24 01:50:08,302 - INFO -  * Detected change in 'C:\\PostG\\backend\\recommendation_update.py', reloading
+2026-01-24 01:50:08,303 - INFO -  * Detected change in 'C:\\PostG\\backend\\recommendation_update.py', reloading
+2026-01-24 01:50:08,837 - INFO -  * Restarting with watchdog (windowsapi)
+2026-01-24 01:50:11,418 - INFO - 🎯 监听器启动，当前诗歌数: 368
+2026-01-24 01:50:11,421 - INFO - 🎯 推荐更新系统初始化完成
+2026-01-24 01:50:11,421 - INFO -    - 触发延迟: 30秒
+2026-01-24 01:50:11,421 - INFO -    - 最大处理时间: 300秒
+2026-01-24 01:50:11,421 - INFO -    - CPU阈值: 80.0%
+2026-01-24 01:50:11,421 - INFO -    - 内存阈值: 80.0%
+2026-01-24 01:50:11,421 - INFO -    - 最大重试次数: 3
+2026-01-24 01:50:11,447 - INFO - loading LdaModel object from C:\PostG\backend\saved_models\lda.model
+2026-01-24 01:50:11,448 - INFO - 🔄 推荐更新开始 - 触发类型: new_poem, 诗歌ID: 370
+2026-01-24 01:50:11,450 - INFO - loading expElogbeta from C:\PostG\backend\saved_models\lda.model.expElogbeta.npy with mmap=None
+2026-01-24 01:50:11,453 - INFO - setting ignored attribute state to None
+2026-01-24 01:50:11,453 - INFO - setting ignored attribute dispatcher to None
+2026-01-24 01:50:11,453 - INFO - setting ignored attribute id2word to None
+2026-01-24 01:50:11,472 - INFO - LdaModel lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.model', 'datetime': '2026-01-24T01:50:11.453797', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:50:11,472 - INFO - loading LdaState object from C:\PostG\backend\saved_models\lda.model.state
+2026-01-24 01:50:11,474 - INFO - LdaState lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.model.state', 'datetime': '2026-01-24T01:50:11.474029', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:50:11,474 - INFO - loading Dictionary object from C:\PostG\backend\saved_models\lda.dict
+2026-01-24 01:50:11,475 - INFO - Dictionary lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.dict', 'datetime': '2026-01-24T01:50:11.475457', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:50:11,496 - WARNING -  * Debugger is active!
+2026-01-24 01:50:11,505 - INFO -  * Debugger PIN: 236-035-687
+2026-01-24 01:50:12,660 - INFO - 📊 更新进度: 10/52 (19.2%), 耗时: 1.19秒
+2026-01-24 01:50:13,797 - INFO - 📊 更新进度: 20/52 (38.5%), 耗时: 2.34秒
+2026-01-24 01:50:15,067 - INFO - 📊 更新进度: 30/52 (57.7%), 耗时: 3.59秒
+2026-01-24 01:50:16,307 - INFO - 📊 更新进度: 40/52 (76.9%), 耗时: 4.84秒
+2026-01-24 01:50:17,473 - INFO - 📊 更新进度: 50/52 (96.2%), 耗时: 6.02秒
+2026-01-24 01:50:17,785 - INFO - 📈 性能指标 - CPU: 0.0%, 内存: 1.4%, 耗时: 6.34秒
+2026-01-24 01:50:17,785 - ERROR - ❌ 推荐更新失败 - 错误: Working outside of application context.
+
+This typically means that you attempted to use functionality that needed
+the current application. To solve this, set up an application context
+with app.app_context(). See the documentation for more information., 重试次数: 0
+2026-01-24 01:50:17,800 - ERROR - 堆栈跟踪: Traceback (most recent call last):
+  File "C:\PostG\backend\recommendation_update.py", line 382, in batch_update_recommendations
+    f"内存: {thresholds['memory_usage']:.1f}%"
+        ^^^^^^^^^
+  File "C:\Users\25656\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\flask_sqlalchemy\model.py", line 23, in __get__
+    cls, session=cls.__fsa__.session()  # type: ignore[arg-type]
+                 ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\25656\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\sqlalchemy\orm\scoping.py", line 218, in __call__
+    sess = self.registry()
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\25656\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\sqlalchemy\util\_collections.py", line 634, in __call__
+    key = self.scopefunc()
+          ^^^^^^^^^^^^^^^^
+  File "C:\Users\25656\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\flask_sqlalchemy\session.py", line 111, in _app_ctx_id
+    return id(app_ctx._get_current_object())  # type: ignore[attr-defined]
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\25656\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\werkzeug\local.py", line 508, in _get_current_object
+    raise RuntimeError(unbound_message) from None
+RuntimeError: Working outside of application context.
+
+This typically means that you attempted to use functionality that needed
+the current application. To solve this, set up an application context
+with app.app_context(). See the documentation for more information.
+
+2026-01-24 01:50:17,800 - INFO - 🔄 计划重试推荐更新 (尝试 2/3), 等待 120 秒
+2026-01-24 01:51:00,206 - INFO -  * Detected change in 'C:\\PostG\\backend\\app.py', reloading
+2026-01-24 01:51:01,919 - INFO -  * Restarting with watchdog (windowsapi)
+2026-01-24 01:51:06,681 - INFO - 🎯 监听器启动，当前诗歌数: 368
+2026-01-24 01:51:06,683 - INFO - 🎯 推荐更新系统初始化完成
+2026-01-24 01:51:06,685 - INFO -    - 触发延迟: 30秒
+2026-01-24 01:51:06,685 - INFO -    - 最大处理时间: 300秒
+2026-01-24 01:51:06,685 - INFO -    - CPU阈值: 80.0%
+2026-01-24 01:51:06,685 - INFO -    - 内存阈值: 80.0%
+2026-01-24 01:51:06,686 - INFO -    - 最大重试次数: 3
+2026-01-24 01:51:06,714 - INFO - loading LdaModel object from C:\PostG\backend\saved_models\lda.model
+2026-01-24 01:51:06,714 - INFO - loading expElogbeta from C:\PostG\backend\saved_models\lda.model.expElogbeta.npy with mmap=None
+2026-01-24 01:51:06,717 - INFO - setting ignored attribute state to None
+2026-01-24 01:51:06,719 - INFO - setting ignored attribute dispatcher to None
+2026-01-24 01:51:06,719 - INFO - setting ignored attribute id2word to None
+2026-01-24 01:51:06,731 - INFO - LdaModel lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.model', 'datetime': '2026-01-24T01:51:06.719196', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:51:06,731 - INFO - loading LdaState object from C:\PostG\backend\saved_models\lda.model.state
+2026-01-24 01:51:06,731 - INFO - LdaState lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.model.state', 'datetime': '2026-01-24T01:51:06.731173', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:51:06,732 - INFO - loading Dictionary object from C:\PostG\backend\saved_models\lda.dict
+2026-01-24 01:51:06,734 - INFO - Dictionary lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.dict', 'datetime': '2026-01-24T01:51:06.732767', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:51:06,752 - WARNING -  * Debugger is active!
+2026-01-24 01:51:06,760 - INFO -  * Debugger PIN: 236-035-687
+2026-01-24 01:51:06,906 - INFO - 127.0.0.1 - - [24/Jan/2026 01:51:06] "GET /api/user_preference/testuser1 HTTP/1.1" 200 -
+2026-01-24 01:51:07,044 - INFO - 127.0.0.1 - - [24/Jan/2026 01:51:07] "GET /api/recommend_one/testuser1?current_id=&skip_count=1 HTTP/1.1" 200 -
+2026-01-24 01:51:07,048 - INFO - 127.0.0.1 - - [24/Jan/2026 01:51:07] "GET /api/recommend_one/testuser1?current_id=&skip_count=1 HTTP/1.1" 200 -
+2026-01-24 01:51:07,078 - INFO - 127.0.0.1 - - [24/Jan/2026 01:51:07] "GET /api/poem/143/helper HTTP/1.1" 200 -
+2026-01-24 01:51:07,086 - INFO - 127.0.0.1 - - [24/Jan/2026 01:51:07] "GET /api/poem/143/allusions HTTP/1.1" 200 -
+2026-01-24 01:51:07,095 - INFO - 127.0.0.1 - - [24/Jan/2026 01:51:07] "GET /api/poem/143/reviews HTTP/1.1" 200 -
+2026-01-24 01:51:07,455 - INFO - 127.0.0.1 - - [24/Jan/2026 01:51:07] "GET /api/poem/143/analysis HTTP/1.1" 200 -
+2026-01-24 01:51:56,367 - INFO - 🎯 监听器启动，当前诗歌数: 368
+2026-01-24 01:51:56,368 - INFO - 🎯 推荐更新系统初始化完成
+2026-01-24 01:51:56,368 - INFO -    - 触发延迟: 30秒
+2026-01-24 01:51:56,369 - INFO -    - 最大处理时间: 300秒
+2026-01-24 01:51:56,369 - INFO -    - CPU阈值: 80.0%
+2026-01-24 01:51:56,369 - INFO -    - 内存阈值: 80.0%
+2026-01-24 01:51:56,370 - INFO -    - 最大重试次数: 3
+2026-01-24 01:51:56,397 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2026-01-24 01:51:56,398 - INFO - [33mPress CTRL+C to quit[0m
+2026-01-24 01:51:56,407 - INFO -  * Restarting with watchdog (windowsapi)
+2026-01-24 01:51:58,992 - INFO - 🎯 监听器启动，当前诗歌数: 368
+2026-01-24 01:51:58,995 - INFO - 🎯 推荐更新系统初始化完成
+2026-01-24 01:51:58,996 - INFO -    - 触发延迟: 30秒
+2026-01-24 01:51:58,996 - INFO -    - 最大处理时间: 300秒
+2026-01-24 01:51:58,996 - INFO -    - CPU阈值: 80.0%
+2026-01-24 01:51:58,996 - INFO -    - 内存阈值: 80.0%
+2026-01-24 01:51:58,996 - INFO -    - 最大重试次数: 3
+2026-01-24 01:51:59,022 - INFO - loading LdaModel object from C:\PostG\backend\saved_models\lda.model
+2026-01-24 01:51:59,024 - INFO - loading expElogbeta from C:\PostG\backend\saved_models\lda.model.expElogbeta.npy with mmap=None
+2026-01-24 01:51:59,027 - INFO - setting ignored attribute state to None
+2026-01-24 01:51:59,027 - INFO - setting ignored attribute dispatcher to None
+2026-01-24 01:51:59,028 - INFO - setting ignored attribute id2word to None
+2026-01-24 01:51:59,046 - INFO - LdaModel lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.model', 'datetime': '2026-01-24T01:51:59.028326', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:51:59,046 - INFO - loading LdaState object from C:\PostG\backend\saved_models\lda.model.state
+2026-01-24 01:51:59,047 - INFO - LdaState lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.model.state', 'datetime': '2026-01-24T01:51:59.047424', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:51:59,047 - INFO - loading Dictionary object from C:\PostG\backend\saved_models\lda.dict
+2026-01-24 01:51:59,049 - INFO - Dictionary lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.dict', 'datetime': '2026-01-24T01:51:59.049127', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:51:59,077 - WARNING -  * Debugger is active!
+2026-01-24 01:51:59,085 - INFO -  * Debugger PIN: 236-035-687
+2026-01-24 01:52:26,383 - INFO - 📝 检测到 1 首新诗歌, 最新ID: 371
+2026-01-24 01:52:26,385 - INFO - 📝 检测到新诗歌 (ID: 371), 将在 30 秒后触发推荐更新
+2026-01-24 01:52:29,008 - INFO - 📝 检测到 1 首新诗歌, 最新ID: 371
+2026-01-24 01:52:29,008 - INFO - 📝 检测到新诗歌 (ID: 371), 将在 30 秒后触发推荐更新
+2026-01-24 01:52:38,029 - INFO - 127.0.0.1 - - [24/Jan/2026 01:52:38] "GET /api/visual/stats?user_id=testuser1 HTTP/1.1" 200 -
+2026-01-24 01:52:38,040 - INFO - 127.0.0.1 - - [24/Jan/2026 01:52:38] "GET /api/visual/wordcloud?user_id=testuser1 HTTP/1.1" 200 -
+2026-01-24 01:52:56,388 - INFO - 🔄 推荐更新开始 - 触发类型: new_poem, 诗歌ID: 371
+2026-01-24 01:52:57,428 - INFO - 📊 更新进度: 10/52 (19.2%), 耗时: 1.03秒
+2026-01-24 01:52:58,510 - INFO - 📊 更新进度: 20/52 (38.5%), 耗时: 2.12秒
+2026-01-24 01:52:59,018 - INFO - 🔄 推荐更新开始 - 触发类型: new_poem, 诗歌ID: 371
+2026-01-24 01:52:59,629 - INFO - 📊 更新进度: 30/52 (57.7%), 耗时: 3.23秒
+2026-01-24 01:53:00,064 - INFO - 📊 更新进度: 10/52 (19.2%), 耗时: 1.03秒
+2026-01-24 01:53:00,772 - INFO - 📊 更新进度: 40/52 (76.9%), 耗时: 4.37秒
+2026-01-24 01:53:01,148 - INFO - 📊 更新进度: 20/52 (38.5%), 耗时: 2.13秒
+2026-01-24 01:53:01,895 - INFO - 📊 更新进度: 50/52 (96.2%), 耗时: 5.50秒
+2026-01-24 01:53:02,207 - INFO - 📈 性能指标 - CPU: 0.0%, 内存: 1.4%, 耗时: 5.82秒
+2026-01-24 01:53:02,209 - INFO - ✅ 推荐更新成功 - 处理用户: 52, 诗歌数: 369, 总耗时: 5.82秒
+2026-01-24 01:53:02,326 - INFO - 📊 更新进度: 30/52 (57.7%), 耗时: 3.30秒
+2026-01-24 01:53:03,457 - INFO - 📊 更新进度: 40/52 (76.9%), 耗时: 4.43秒
+2026-01-24 01:53:04,565 - INFO - 📊 更新进度: 50/52 (96.2%), 耗时: 5.54秒
+2026-01-24 01:53:04,880 - INFO - 📈 性能指标 - CPU: 0.0%, 内存: 1.4%, 耗时: 5.86秒
+2026-01-24 01:53:04,880 - INFO - ✅ 推荐更新成功 - 处理用户: 52, 诗歌数: 369, 总耗时: 5.86秒
+2026-01-24 01:53:46,741 - INFO - 127.0.0.1 - - [24/Jan/2026 01:53:46] "GET /api/user_preference/testuser1 HTTP/1.1" 200 -
+2026-01-24 01:53:46,838 - INFO - 127.0.0.1 - - [24/Jan/2026 01:53:46] "GET /api/recommend_one/testuser1?current_id=&skip_count=1 HTTP/1.1" 200 -
+2026-01-24 01:53:46,859 - INFO - 127.0.0.1 - - [24/Jan/2026 01:53:46] "GET /api/poem/143/allusions HTTP/1.1" 200 -
+2026-01-24 01:53:46,864 - INFO - 127.0.0.1 - - [24/Jan/2026 01:53:46] "GET /api/poem/143/helper HTTP/1.1" 200 -
+2026-01-24 01:53:46,889 - INFO - 127.0.0.1 - - [24/Jan/2026 01:53:46] "GET /api/poem/143/reviews HTTP/1.1" 200 -
+2026-01-24 01:53:47,380 - INFO - 127.0.0.1 - - [24/Jan/2026 01:53:47] "GET /api/poem/143/analysis HTTP/1.1" 200 -
+2026-01-24 01:54:20,353 - INFO - 127.0.0.1 - - [24/Jan/2026 01:54:20] "GET /api/user_preference/testuser1 HTTP/1.1" 200 -
+2026-01-24 01:54:20,460 - INFO - 127.0.0.1 - - [24/Jan/2026 01:54:20] "GET /api/recommend_one/testuser1?current_id=&skip_count=1 HTTP/1.1" 200 -
+2026-01-24 01:54:20,477 - INFO - 127.0.0.1 - - [24/Jan/2026 01:54:20] "GET /api/poem/143/allusions HTTP/1.1" 200 -
+2026-01-24 01:54:20,479 - INFO - 127.0.0.1 - - [24/Jan/2026 01:54:20] "GET /api/poem/143/helper HTTP/1.1" 200 -
+2026-01-24 01:54:20,486 - INFO - 127.0.0.1 - - [24/Jan/2026 01:54:20] "GET /api/poem/143/analysis HTTP/1.1" 200 -
+2026-01-24 01:54:20,506 - INFO - 127.0.0.1 - - [24/Jan/2026 01:54:20] "GET /api/poem/143/reviews HTTP/1.1" 200 -
+2026-01-24 01:54:37,045 - INFO - 127.0.0.1 - - [24/Jan/2026 01:54:37] "GET /api/user/testuser1/preferences HTTP/1.1" 200 -
+2026-01-24 01:54:37,046 - INFO - 127.0.0.1 - - [24/Jan/2026 01:54:37] "GET /api/user/testuser1/stats HTTP/1.1" 200 -
+2026-01-24 01:54:37,050 - INFO - 127.0.0.1 - - [24/Jan/2026 01:54:37] "GET /api/user/testuser1/form-stats HTTP/1.1" 200 -
+2026-01-24 01:54:37,066 - INFO - 127.0.0.1 - - [24/Jan/2026 01:54:37] "GET /api/user/testuser1/time-analysis HTTP/1.1" 200 -
+2026-01-24 01:54:37,072 - DEBUG - Building prefix dict from the default dictionary ...
+2026-01-24 01:54:37,078 - DEBUG - Loading model from cache C:\Users\25656\AppData\Local\Temp\jieba.cache
+2026-01-24 01:54:37,096 - INFO - 127.0.0.1 - - [24/Jan/2026 01:54:37] "GET /api/user/testuser1/recommendations HTTP/1.1" 200 -
+2026-01-24 01:54:38,232 - DEBUG - Loading model cost 1.157 seconds.
+2026-01-24 01:54:38,234 - DEBUG - Prefix dict has been built successfully.
+2026-01-24 01:54:38,235 - INFO - 127.0.0.1 - - [24/Jan/2026 01:54:38] "GET /api/user/testuser1/wordcloud HTTP/1.1" 200 -
+2026-01-24 01:54:40,519 - INFO - 127.0.0.1 - - [24/Jan/2026 01:54:40] "GET /api/user_preference/testuser1 HTTP/1.1" 200 -
+2026-01-24 01:54:40,641 - INFO - 127.0.0.1 - - [24/Jan/2026 01:54:40] "GET /api/recommend_one/testuser1?current_id=&skip_count=1 HTTP/1.1" 200 -
+2026-01-24 01:54:40,666 - INFO - 127.0.0.1 - - [24/Jan/2026 01:54:40] "GET /api/poem/143/helper HTTP/1.1" 200 -
+2026-01-24 01:54:40,669 - INFO - 127.0.0.1 - - [24/Jan/2026 01:54:40] "GET /api/poem/143/analysis HTTP/1.1" 200 -
+2026-01-24 01:54:40,672 - INFO - 127.0.0.1 - - [24/Jan/2026 01:54:40] "GET /api/poem/143/allusions HTTP/1.1" 200 -
+2026-01-24 01:54:40,690 - INFO - 127.0.0.1 - - [24/Jan/2026 01:54:40] "GET /api/poem/143/reviews HTTP/1.1" 200 -
+2026-01-24 01:54:47,150 - INFO - 127.0.0.1 - - [24/Jan/2026 01:54:47] "GET /api/user/testuser1/stats HTTP/1.1" 200 -
+2026-01-24 01:54:47,150 - INFO - 127.0.0.1 - - [24/Jan/2026 01:54:47] "GET /api/user/testuser1/preferences HTTP/1.1" 200 -
+2026-01-24 01:54:47,159 - INFO - 127.0.0.1 - - [24/Jan/2026 01:54:47] "GET /api/user/testuser1/time-analysis HTTP/1.1" 200 -
+2026-01-24 01:54:47,162 - INFO - 127.0.0.1 - - [24/Jan/2026 01:54:47] "GET /api/user/testuser1/wordcloud HTTP/1.1" 200 -
+2026-01-24 01:54:47,171 - INFO - 127.0.0.1 - - [24/Jan/2026 01:54:47] "GET /api/user/testuser1/form-stats HTTP/1.1" 200 -
+2026-01-24 01:54:47,180 - INFO - 127.0.0.1 - - [24/Jan/2026 01:54:47] "GET /api/user/testuser1/recommendations HTTP/1.1" 200 -
+2026-01-24 01:54:48,804 - INFO - 127.0.0.1 - - [24/Jan/2026 01:54:48] "GET /api/user/testuser1/preferences HTTP/1.1" 200 -
+2026-01-24 01:54:48,805 - INFO - 127.0.0.1 - - [24/Jan/2026 01:54:48] "GET /api/user/testuser1/stats HTTP/1.1" 200 -
+2026-01-24 01:54:48,808 - INFO - 127.0.0.1 - - [24/Jan/2026 01:54:48] "GET /api/user/testuser1/form-stats HTTP/1.1" 200 -
+2026-01-24 01:54:48,810 - INFO - 127.0.0.1 - - [24/Jan/2026 01:54:48] "GET /api/user/testuser1/time-analysis HTTP/1.1" 200 -
+2026-01-24 01:54:48,811 - INFO - 127.0.0.1 - - [24/Jan/2026 01:54:48] "GET /api/user/testuser1/wordcloud HTTP/1.1" 200 -
+2026-01-24 01:54:48,835 - INFO - 127.0.0.1 - - [24/Jan/2026 01:54:48] "GET /api/user/testuser1/recommendations HTTP/1.1" 200 -
+2026-01-24 01:54:52,654 - INFO - 127.0.0.1 - - [24/Jan/2026 01:54:52] "GET /api/user_preference/testuser1 HTTP/1.1" 200 -
+2026-01-24 01:54:52,770 - INFO - 127.0.0.1 - - [24/Jan/2026 01:54:52] "GET /api/recommend_one/testuser1?current_id=&skip_count=1 HTTP/1.1" 200 -
+2026-01-24 01:54:52,783 - INFO - 127.0.0.1 - - [24/Jan/2026 01:54:52] "GET /api/poem/7/allusions HTTP/1.1" 200 -
+2026-01-24 01:54:52,784 - INFO - 127.0.0.1 - - [24/Jan/2026 01:54:52] "GET /api/poem/7/reviews HTTP/1.1" 200 -
+2026-01-24 01:54:52,797 - INFO - 127.0.0.1 - - [24/Jan/2026 01:54:52] "GET /api/poem/7/helper HTTP/1.1" 200 -
+2026-01-24 01:54:52,797 - INFO - 127.0.0.1 - - [24/Jan/2026 01:54:52] "GET /api/poem/7/analysis HTTP/1.1" 200 -
+2026-01-24 01:54:56,094 - INFO - 127.0.0.1 - - [24/Jan/2026 01:54:56] "GET /api/recommend_one/testuser1?current_id=7&skip_count=2 HTTP/1.1" 200 -
+2026-01-24 01:54:56,119 - INFO - 127.0.0.1 - - [24/Jan/2026 01:54:56] "GET /api/poem/143/allusions HTTP/1.1" 200 -
+2026-01-24 01:54:56,120 - INFO - 127.0.0.1 - - [24/Jan/2026 01:54:56] "GET /api/poem/143/helper HTTP/1.1" 200 -
+2026-01-24 01:54:56,120 - INFO - 127.0.0.1 - - [24/Jan/2026 01:54:56] "GET /api/poem/143/analysis HTTP/1.1" 200 -
+2026-01-24 01:54:56,147 - INFO - 127.0.0.1 - - [24/Jan/2026 01:54:56] "GET /api/poem/143/reviews HTTP/1.1" 200 -
+2026-01-24 01:54:57,566 - INFO - 127.0.0.1 - - [24/Jan/2026 01:54:57] "GET /api/recommend_one/testuser1?current_id=143&skip_count=3 HTTP/1.1" 200 -
+2026-01-24 01:54:57,598 - INFO - 127.0.0.1 - - [24/Jan/2026 01:54:57] "GET /api/poem/208/allusions HTTP/1.1" 200 -
+2026-01-24 01:54:57,608 - INFO - 127.0.0.1 - - [24/Jan/2026 01:54:57] "GET /api/poem/208/helper HTTP/1.1" 200 -
+2026-01-24 01:54:57,608 - INFO - 127.0.0.1 - - [24/Jan/2026 01:54:57] "GET /api/poem/208/analysis HTTP/1.1" 200 -
+2026-01-24 01:54:57,623 - INFO - 127.0.0.1 - - [24/Jan/2026 01:54:57] "GET /api/poem/208/reviews HTTP/1.1" 200 -
+2026-01-24 01:54:58,505 - INFO - 127.0.0.1 - - [24/Jan/2026 01:54:58] "GET /api/recommend_one/testuser1?current_id=208&skip_count=4 HTTP/1.1" 200 -
+2026-01-24 01:54:58,536 - INFO - 127.0.0.1 - - [24/Jan/2026 01:54:58] "GET /api/poem/143/allusions HTTP/1.1" 200 -
+2026-01-24 01:54:58,536 - INFO - 127.0.0.1 - - [24/Jan/2026 01:54:58] "GET /api/poem/143/helper HTTP/1.1" 200 -
+2026-01-24 01:54:58,545 - INFO - 127.0.0.1 - - [24/Jan/2026 01:54:58] "GET /api/poem/143/analysis HTTP/1.1" 200 -
+2026-01-24 01:54:58,573 - INFO - 127.0.0.1 - - [24/Jan/2026 01:54:58] "GET /api/poem/143/reviews HTTP/1.1" 200 -
+2026-01-24 01:57:39,266 - INFO - 127.0.0.1 - - [24/Jan/2026 01:57:39] "GET /api/user_preference/testuser1 HTTP/1.1" 200 -
+2026-01-24 01:57:39,374 - INFO - 127.0.0.1 - - [24/Jan/2026 01:57:39] "GET /api/recommend_one/testuser1?current_id=&skip_count=1 HTTP/1.1" 200 -
+2026-01-24 01:57:39,405 - INFO - 127.0.0.1 - - [24/Jan/2026 01:57:39] "GET /api/poem/143/analysis HTTP/1.1" 200 -
+2026-01-24 01:57:39,406 - INFO - 127.0.0.1 - - [24/Jan/2026 01:57:39] "GET /api/poem/143/helper HTTP/1.1" 200 -
+2026-01-24 01:57:39,414 - INFO - 127.0.0.1 - - [24/Jan/2026 01:57:39] "GET /api/poem/143/allusions HTTP/1.1" 200 -
+2026-01-24 01:57:39,428 - INFO - 127.0.0.1 - - [24/Jan/2026 01:57:39] "GET /api/poem/143/reviews HTTP/1.1" 200 -
+2026-01-24 01:57:39,773 - INFO - 🎯 监听器启动，当前诗歌数: 366
+2026-01-24 01:57:39,776 - INFO - 🎯 推荐更新系统初始化完成
+2026-01-24 01:57:39,776 - INFO -    - 触发延迟: 30秒
+2026-01-24 01:57:39,776 - INFO -    - 最大处理时间: 300秒
+2026-01-24 01:57:39,776 - INFO -    - CPU阈值: 80.0%
+2026-01-24 01:57:39,776 - INFO -    - 内存阈值: 80.0%
+2026-01-24 01:57:39,776 - INFO -    - 最大重试次数: 3
+2026-01-24 01:59:07,919 - INFO -  * Detected change in 'C:\\PostG\\backend\\batch_import_poetry.py', reloading
+2026-01-24 01:59:07,934 - INFO -  * Detected change in 'C:\\PostG\\backend\\batch_import_poetry.py', reloading
+2026-01-24 01:59:07,936 - INFO -  * Detected change in 'C:\\PostG\\backend\\batch_import_poetry.py', reloading
+2026-01-24 01:59:07,936 - INFO -  * Detected change in 'C:\\PostG\\backend\\batch_import_poetry.py', reloading
+2026-01-24 01:59:09,049 - INFO -  * Restarting with watchdog (windowsapi)
+2026-01-24 01:59:11,360 - INFO - 🎯 监听器启动，当前诗歌数: 366
+2026-01-24 01:59:11,363 - INFO - 🎯 推荐更新系统初始化完成
+2026-01-24 01:59:11,363 - INFO -    - 触发延迟: 30秒
+2026-01-24 01:59:11,363 - INFO -    - 最大处理时间: 300秒
+2026-01-24 01:59:11,363 - INFO -    - CPU阈值: 80.0%
+2026-01-24 01:59:11,363 - INFO -    - 内存阈值: 80.0%
+2026-01-24 01:59:11,365 - INFO -    - 最大重试次数: 3
+2026-01-24 01:59:11,387 - INFO - loading LdaModel object from C:\PostG\backend\saved_models\lda.model
+2026-01-24 01:59:11,388 - INFO - loading expElogbeta from C:\PostG\backend\saved_models\lda.model.expElogbeta.npy with mmap=None
+2026-01-24 01:59:11,391 - INFO - setting ignored attribute state to None
+2026-01-24 01:59:11,391 - INFO - setting ignored attribute dispatcher to None
+2026-01-24 01:59:11,391 - INFO - setting ignored attribute id2word to None
+2026-01-24 01:59:11,404 - INFO - LdaModel lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.model', 'datetime': '2026-01-24T01:59:11.392482', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:59:11,405 - INFO - loading LdaState object from C:\PostG\backend\saved_models\lda.model.state
+2026-01-24 01:59:11,405 - INFO - LdaState lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.model.state', 'datetime': '2026-01-24T01:59:11.405871', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:59:11,407 - INFO - loading Dictionary object from C:\PostG\backend\saved_models\lda.dict
+2026-01-24 01:59:11,408 - INFO - Dictionary lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.dict', 'datetime': '2026-01-24T01:59:11.408688', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:59:11,431 - WARNING -  * Debugger is active!
+2026-01-24 01:59:11,437 - INFO -  * Debugger PIN: 236-035-687
+2026-01-24 01:59:16,659 - INFO - 🎯 监听器启动，当前诗歌数: 366
+2026-01-24 01:59:16,662 - INFO - 🎯 推荐更新系统初始化完成
+2026-01-24 01:59:16,662 - INFO -    - 触发延迟: 30秒
+2026-01-24 01:59:16,662 - INFO -    - 最大处理时间: 300秒
+2026-01-24 01:59:16,662 - INFO -    - CPU阈值: 80.0%
+2026-01-24 01:59:16,662 - INFO -    - 内存阈值: 80.0%
+2026-01-24 01:59:16,664 - INFO -    - 最大重试次数: 3
+2026-01-24 01:59:36,790 - INFO -  * Detected change in 'C:\\PostG\\backend\\batch_import_poetry.py', reloading
+2026-01-24 01:59:37,066 - INFO -  * Restarting with watchdog (windowsapi)
+2026-01-24 01:59:39,692 - INFO - 🎯 监听器启动，当前诗歌数: 366
+2026-01-24 01:59:39,694 - INFO - 🎯 推荐更新系统初始化完成
+2026-01-24 01:59:39,694 - INFO -    - 触发延迟: 30秒
+2026-01-24 01:59:39,696 - INFO -    - 最大处理时间: 300秒
+2026-01-24 01:59:39,696 - INFO -    - CPU阈值: 80.0%
+2026-01-24 01:59:39,696 - INFO -    - 内存阈值: 80.0%
+2026-01-24 01:59:39,696 - INFO -    - 最大重试次数: 3
+2026-01-24 01:59:39,715 - INFO - loading LdaModel object from C:\PostG\backend\saved_models\lda.model
+2026-01-24 01:59:39,717 - INFO - loading expElogbeta from C:\PostG\backend\saved_models\lda.model.expElogbeta.npy with mmap=None
+2026-01-24 01:59:39,719 - INFO - setting ignored attribute state to None
+2026-01-24 01:59:39,720 - INFO - setting ignored attribute dispatcher to None
+2026-01-24 01:59:39,720 - INFO - setting ignored attribute id2word to None
+2026-01-24 01:59:39,730 - INFO - LdaModel lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.model', 'datetime': '2026-01-24T01:59:39.720604', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:59:39,731 - INFO - loading LdaState object from C:\PostG\backend\saved_models\lda.model.state
+2026-01-24 01:59:39,732 - INFO - LdaState lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.model.state', 'datetime': '2026-01-24T01:59:39.732268', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:59:39,732 - INFO - loading Dictionary object from C:\PostG\backend\saved_models\lda.dict
+2026-01-24 01:59:39,733 - INFO - Dictionary lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.dict', 'datetime': '2026-01-24T01:59:39.733274', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:59:39,750 - WARNING -  * Debugger is active!
+2026-01-24 01:59:39,757 - INFO -  * Debugger PIN: 236-035-687
+2026-01-24 01:59:44,246 - INFO -  * Detected change in 'C:\\PostG\\backend\\batch_import_poetry.py', reloading
+2026-01-24 01:59:44,248 - INFO -  * Detected change in 'C:\\PostG\\backend\\batch_import_poetry.py', reloading
+2026-01-24 01:59:45,162 - INFO - 127.0.0.1 - - [24/Jan/2026 01:59:45] "GET /api/user_preference/testuser1 HTTP/1.1" 200 -
+2026-01-24 01:59:45,268 - INFO - 127.0.0.1 - - [24/Jan/2026 01:59:45] "GET /api/recommend_one/testuser1?current_id=&skip_count=1 HTTP/1.1" 200 -
+2026-01-24 01:59:45,295 - INFO - 127.0.0.1 - - [24/Jan/2026 01:59:45] "GET /api/poem/208/allusions HTTP/1.1" 200 -
+2026-01-24 01:59:45,304 - INFO - 127.0.0.1 - - [24/Jan/2026 01:59:45] "GET /api/poem/208/helper HTTP/1.1" 200 -
+2026-01-24 01:59:45,324 - INFO - 127.0.0.1 - - [24/Jan/2026 01:59:45] "GET /api/poem/208/reviews HTTP/1.1" 200 -
+2026-01-24 01:59:46,145 - INFO -  * Restarting with watchdog (windowsapi)
+2026-01-24 01:59:48,953 - INFO - 🎯 监听器启动，当前诗歌数: 366
+2026-01-24 01:59:48,956 - INFO - 🎯 推荐更新系统初始化完成
+2026-01-24 01:59:48,957 - INFO -    - 触发延迟: 30秒
+2026-01-24 01:59:48,958 - INFO -    - 最大处理时间: 300秒
+2026-01-24 01:59:48,958 - INFO -    - CPU阈值: 80.0%
+2026-01-24 01:59:48,958 - INFO -    - 内存阈值: 80.0%
+2026-01-24 01:59:48,958 - INFO -    - 最大重试次数: 3
+2026-01-24 01:59:48,984 - INFO - loading LdaModel object from C:\PostG\backend\saved_models\lda.model
+2026-01-24 01:59:48,986 - INFO - loading expElogbeta from C:\PostG\backend\saved_models\lda.model.expElogbeta.npy with mmap=None
+2026-01-24 01:59:48,990 - INFO - setting ignored attribute state to None
+2026-01-24 01:59:48,991 - INFO - setting ignored attribute dispatcher to None
+2026-01-24 01:59:48,991 - INFO - setting ignored attribute id2word to None
+2026-01-24 01:59:49,006 - INFO - LdaModel lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.model', 'datetime': '2026-01-24T01:59:48.992606', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:59:49,006 - INFO - loading LdaState object from C:\PostG\backend\saved_models\lda.model.state
+2026-01-24 01:59:49,007 - INFO - LdaState lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.model.state', 'datetime': '2026-01-24T01:59:49.007587', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:59:49,009 - INFO - loading Dictionary object from C:\PostG\backend\saved_models\lda.dict
+2026-01-24 01:59:49,009 - INFO - Dictionary lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.dict', 'datetime': '2026-01-24T01:59:49.009122', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:59:49,031 - WARNING -  * Debugger is active!
+2026-01-24 01:59:49,039 - INFO -  * Debugger PIN: 236-035-687
+2026-01-24 01:59:49,291 - INFO - 127.0.0.1 - - [24/Jan/2026 01:59:49] "GET /api/recommend_one/testuser1?current_id=208&skip_count=2 HTTP/1.1" 200 -
+2026-01-24 01:59:49,320 - INFO - 127.0.0.1 - - [24/Jan/2026 01:59:49] "GET /api/poem/218/reviews HTTP/1.1" 200 -
+2026-01-24 01:59:49,338 - INFO - 127.0.0.1 - - [24/Jan/2026 01:59:49] "GET /api/poem/218/allusions HTTP/1.1" 200 -
+2026-01-24 01:59:49,350 - INFO - 127.0.0.1 - - [24/Jan/2026 01:59:49] "GET /api/poem/218/helper HTTP/1.1" 200 -
+2026-01-24 01:59:49,803 - INFO - 127.0.0.1 - - [24/Jan/2026 01:59:49] "GET /api/poem/218/analysis HTTP/1.1" 200 -
+2026-01-24 01:59:51,815 - INFO -  * Detected change in 'C:\\PostG\\backend\\batch_import_poetry.py', reloading
+2026-01-24 01:59:51,815 - INFO -  * Detected change in 'C:\\PostG\\backend\\batch_import_poetry.py', reloading
+2026-01-24 01:59:52,598 - INFO -  * Restarting with watchdog (windowsapi)
+2026-01-24 01:59:54,943 - INFO - 🎯 监听器启动，当前诗歌数: 366
+2026-01-24 01:59:54,945 - INFO - 🎯 推荐更新系统初始化完成
+2026-01-24 01:59:54,946 - INFO -    - 触发延迟: 30秒
+2026-01-24 01:59:54,946 - INFO -    - 最大处理时间: 300秒
+2026-01-24 01:59:54,946 - INFO -    - CPU阈值: 80.0%
+2026-01-24 01:59:54,946 - INFO -    - 内存阈值: 80.0%
+2026-01-24 01:59:54,947 - INFO -    - 最大重试次数: 3
+2026-01-24 01:59:54,977 - INFO - loading LdaModel object from C:\PostG\backend\saved_models\lda.model
+2026-01-24 01:59:54,979 - INFO - loading expElogbeta from C:\PostG\backend\saved_models\lda.model.expElogbeta.npy with mmap=None
+2026-01-24 01:59:54,983 - INFO - setting ignored attribute state to None
+2026-01-24 01:59:54,983 - INFO - setting ignored attribute dispatcher to None
+2026-01-24 01:59:54,983 - INFO - setting ignored attribute id2word to None
+2026-01-24 01:59:54,995 - INFO - LdaModel lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.model', 'datetime': '2026-01-24T01:59:54.983432', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:59:54,995 - INFO - loading LdaState object from C:\PostG\backend\saved_models\lda.model.state
+2026-01-24 01:59:54,997 - INFO - LdaState lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.model.state', 'datetime': '2026-01-24T01:59:54.997418', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:59:54,997 - INFO - loading Dictionary object from C:\PostG\backend\saved_models\lda.dict
+2026-01-24 01:59:54,997 - INFO - Dictionary lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.dict', 'datetime': '2026-01-24T01:59:54.997418', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 01:59:55,015 - WARNING -  * Debugger is active!
+2026-01-24 01:59:55,020 - INFO -  * Debugger PIN: 236-035-687
+2026-01-24 01:59:56,203 - INFO - 127.0.0.1 - - [24/Jan/2026 01:59:56] "GET /api/recommend_one/testuser1?current_id=218&skip_count=3 HTTP/1.1" 200 -
+2026-01-24 01:59:56,245 - INFO - 127.0.0.1 - - [24/Jan/2026 01:59:56] "GET /api/poem/5/allusions HTTP/1.1" 200 -
+2026-01-24 01:59:56,247 - INFO - 127.0.0.1 - - [24/Jan/2026 01:59:56] "GET /api/poem/5/helper HTTP/1.1" 200 -
+2026-01-24 01:59:56,266 - INFO - 127.0.0.1 - - [24/Jan/2026 01:59:56] "GET /api/poem/5/reviews HTTP/1.1" 200 -
+2026-01-24 01:59:56,744 - INFO - 127.0.0.1 - - [24/Jan/2026 01:59:56] "GET /api/poem/5/analysis HTTP/1.1" 200 -
+2026-01-24 02:00:00,187 - INFO -  * Detected change in 'C:\\PostG\\backend\\batch_import_poetry.py', reloading
+2026-01-24 02:00:00,187 - INFO -  * Detected change in 'C:\\PostG\\backend\\batch_import_poetry.py', reloading
+2026-01-24 02:00:00,189 - INFO -  * Detected change in 'C:\\PostG\\backend\\batch_import_poetry.py', reloading
+2026-01-24 02:00:00,604 - INFO -  * Restarting with watchdog (windowsapi)
+2026-01-24 02:00:03,812 - INFO - 🎯 监听器启动，当前诗歌数: 366
+2026-01-24 02:00:03,815 - INFO - 🎯 推荐更新系统初始化完成
+2026-01-24 02:00:03,816 - INFO -    - 触发延迟: 30秒
+2026-01-24 02:00:03,817 - INFO -    - 最大处理时间: 300秒
+2026-01-24 02:00:03,817 - INFO -    - CPU阈值: 80.0%
+2026-01-24 02:00:03,817 - INFO -    - 内存阈值: 80.0%
+2026-01-24 02:00:03,817 - INFO -    - 最大重试次数: 3
+2026-01-24 02:00:03,852 - INFO - loading LdaModel object from C:\PostG\backend\saved_models\lda.model
+2026-01-24 02:00:03,854 - INFO - loading expElogbeta from C:\PostG\backend\saved_models\lda.model.expElogbeta.npy with mmap=None
+2026-01-24 02:00:03,859 - INFO - setting ignored attribute state to None
+2026-01-24 02:00:03,860 - INFO - setting ignored attribute dispatcher to None
+2026-01-24 02:00:03,861 - INFO - setting ignored attribute id2word to None
+2026-01-24 02:00:03,877 - INFO - LdaModel lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.model', 'datetime': '2026-01-24T02:00:03.861171', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 02:00:03,877 - INFO - loading LdaState object from C:\PostG\backend\saved_models\lda.model.state
+2026-01-24 02:00:03,878 - INFO - LdaState lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.model.state', 'datetime': '2026-01-24T02:00:03.878529', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 02:00:03,879 - INFO - loading Dictionary object from C:\PostG\backend\saved_models\lda.dict
+2026-01-24 02:00:03,880 - INFO - Dictionary lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.dict', 'datetime': '2026-01-24T02:00:03.880047', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 02:00:03,906 - WARNING -  * Debugger is active!
+2026-01-24 02:00:03,917 - INFO -  * Debugger PIN: 236-035-687
+2026-01-24 02:00:08,630 - INFO - 127.0.0.1 - - [24/Jan/2026 02:00:08] "GET /api/user_preference/testuser1 HTTP/1.1" 200 -
+2026-01-24 02:00:08,737 - INFO - 127.0.0.1 - - [24/Jan/2026 02:00:08] "GET /api/recommend_one/testuser1?current_id=&skip_count=1 HTTP/1.1" 200 -
+2026-01-24 02:00:08,784 - INFO - 127.0.0.1 - - [24/Jan/2026 02:00:08] "GET /api/poem/143/allusions HTTP/1.1" 200 -
+2026-01-24 02:00:08,788 - INFO - 127.0.0.1 - - [24/Jan/2026 02:00:08] "GET /api/poem/143/helper HTTP/1.1" 200 -
+2026-01-24 02:00:08,852 - INFO - 127.0.0.1 - - [24/Jan/2026 02:00:08] "GET /api/poem/143/reviews HTTP/1.1" 200 -
+2026-01-24 02:00:09,209 - INFO - 127.0.0.1 - - [24/Jan/2026 02:00:09] "GET /api/poem/143/analysis HTTP/1.1" 200 -
+2026-01-24 02:00:09,393 - INFO - 🎯 监听器启动，当前诗歌数: 366
+2026-01-24 02:00:09,396 - INFO - 🎯 推荐更新系统初始化完成
+2026-01-24 02:00:09,396 - INFO -    - 触发延迟: 30秒
+2026-01-24 02:00:09,396 - INFO -    - 最大处理时间: 300秒
+2026-01-24 02:00:09,396 - INFO -    - CPU阈值: 80.0%
+2026-01-24 02:00:09,397 - INFO -    - 内存阈值: 80.0%
+2026-01-24 02:00:09,397 - INFO -    - 最大重试次数: 3
+2026-01-24 02:00:10,482 - INFO - 127.0.0.1 - - [24/Jan/2026 02:00:10] "GET /api/user/testuser1/stats HTTP/1.1" 200 -
+2026-01-24 02:00:10,487 - INFO - 127.0.0.1 - - [24/Jan/2026 02:00:10] "GET /api/user/testuser1/preferences HTTP/1.1" 200 -
+2026-01-24 02:00:10,498 - INFO - 127.0.0.1 - - [24/Jan/2026 02:00:10] "GET /api/user/testuser1/time-analysis HTTP/1.1" 200 -
+2026-01-24 02:00:10,499 - INFO - 127.0.0.1 - - [24/Jan/2026 02:00:10] "GET /api/user/testuser1/form-stats HTTP/1.1" 200 -
+2026-01-24 02:00:10,535 - DEBUG - Building prefix dict from the default dictionary ...
+2026-01-24 02:00:10,546 - DEBUG - Loading model from cache C:\Users\25656\AppData\Local\Temp\jieba.cache
+2026-01-24 02:00:10,561 - INFO - 127.0.0.1 - - [24/Jan/2026 02:00:10] "GET /api/user/testuser1/recommendations HTTP/1.1" 200 -
+2026-01-24 02:00:11,801 - DEBUG - Loading model cost 1.257 seconds.
+2026-01-24 02:00:11,801 - DEBUG - Prefix dict has been built successfully.
+2026-01-24 02:00:11,803 - INFO - 127.0.0.1 - - [24/Jan/2026 02:00:11] "GET /api/user/testuser1/wordcloud HTTP/1.1" 200 -
+2026-01-24 02:00:13,818 - INFO - 📝 检测到 484 首新诗歌, 最新ID: 855
+2026-01-24 02:00:13,819 - INFO - 📝 检测到新诗歌 (ID: 855), 将在 30 秒后触发推荐更新
+2026-01-24 02:00:16,975 - INFO - 📝 检测到 481 首新诗歌, 最新ID: 855
+2026-01-24 02:00:16,977 - INFO - 📝 检测到新诗歌 (ID: 855), 将在 30 秒后触发推荐更新
+2026-01-24 02:00:28,803 - INFO - 127.0.0.1 - - [24/Jan/2026 02:00:28] "GET /api/user/testuser1/preferences HTTP/1.1" 200 -
+2026-01-24 02:00:28,810 - INFO - 127.0.0.1 - - [24/Jan/2026 02:00:28] "GET /api/user/testuser1/form-stats HTTP/1.1" 200 -
+2026-01-24 02:00:28,811 - INFO - 127.0.0.1 - - [24/Jan/2026 02:00:28] "GET /api/user/testuser1/time-analysis HTTP/1.1" 200 -
+2026-01-24 02:00:28,813 - INFO - 127.0.0.1 - - [24/Jan/2026 02:00:28] "GET /api/user/testuser1/stats HTTP/1.1" 200 -
+2026-01-24 02:00:28,825 - INFO - 127.0.0.1 - - [24/Jan/2026 02:00:28] "GET /api/user/testuser1/wordcloud HTTP/1.1" 200 -
+2026-01-24 02:00:28,855 - INFO - 127.0.0.1 - - [24/Jan/2026 02:00:28] "GET /api/user/testuser1/recommendations HTTP/1.1" 200 -
+2026-01-24 02:00:30,291 - INFO - 🎯 监听器启动，当前诗歌数: 850
+2026-01-24 02:00:30,294 - INFO - 🎯 推荐更新系统初始化完成
+2026-01-24 02:00:30,294 - INFO -    - 触发延迟: 30秒
+2026-01-24 02:00:30,296 - INFO -    - 最大处理时间: 300秒
+2026-01-24 02:00:30,296 - INFO -    - CPU阈值: 80.0%
+2026-01-24 02:00:30,296 - INFO -    - 内存阈值: 80.0%
+2026-01-24 02:00:30,296 - INFO -    - 最大重试次数: 3
+2026-01-24 02:00:42,099 - INFO -  * Detected change in 'C:\\PostG\\backend\\import_more_yuanqu.py', reloading
+2026-01-24 02:00:42,160 - INFO -  * Detected change in 'C:\\PostG\\backend\\import_more_yuanqu.py', reloading
+2026-01-24 02:00:42,166 - INFO -  * Detected change in 'C:\\PostG\\backend\\import_more_yuanqu.py', reloading
+2026-01-24 02:00:42,697 - INFO -  * Restarting with watchdog (windowsapi)
+2026-01-24 02:00:45,142 - INFO - 🎯 监听器启动，当前诗歌数: 850
+2026-01-24 02:00:45,144 - INFO - 🎯 推荐更新系统初始化完成
+2026-01-24 02:00:45,144 - INFO -    - 触发延迟: 30秒
+2026-01-24 02:00:45,144 - INFO -    - 最大处理时间: 300秒
+2026-01-24 02:00:45,145 - INFO -    - CPU阈值: 80.0%
+2026-01-24 02:00:45,145 - INFO -    - 内存阈值: 80.0%
+2026-01-24 02:00:45,145 - INFO -    - 最大重试次数: 3
+2026-01-24 02:00:45,167 - INFO - loading LdaModel object from C:\PostG\backend\saved_models\lda.model
+2026-01-24 02:00:45,167 - INFO - loading expElogbeta from C:\PostG\backend\saved_models\lda.model.expElogbeta.npy with mmap=None
+2026-01-24 02:00:45,170 - INFO - setting ignored attribute state to None
+2026-01-24 02:00:45,170 - INFO - setting ignored attribute dispatcher to None
+2026-01-24 02:00:45,170 - INFO - setting ignored attribute id2word to None
+2026-01-24 02:00:45,183 - INFO - LdaModel lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.model', 'datetime': '2026-01-24T02:00:45.170484', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 02:00:45,183 - INFO - loading LdaState object from C:\PostG\backend\saved_models\lda.model.state
+2026-01-24 02:00:45,183 - INFO - LdaState lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.model.state', 'datetime': '2026-01-24T02:00:45.183051', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 02:00:45,184 - INFO - loading Dictionary object from C:\PostG\backend\saved_models\lda.dict
+2026-01-24 02:00:45,185 - INFO - Dictionary lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.dict', 'datetime': '2026-01-24T02:00:45.185138', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 02:00:45,203 - WARNING -  * Debugger is active!
+2026-01-24 02:00:45,208 - INFO -  * Debugger PIN: 236-035-687
+2026-01-24 02:00:46,986 - INFO - 🔄 推荐更新开始 - 触发类型: new_poem, 诗歌ID: 855
+2026-01-24 02:00:48,186 - INFO - 📊 更新进度: 10/52 (19.2%), 耗时: 1.17秒
+2026-01-24 02:00:49,319 - INFO - 📊 更新进度: 20/52 (38.5%), 耗时: 2.33秒
+2026-01-24 02:00:50,626 - INFO - 📊 更新进度: 30/52 (57.7%), 耗时: 3.61秒
+2026-01-24 02:00:51,419 - INFO - 🎯 监听器启动，当前诗歌数: 850
+2026-01-24 02:00:51,420 - INFO - 🎯 推荐更新系统初始化完成
+2026-01-24 02:00:51,420 - INFO -    - 触发延迟: 30秒
+2026-01-24 02:00:51,420 - INFO -    - 最大处理时间: 300秒
+2026-01-24 02:00:51,422 - INFO -    - CPU阈值: 80.0%
+2026-01-24 02:00:51,422 - INFO -    - 内存阈值: 80.0%
+2026-01-24 02:00:51,422 - INFO -    - 最大重试次数: 3
+2026-01-24 02:00:51,938 - INFO - 📊 更新进度: 40/52 (76.9%), 耗时: 4.93秒
+2026-01-24 02:00:53,193 - INFO - 📊 更新进度: 50/52 (96.2%), 耗时: 6.20秒
+2026-01-24 02:00:53,509 - INFO - 📈 性能指标 - CPU: 0.0%, 内存: 1.4%, 耗时: 6.52秒
+2026-01-24 02:00:53,510 - INFO - ✅ 推荐更新成功 - 处理用户: 52, 诗歌数: 1024, 总耗时: 6.52秒
+2026-01-24 02:00:55,154 - INFO - 📝 检测到 174 首新诗歌, 最新ID: 1029
+2026-01-24 02:00:55,155 - INFO - 📝 检测到新诗歌 (ID: 1029), 将在 30 秒后触发推荐更新
+2026-01-24 02:00:56,998 - INFO - 📝 检测到 174 首新诗歌, 最新ID: 1029
+2026-01-24 02:00:57,000 - INFO - 📝 检测到新诗歌 (ID: 1029), 将在 30 秒后触发推荐更新
+2026-01-24 02:01:20,162 - INFO -  * Detected change in 'C:\\PostG\\backend\\import_more_yuanqu.py', reloading
+2026-01-24 02:01:20,993 - INFO -  * Restarting with watchdog (windowsapi)
+2026-01-24 02:01:23,745 - INFO - 🎯 监听器启动，当前诗歌数: 1024
+2026-01-24 02:01:23,748 - INFO - 🎯 推荐更新系统初始化完成
+2026-01-24 02:01:23,748 - INFO -    - 触发延迟: 30秒
+2026-01-24 02:01:23,748 - INFO -    - 最大处理时间: 300秒
+2026-01-24 02:01:23,748 - INFO -    - CPU阈值: 80.0%
+2026-01-24 02:01:23,748 - INFO -    - 内存阈值: 80.0%
+2026-01-24 02:01:23,748 - INFO -    - 最大重试次数: 3
+2026-01-24 02:01:23,780 - INFO - loading LdaModel object from C:\PostG\backend\saved_models\lda.model
+2026-01-24 02:01:23,782 - INFO - loading expElogbeta from C:\PostG\backend\saved_models\lda.model.expElogbeta.npy with mmap=None
+2026-01-24 02:01:23,786 - INFO - setting ignored attribute state to None
+2026-01-24 02:01:23,786 - INFO - setting ignored attribute dispatcher to None
+2026-01-24 02:01:23,786 - INFO - setting ignored attribute id2word to None
+2026-01-24 02:01:23,802 - INFO - LdaModel lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.model', 'datetime': '2026-01-24T02:01:23.786613', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 02:01:23,802 - INFO - loading LdaState object from C:\PostG\backend\saved_models\lda.model.state
+2026-01-24 02:01:23,802 - INFO - LdaState lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.model.state', 'datetime': '2026-01-24T02:01:23.802463', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 02:01:23,804 - INFO - loading Dictionary object from C:\PostG\backend\saved_models\lda.dict
+2026-01-24 02:01:23,805 - INFO - Dictionary lifecycle event {'fname': 'C:\\PostG\\backend\\saved_models\\lda.dict', 'datetime': '2026-01-24T02:01:23.805024', 'gensim': '4.3.1', 'python': '3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]', 'platform': 'Windows-10-10.0.26200-SP0', 'event': 'loaded'}
+2026-01-24 02:01:23,830 - WARNING -  * Debugger is active!
+2026-01-24 02:01:23,838 - INFO -  * Debugger PIN: 236-035-687
+2026-01-24 02:01:27,005 - INFO - 🔄 推荐更新开始 - 触发类型: new_poem, 诗歌ID: 1029
+2026-01-24 02:01:28,448 - INFO - 📊 更新进度: 10/52 (19.2%), 耗时: 1.41秒
+2026-01-24 02:01:29,583 - INFO - 📊 更新进度: 20/52 (38.5%), 耗时: 2.58秒
+2026-01-24 02:01:30,862 - INFO - 📊 更新进度: 30/52 (57.7%), 耗时: 3.84秒
+2026-01-24 02:01:32,177 - INFO - 📊 更新进度: 40/52 (76.9%), 耗时: 5.15秒
+2026-01-24 02:01:33,401 - INFO - 📊 更新进度: 50/52 (96.2%), 耗时: 6.39秒
+2026-01-24 02:01:33,714 - INFO - 📈 性能指标 - CPU: 0.0%, 内存: 1.4%, 耗时: 6.71秒
+2026-01-24 02:01:33,714 - INFO - ✅ 推荐更新成功 - 处理用户: 52, 诗歌数: 1024, 总耗时: 6.71秒
+2026-01-24 02:01:42,362 - INFO - 127.0.0.1 - - [24/Jan/2026 02:01:42] "GET /api/user_preference/testuser1 HTTP/1.1" 200 -
+2026-01-24 02:01:42,464 - INFO - 127.0.0.1 - - [24/Jan/2026 02:01:42] "GET /api/recommend_one/testuser1?current_id=&skip_count=1 HTTP/1.1" 200 -
+2026-01-24 02:01:42,502 - INFO - 127.0.0.1 - - [24/Jan/2026 02:01:42] "GET /api/poem/123/helper HTTP/1.1" 200 -
+2026-01-24 02:01:42,504 - INFO - 127.0.0.1 - - [24/Jan/2026 02:01:42] "GET /api/poem/123/reviews HTTP/1.1" 200 -
+2026-01-24 02:01:42,522 - INFO - 127.0.0.1 - - [24/Jan/2026 02:01:42] "GET /api/poem/123/allusions HTTP/1.1" 200 -
+2026-01-24 02:01:42,958 - INFO - 127.0.0.1 - - [24/Jan/2026 02:01:42] "GET /api/poem/123/analysis HTTP/1.1" 200 -
+2026-01-24 02:01:48,764 - INFO - 127.0.0.1 - - [24/Jan/2026 02:01:48] "GET /api/recommend_one/testuser1?current_id=123&skip_count=2 HTTP/1.1" 200 -
+2026-01-24 02:01:48,794 - INFO - 127.0.0.1 - - [24/Jan/2026 02:01:48] "GET /api/poem/143/helper HTTP/1.1" 200 -
+2026-01-24 02:01:48,796 - INFO - 127.0.0.1 - - [24/Jan/2026 02:01:48] "GET /api/poem/143/analysis HTTP/1.1" 200 -
+2026-01-24 02:01:48,799 - INFO - 127.0.0.1 - - [24/Jan/2026 02:01:48] "GET /api/poem/143/allusions HTTP/1.1" 200 -
+2026-01-24 02:01:48,820 - INFO - 127.0.0.1 - - [24/Jan/2026 02:01:48] "GET /api/poem/143/reviews HTTP/1.1" 200 -
+2026-01-24 02:01:51,091 - INFO - 127.0.0.1 - - [24/Jan/2026 02:01:51] "GET /api/recommend_one/testuser1?current_id=143&skip_count=3 HTTP/1.1" 200 -
+2026-01-24 02:01:51,117 - INFO - 127.0.0.1 - - [24/Jan/2026 02:01:51] "GET /api/poem/5/analysis HTTP/1.1" 200 -
+2026-01-24 02:01:51,118 - INFO - 127.0.0.1 - - [24/Jan/2026 02:01:51] "GET /api/poem/5/allusions HTTP/1.1" 200 -
+2026-01-24 02:01:51,118 - INFO - 127.0.0.1 - - [24/Jan/2026 02:01:51] "GET /api/poem/5/helper HTTP/1.1" 200 -
+2026-01-24 02:01:51,136 - INFO - 127.0.0.1 - - [24/Jan/2026 02:01:51] "GET /api/poem/5/reviews HTTP/1.1" 200 -
+2026-01-24 02:01:52,199 - INFO - 127.0.0.1 - - [24/Jan/2026 02:01:52] "GET /api/recommend_one/testuser1?current_id=5&skip_count=4 HTTP/1.1" 200 -
+2026-01-24 02:01:52,215 - INFO - 127.0.0.1 - - [24/Jan/2026 02:01:52] "GET /api/poem/134/allusions HTTP/1.1" 200 -
+2026-01-24 02:01:52,217 - INFO - 127.0.0.1 - - [24/Jan/2026 02:01:52] "GET /api/poem/134/helper HTTP/1.1" 200 -
+2026-01-24 02:01:52,232 - INFO - 127.0.0.1 - - [24/Jan/2026 02:01:52] "GET /api/poem/134/analysis HTTP/1.1" 200 -
+2026-01-24 02:01:52,251 - INFO - 127.0.0.1 - - [24/Jan/2026 02:01:52] "GET /api/poem/134/reviews HTTP/1.1" 200 -
+2026-01-24 02:01:52,969 - INFO - 127.0.0.1 - - [24/Jan/2026 02:01:52] "GET /api/recommend_one/testuser1?current_id=134&skip_count=5 HTTP/1.1" 200 -
+2026-01-24 02:01:53,009 - INFO - 127.0.0.1 - - [24/Jan/2026 02:01:53] "GET /api/poem/1/analysis HTTP/1.1" 200 -
+2026-01-24 02:01:53,010 - INFO - 127.0.0.1 - - [24/Jan/2026 02:01:53] "GET /api/poem/1/reviews HTTP/1.1" 200 -
+2026-01-24 02:01:53,016 - INFO - 127.0.0.1 - - [24/Jan/2026 02:01:53] "GET /api/poem/1/helper HTTP/1.1" 200 -
+2026-01-24 02:01:53,016 - INFO - 127.0.0.1 - - [24/Jan/2026 02:01:53] "GET /api/poem/1/allusions HTTP/1.1" 200 -
+2026-01-24 02:01:53,803 - INFO - 127.0.0.1 - - [24/Jan/2026 02:01:53] "GET /api/recommend_one/testuser1?current_id=1&skip_count=6 HTTP/1.1" 200 -
+2026-01-24 02:01:53,824 - INFO - 127.0.0.1 - - [24/Jan/2026 02:01:53] "GET /api/poem/5/allusions HTTP/1.1" 200 -
+2026-01-24 02:01:53,830 - INFO - 127.0.0.1 - - [24/Jan/2026 02:01:53] "GET /api/poem/5/helper HTTP/1.1" 200 -
+2026-01-24 02:01:53,830 - INFO - 127.0.0.1 - - [24/Jan/2026 02:01:53] "GET /api/poem/5/analysis HTTP/1.1" 200 -
+2026-01-24 02:01:53,850 - INFO - 127.0.0.1 - - [24/Jan/2026 02:01:53] "GET /api/poem/5/reviews HTTP/1.1" 200 -
+2026-01-24 02:01:54,899 - INFO - 127.0.0.1 - - [24/Jan/2026 02:01:54] "GET /api/recommend_one/testuser1?current_id=5&skip_count=7 HTTP/1.1" 200 -
+2026-01-24 02:01:54,918 - INFO - 127.0.0.1 - - [24/Jan/2026 02:01:54] "GET /api/poem/134/allusions HTTP/1.1" 200 -
+2026-01-24 02:01:54,922 - INFO - 127.0.0.1 - - [24/Jan/2026 02:01:54] "GET /api/poem/134/helper HTTP/1.1" 200 -
+2026-01-24 02:01:54,935 - INFO - 127.0.0.1 - - [24/Jan/2026 02:01:54] "GET /api/poem/134/analysis HTTP/1.1" 200 -
+2026-01-24 02:01:54,947 - INFO - 127.0.0.1 - - [24/Jan/2026 02:01:54] "GET /api/poem/134/reviews HTTP/1.1" 200 -
+2026-01-24 02:01:55,538 - INFO - 127.0.0.1 - - [24/Jan/2026 02:01:55] "GET /api/recommend_one/testuser1?current_id=134&skip_count=8 HTTP/1.1" 200 -
+2026-01-24 02:01:55,564 - INFO - 127.0.0.1 - - [24/Jan/2026 02:01:55] "GET /api/poem/7/allusions HTTP/1.1" 200 -
+2026-01-24 02:01:55,568 - INFO - 127.0.0.1 - - [24/Jan/2026 02:01:55] "GET /api/poem/7/helper HTTP/1.1" 200 -
+2026-01-24 02:01:55,573 - INFO - 127.0.0.1 - - [24/Jan/2026 02:01:55] "GET /api/poem/7/reviews HTTP/1.1" 200 -
+2026-01-24 02:01:55,576 - INFO - 127.0.0.1 - - [24/Jan/2026 02:01:55] "GET /api/poem/7/analysis HTTP/1.1" 200 -
+2026-01-24 02:01:56,131 - INFO - 127.0.0.1 - - [24/Jan/2026 02:01:56] "GET /api/recommend_one/testuser1?current_id=7&skip_count=9 HTTP/1.1" 200 -
+2026-01-24 02:01:56,150 - INFO - 127.0.0.1 - - [24/Jan/2026 02:01:56] "GET /api/poem/143/allusions HTTP/1.1" 200 -
+2026-01-24 02:01:56,158 - INFO - 127.0.0.1 - - [24/Jan/2026 02:01:56] "GET /api/poem/143/helper HTTP/1.1" 200 -
+2026-01-24 02:01:56,158 - INFO - 127.0.0.1 - - [24/Jan/2026 02:01:56] "GET /api/poem/143/analysis HTTP/1.1" 200 -
+2026-01-24 02:01:56,178 - INFO - 127.0.0.1 - - [24/Jan/2026 02:01:56] "GET /api/poem/143/reviews HTTP/1.1" 200 -
+2026-01-24 02:01:57,525 - INFO - 127.0.0.1 - - [24/Jan/2026 02:01:57] "GET /api/user/testuser1/preferences HTTP/1.1" 200 -
+2026-01-24 02:01:57,534 - INFO - 127.0.0.1 - - [24/Jan/2026 02:01:57] "GET /api/user/testuser1/stats HTTP/1.1" 200 -
+2026-01-24 02:01:57,536 - DEBUG - Building prefix dict from the default dictionary ...
+2026-01-24 02:01:57,549 - INFO - 127.0.0.1 - - [24/Jan/2026 02:01:57] "GET /api/user/testuser1/time-analysis HTTP/1.1" 200 -
+2026-01-24 02:01:57,560 - DEBUG - Loading model from cache C:\Users\25656\AppData\Local\Temp\jieba.cache
+2026-01-24 02:01:57,565 - INFO - 127.0.0.1 - - [24/Jan/2026 02:01:57] "GET /api/user/testuser1/form-stats HTTP/1.1" 200 -
+2026-01-24 02:01:57,586 - INFO - 127.0.0.1 - - [24/Jan/2026 02:01:57] "GET /api/user/testuser1/recommendations HTTP/1.1" 200 -
+2026-01-24 02:01:58,840 - DEBUG - Loading model cost 1.292 seconds.
+2026-01-24 02:01:58,840 - DEBUG - Prefix dict has been built successfully.
+2026-01-24 02:01:58,844 - INFO - 127.0.0.1 - - [24/Jan/2026 02:01:58] "GET /api/user/testuser1/wordcloud HTTP/1.1" 200 -
+2026-01-24 02:03:28,001 - INFO - 127.0.0.1 - - [24/Jan/2026 02:03:28] "GET /api/user/testuser1/stats HTTP/1.1" 200 -
+2026-01-24 02:03:28,003 - INFO - 127.0.0.1 - - [24/Jan/2026 02:03:28] "GET /api/user/testuser1/preferences HTTP/1.1" 200 -
+2026-01-24 02:03:28,016 - INFO - 127.0.0.1 - - [24/Jan/2026 02:03:28] "GET /api/user/testuser1/form-stats HTTP/1.1" 200 -
+2026-01-24 02:03:28,024 - INFO - 127.0.0.1 - - [24/Jan/2026 02:03:28] "GET /api/user/testuser1/time-analysis HTTP/1.1" 200 -
+2026-01-24 02:03:28,033 - INFO - 127.0.0.1 - - [24/Jan/2026 02:03:28] "GET /api/user/testuser1/wordcloud HTTP/1.1" 200 -
+2026-01-24 02:03:28,046 - INFO - 127.0.0.1 - - [24/Jan/2026 02:03:28] "GET /api/user/testuser1/recommendations HTTP/1.1" 200 -
+2026-01-24 02:03:34,172 - INFO - 127.0.0.1 - - [24/Jan/2026 02:03:34] "GET /api/user/testuser1/stats HTTP/1.1" 200 -
+2026-01-24 02:03:34,188 - INFO - 127.0.0.1 - - [24/Jan/2026 02:03:34] "GET /api/user/testuser1/preferences HTTP/1.1" 200 -
+2026-01-24 02:03:34,199 - INFO - 127.0.0.1 - - [24/Jan/2026 02:03:34] "GET /api/user/testuser1/time-analysis HTTP/1.1" 200 -
+2026-01-24 02:03:34,201 - INFO - 127.0.0.1 - - [24/Jan/2026 02:03:34] "GET /api/user/testuser1/form-stats HTTP/1.1" 200 -
+2026-01-24 02:03:34,212 - INFO - 127.0.0.1 - - [24/Jan/2026 02:03:34] "GET /api/user/testuser1/wordcloud HTTP/1.1" 200 -
+2026-01-24 02:03:34,219 - INFO - 127.0.0.1 - - [24/Jan/2026 02:03:34] "GET /api/user/testuser1/recommendations HTTP/1.1" 200 -
+2026-01-24 02:03:34,653 - INFO - 127.0.0.1 - - [24/Jan/2026 02:03:34] "GET /api/global/theme-distribution HTTP/1.1" 200 -
+2026-01-24 02:03:34,668 - INFO - 127.0.0.1 - - [24/Jan/2026 02:03:34] "GET /api/global/stats HTTP/1.1" 200 -
+2026-01-24 02:03:34,687 - INFO - 127.0.0.1 - - [24/Jan/2026 02:03:34] "GET /api/global/wordcloud HTTP/1.1" 200 -
+2026-01-24 02:03:34,721 - INFO - 127.0.0.1 - - [24/Jan/2026 02:03:34] "GET /api/global/trends?period=week HTTP/1.1" 200 -
+2026-01-24 02:03:34,805 - INFO - 127.0.0.1 - - [24/Jan/2026 02:03:34] "GET /api/global/dynasty-distribution HTTP/1.1" 200 -
+2026-01-24 02:03:36,038 - INFO - 127.0.0.1 - - [24/Jan/2026 02:03:36] "GET /api/global/popular-poems?time_range=week HTTP/1.1" 200 -
+2026-01-24 02:03:36,092 - INFO - 127.0.0.1 - - [24/Jan/2026 02:03:36] "GET /api/user/testuser1/stats HTTP/1.1" 200 -
+2026-01-24 02:03:36,120 - INFO - 127.0.0.1 - - [24/Jan/2026 02:03:36] "GET /api/user/testuser1/preferences HTTP/1.1" 200 -
+2026-01-24 02:03:36,136 - INFO - 127.0.0.1 - - [24/Jan/2026 02:03:36] "GET /api/user/testuser1/wordcloud HTTP/1.1" 200 -
+2026-01-24 02:03:36,136 - INFO - 127.0.0.1 - - [24/Jan/2026 02:03:36] "GET /api/user/testuser1/time-analysis HTTP/1.1" 200 -
+2026-01-24 02:03:36,137 - INFO - 127.0.0.1 - - [24/Jan/2026 02:03:36] "GET /api/user/testuser1/form-stats HTTP/1.1" 200 -
+2026-01-24 02:03:36,148 - INFO - 127.0.0.1 - - [24/Jan/2026 02:03:36] "GET /api/user/testuser1/recommendations HTTP/1.1" 200 -
+2026-01-24 02:03:37,084 - INFO - 127.0.0.1 - - [24/Jan/2026 02:03:37] "GET /api/user_preference/testuser1 HTTP/1.1" 200 -
+2026-01-24 02:03:37,184 - INFO - 127.0.0.1 - - [24/Jan/2026 02:03:37] "GET /api/recommend_one/testuser1?current_id=&skip_count=1 HTTP/1.1" 200 -
+2026-01-24 02:03:37,206 - INFO - 127.0.0.1 - - [24/Jan/2026 02:03:37] "GET /api/poem/143/allusions HTTP/1.1" 200 -
+2026-01-24 02:03:37,212 - INFO - 127.0.0.1 - - [24/Jan/2026 02:03:37] "GET /api/poem/143/helper HTTP/1.1" 200 -
+2026-01-24 02:03:37,220 - INFO - 127.0.0.1 - - [24/Jan/2026 02:03:37] "GET /api/poem/143/analysis HTTP/1.1" 200 -
+2026-01-24 02:03:37,233 - INFO - 127.0.0.1 - - [24/Jan/2026 02:03:37] "GET /api/poem/143/reviews HTTP/1.1" 200 -
+2026-01-24 02:03:46,634 - INFO - 127.0.0.1 - - [24/Jan/2026 02:03:46] "GET /api/global/stats HTTP/1.1" 200 -
+2026-01-24 02:03:46,649 - INFO - 127.0.0.1 - - [24/Jan/2026 02:03:46] "GET /api/global/theme-distribution HTTP/1.1" 200 -
+2026-01-24 02:03:46,657 - INFO - 127.0.0.1 - - [24/Jan/2026 02:03:46] "GET /api/global/wordcloud HTTP/1.1" 200 -
+2026-01-24 02:03:46,691 - INFO - 127.0.0.1 - - [24/Jan/2026 02:03:46] "GET /api/global/trends?period=week HTTP/1.1" 200 -
+2026-01-24 02:03:46,767 - INFO - 127.0.0.1 - - [24/Jan/2026 02:03:46] "GET /api/global/dynasty-distribution HTTP/1.1" 200 -
+2026-01-24 02:03:46,915 - INFO - 127.0.0.1 - - [24/Jan/2026 02:03:46] "GET /api/user/testuser1/stats HTTP/1.1" 200 -
+2026-01-24 02:03:46,919 - INFO - 127.0.0.1 - - [24/Jan/2026 02:03:46] "GET /api/user/testuser1/preferences HTTP/1.1" 200 -
+2026-01-24 02:03:46,938 - INFO - 127.0.0.1 - - [24/Jan/2026 02:03:46] "GET /api/user/testuser1/time-analysis HTTP/1.1" 200 -
+2026-01-24 02:03:46,949 - INFO - 127.0.0.1 - - [24/Jan/2026 02:03:46] "GET /api/user/testuser1/form-stats HTTP/1.1" 200 -
+2026-01-24 02:03:46,955 - INFO - 127.0.0.1 - - [24/Jan/2026 02:03:46] "GET /api/user/testuser1/wordcloud HTTP/1.1" 200 -
+2026-01-24 02:03:46,973 - INFO - 127.0.0.1 - - [24/Jan/2026 02:03:46] "GET /api/user/testuser1/recommendations HTTP/1.1" 200 -
+2026-01-24 02:03:48,128 - INFO - 127.0.0.1 - - [24/Jan/2026 02:03:48] "GET /api/global/popular-poems?time_range=week HTTP/1.1" 200 -
+2026-01-24 02:03:51,603 - INFO - 127.0.0.1 - - [24/Jan/2026 02:03:51] "GET /api/search_poems?q=山水 HTTP/1.1" 200 -
+2026-01-24 02:03:56,269 - INFO - 127.0.0.1 - - [24/Jan/2026 02:03:56] "GET /api/user_preference/testuser1 HTTP/1.1" 200 -
+2026-01-24 02:03:56,355 - INFO - 127.0.0.1 - - [24/Jan/2026 02:03:56] "GET /api/recommend_one/testuser1?current_id=&skip_count=1 HTTP/1.1" 200 -
+2026-01-24 02:03:56,380 - INFO - 127.0.0.1 - - [24/Jan/2026 02:03:56] "GET /api/poem/9/reviews HTTP/1.1" 200 -
+2026-01-24 02:03:56,381 - INFO - 127.0.0.1 - - [24/Jan/2026 02:03:56] "GET /api/poem/9/allusions HTTP/1.1" 200 -
+2026-01-24 02:03:56,383 - INFO - 127.0.0.1 - - [24/Jan/2026 02:03:56] "GET /api/poem/9/helper HTTP/1.1" 200 -
+2026-01-24 02:03:56,385 - INFO - 127.0.0.1 - - [24/Jan/2026 02:03:56] "GET /api/poem/9/analysis HTTP/1.1" 200 -
+2026-01-24 02:03:58,448 - INFO - 127.0.0.1 - - [24/Jan/2026 02:03:58] "GET /api/user/testuser1/stats HTTP/1.1" 200 -
+2026-01-24 02:03:58,464 - INFO - 127.0.0.1 - - [24/Jan/2026 02:03:58] "GET /api/user/testuser1/preferences HTTP/1.1" 200 -
+2026-01-24 02:03:58,464 - INFO - 127.0.0.1 - - [24/Jan/2026 02:03:58] "GET /api/user/testuser1/time-analysis HTTP/1.1" 200 -
+2026-01-24 02:03:58,483 - INFO - 127.0.0.1 - - [24/Jan/2026 02:03:58] "GET /api/user/testuser1/form-stats HTTP/1.1" 200 -
+2026-01-24 02:03:58,498 - INFO - 127.0.0.1 - - [24/Jan/2026 02:03:58] "GET /api/user/testuser1/wordcloud HTTP/1.1" 200 -
+2026-01-24 02:03:58,509 - INFO - 127.0.0.1 - - [24/Jan/2026 02:03:58] "GET /api/user/testuser1/recommendations HTTP/1.1" 200 -
+2026-01-24 02:04:02,449 - INFO - 127.0.0.1 - - [24/Jan/2026 02:04:02] "GET /api/user/testuser1/stats HTTP/1.1" 200 -
+2026-01-24 02:04:02,455 - INFO - 127.0.0.1 - - [24/Jan/2026 02:04:02] "GET /api/user/testuser1/preferences HTTP/1.1" 200 -
+2026-01-24 02:04:02,487 - INFO - 127.0.0.1 - - [24/Jan/2026 02:04:02] "GET /api/user/testuser1/form-stats HTTP/1.1" 200 -
+2026-01-24 02:04:02,488 - INFO - 127.0.0.1 - - [24/Jan/2026 02:04:02] "GET /api/user/testuser1/time-analysis HTTP/1.1" 200 -
+2026-01-24 02:04:02,498 - INFO - 127.0.0.1 - - [24/Jan/2026 02:04:02] "GET /api/user/testuser1/wordcloud HTTP/1.1" 200 -
+2026-01-24 02:04:02,504 - INFO - 127.0.0.1 - - [24/Jan/2026 02:04:02] "GET /api/user/testuser1/recommendations HTTP/1.1" 200 -
+2026-01-24 02:04:16,370 - INFO - 127.0.0.1 - - [24/Jan/2026 02:04:16] "GET /api/user/testuser1/preferences HTTP/1.1" 200 -
+2026-01-24 02:04:16,377 - INFO - 127.0.0.1 - - [24/Jan/2026 02:04:16] "GET /api/user/testuser1/stats HTTP/1.1" 200 -
+2026-01-24 02:04:16,380 - INFO - 127.0.0.1 - - [24/Jan/2026 02:04:16] "GET /api/user/testuser1/time-analysis HTTP/1.1" 200 -
+2026-01-24 02:04:16,382 - INFO - 127.0.0.1 - - [24/Jan/2026 02:04:16] "GET /api/user/testuser1/form-stats HTTP/1.1" 200 -
+2026-01-24 02:04:16,396 - INFO - 127.0.0.1 - - [24/Jan/2026 02:04:16] "GET /api/user/testuser1/wordcloud HTTP/1.1" 200 -
+2026-01-24 02:04:16,410 - INFO - 127.0.0.1 - - [24/Jan/2026 02:04:16] "GET /api/user/testuser1/recommendations HTTP/1.1" 200 -
+2026-01-24 02:04:17,753 - INFO - 127.0.0.1 - - [24/Jan/2026 02:04:17] "GET /api/global/theme-distribution HTTP/1.1" 200 -
+2026-01-24 02:04:17,767 - INFO - 127.0.0.1 - - [24/Jan/2026 02:04:17] "GET /api/global/stats HTTP/1.1" 200 -
+2026-01-24 02:04:17,786 - INFO - 127.0.0.1 - - [24/Jan/2026 02:04:17] "GET /api/global/wordcloud HTTP/1.1" 200 -
+2026-01-24 02:04:17,826 - INFO - 127.0.0.1 - - [24/Jan/2026 02:04:17] "GET /api/global/trends?period=week HTTP/1.1" 200 -
+2026-01-24 02:04:17,870 - INFO - 127.0.0.1 - - [24/Jan/2026 02:04:17] "GET /api/global/dynasty-distribution HTTP/1.1" 200 -
+2026-01-24 02:04:19,124 - INFO - 127.0.0.1 - - [24/Jan/2026 02:04:19] "GET /api/global/popular-poems?time_range=week HTTP/1.1" 200 -
+2026-01-24 02:04:22,446 - INFO - 127.0.0.1 - - [24/Jan/2026 02:04:22] "GET /api/user/testuser1/preferences HTTP/1.1" 200 -
+2026-01-24 02:04:22,448 - INFO - 127.0.0.1 - - [24/Jan/2026 02:04:22] "GET /api/user/testuser1/time-analysis HTTP/1.1" 200 -
+2026-01-24 02:04:22,465 - INFO - 127.0.0.1 - - [24/Jan/2026 02:04:22] "GET /api/user/testuser1/stats HTTP/1.1" 200 -
+2026-01-24 02:04:22,487 - INFO - 127.0.0.1 - - [24/Jan/2026 02:04:22] "GET /api/user/testuser1/wordcloud HTTP/1.1" 200 -
+2026-01-24 02:04:22,487 - INFO - 127.0.0.1 - - [24/Jan/2026 02:04:22] "GET /api/user/testuser1/form-stats HTTP/1.1" 200 -
+2026-01-24 02:04:22,508 - INFO - 127.0.0.1 - - [24/Jan/2026 02:04:22] "GET /api/user/testuser1/recommendations HTTP/1.1" 200 -
+2026-01-24 02:04:25,441 - INFO - 127.0.0.1 - - [24/Jan/2026 02:04:25] "GET /api/global/stats HTTP/1.1" 200 -
+2026-01-24 02:04:25,441 - INFO - 127.0.0.1 - - [24/Jan/2026 02:04:25] "GET /api/global/theme-distribution HTTP/1.1" 200 -
+2026-01-24 02:04:25,461 - INFO - 127.0.0.1 - - [24/Jan/2026 02:04:25] "GET /api/global/wordcloud HTTP/1.1" 200 -
+2026-01-24 02:04:25,504 - INFO - 127.0.0.1 - - [24/Jan/2026 02:04:25] "GET /api/global/trends?period=week HTTP/1.1" 200 -
+2026-01-24 02:04:25,573 - INFO - 127.0.0.1 - - [24/Jan/2026 02:04:25] "GET /api/global/dynasty-distribution HTTP/1.1" 200 -
+2026-01-24 02:04:26,087 - INFO - 127.0.0.1 - - [24/Jan/2026 02:04:26] "GET /api/user/testuser1/stats HTTP/1.1" 200 -
+2026-01-24 02:04:26,100 - INFO - 127.0.0.1 - - [24/Jan/2026 02:04:26] "GET /api/user/testuser1/preferences HTTP/1.1" 200 -
+2026-01-24 02:04:26,105 - INFO - 127.0.0.1 - - [24/Jan/2026 02:04:26] "GET /api/user/testuser1/time-analysis HTTP/1.1" 200 -
+2026-01-24 02:04:26,131 - INFO - 127.0.0.1 - - [24/Jan/2026 02:04:26] "GET /api/user/testuser1/form-stats HTTP/1.1" 200 -
+2026-01-24 02:04:26,139 - INFO - 127.0.0.1 - - [24/Jan/2026 02:04:26] "GET /api/user/testuser1/wordcloud HTTP/1.1" 200 -
+2026-01-24 02:04:26,156 - INFO - 127.0.0.1 - - [24/Jan/2026 02:04:26] "GET /api/user/testuser1/recommendations HTTP/1.1" 200 -
+2026-01-24 02:04:26,934 - INFO - 127.0.0.1 - - [24/Jan/2026 02:04:26] "GET /api/global/popular-poems?time_range=week HTTP/1.1" 200 -
+2026-01-24 02:04:28,028 - INFO - 127.0.0.1 - - [24/Jan/2026 02:04:28] "GET /api/user/testuser1/stats HTTP/1.1" 200 -
+2026-01-24 02:04:28,051 - INFO - 127.0.0.1 - - [24/Jan/2026 02:04:28] "GET /api/user/testuser1/form-stats HTTP/1.1" 200 -
+2026-01-24 02:04:28,052 - INFO - 127.0.0.1 - - [24/Jan/2026 02:04:28] "GET /api/user/testuser1/wordcloud HTTP/1.1" 200 -
+2026-01-24 02:04:28,067 - INFO - 127.0.0.1 - - [24/Jan/2026 02:04:28] "GET /api/user/testuser1/preferences HTTP/1.1" 200 -
+2026-01-24 02:04:28,068 - INFO - 127.0.0.1 - - [24/Jan/2026 02:04:28] "GET /api/user/testuser1/time-analysis HTTP/1.1" 200 -
+2026-01-24 02:04:28,086 - INFO - 127.0.0.1 - - [24/Jan/2026 02:04:28] "GET /api/user/testuser1/recommendations HTTP/1.1" 200 -
+2026-01-24 02:04:28,534 - INFO - 127.0.0.1 - - [24/Jan/2026 02:04:28] "GET /api/global/theme-distribution HTTP/1.1" 200 -
+2026-01-24 02:04:28,550 - INFO - 127.0.0.1 - - [24/Jan/2026 02:04:28] "GET /api/global/wordcloud HTTP/1.1" 200 -
+2026-01-24 02:04:28,554 - INFO - 127.0.0.1 - - [24/Jan/2026 02:04:28] "GET /api/global/stats HTTP/1.1" 200 -
+2026-01-24 02:04:28,607 - INFO - 127.0.0.1 - - [24/Jan/2026 02:04:28] "GET /api/global/trends?period=week HTTP/1.1" 200 -
+2026-01-24 02:04:28,701 - INFO - 127.0.0.1 - - [24/Jan/2026 02:04:28] "GET /api/global/dynasty-distribution HTTP/1.1" 200 -
+2026-01-24 02:04:29,752 - INFO - 127.0.0.1 - - [24/Jan/2026 02:04:29] "GET /api/global/popular-poems?time_range=week HTTP/1.1" 200 -
+2026-01-24 02:04:39,928 - INFO - 127.0.0.1 - - [24/Jan/2026 02:04:39] "GET /api/global/stats HTTP/1.1" 200 -
+2026-01-24 02:04:39,928 - INFO - 127.0.0.1 - - [24/Jan/2026 02:04:39] "GET /api/global/theme-distribution HTTP/1.1" 200 -
+2026-01-24 02:04:39,948 - INFO - 127.0.0.1 - - [24/Jan/2026 02:04:39] "GET /api/global/wordcloud HTTP/1.1" 200 -
+2026-01-24 02:04:39,982 - INFO - 127.0.0.1 - - [24/Jan/2026 02:04:39] "GET /api/global/trends?period=week HTTP/1.1" 200 -
+2026-01-24 02:04:40,037 - INFO - 127.0.0.1 - - [24/Jan/2026 02:04:40] "GET /api/global/dynasty-distribution HTTP/1.1" 200 -
+2026-01-24 02:04:41,861 - INFO - 127.0.0.1 - - [24/Jan/2026 02:04:41] "GET /api/global/popular-poems?time_range=week HTTP/1.1" 200 -
+2026-01-24 02:07:31,590 - INFO -  * Detected change in 'C:\\PostG\\backend\\retrain_all_users_lda.py', reloading
+2026-01-24 02:07:32,892 - INFO -  * Restarting with watchdog (windowsapi)
+2026-01-24 02:07:35,279 - INFO - 🎯 监听器启动，当前诗歌数: 1024
+2026-01-24 02:07:35,281 - INFO - 🎯 推荐更新系统初始化完成
+2026-01-24 02:07:35,281 - INFO -    - 触发延迟: 30秒
+2026-01-24 02:07:35,281 - INFO -    - 最大处理时间: 300秒
+2026-01-24 02:07:35,282 - INFO -    - CPU阈值: 80.0%
+2026-01-24 02:07:35,282 - INFO -    - 内存阈值: 80.0%
+2026-01-24 02:07:35,282 - INFO -    - 最大重试次数: 3
