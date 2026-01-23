@@ -988,6 +988,22 @@ watch(() => route.query.poemId, (newId) => {
   background: rgba(255, 255, 255, 0.95);
 }
 
+/* 覆盖评论输入框默认样式，移除绿色光线效果 */
+.quick-comment :deep(.n-input) {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: 20px !important;
+}
+
+.quick-comment :deep(.n-input:focus-within) {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  background: rgba(0, 0, 0, 0.04);
+}
+
 .quick-comment.login-hint {
   justify-content: center;
   font-size: 13px;

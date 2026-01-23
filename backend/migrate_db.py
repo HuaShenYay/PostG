@@ -1,32 +1,25 @@
-from app import app, db
-from sqlalchemy import text
+import sqlite3
+import os
 
-def run_migration():
-    with app.app_context():
-        with db.engine.connect() as conn:
-            cols = [
-                ("dynasty", "VARCHAR(20) DEFAULT 'Tang'"),
-                ("translation", "TEXT"),
-                ("appreciation", "TEXT"),
-                ("author_bio", "TEXT"),
-                ("notes", "TEXT"),
-                ("rhythm_name", "VARCHAR(50)"),
-                ("rhythm_type", "VARCHAR(20)"),
-                ("tonal_summary", "TEXT")
-            ]
-            
-            for col_name, col_type in cols:
-                try:
-                    # MySQL syntax
-                    sql = text(f"ALTER TABLE poems ADD COLUMN {col_name} {col_type};")
-                    conn.execute(sql)
-                    print(f"Added column: {col_name}")
-                except Exception as e:
-                    # 1060: Duplicate column name
-                    if "Duplicate column name" in str(e):
-                        print(f"Column already exists: {col_name}")
-                    else:
-                        print(f"Error adding {col_name}: {e}")
-
-if __name__ == "__main__":
-    run_migration()
+db_path = os.path.join(os.path.dirname(__file__), 'poetry.db')
+if not os.path.exists(db_path):
+    print(f"Database not found at {db_path}")
+else:
+    try:
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+        
+        # Add created_at to reviews
+        try:
+            cursor.execute("ALTER TABLE reviews ADD COLUMN created_at DATETIME")
+            print("Added created_at column to reviews table.")
+        except sqlite3.OperationalError as e:
+            if "duplicate column name" in str(e):
+                print("Column created_at already exists in reviews table.")
+            else:
+                print(f"Error adding column to reviews: {e}")
+                
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"Error connecting to database: {e}")

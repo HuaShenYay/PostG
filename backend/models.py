@@ -45,6 +45,15 @@ class Poem(db.Model):
     rhythm_type = db.Column(db.String(20))   # e.g. "Ci", "Shi"
     tonal_summary = db.Column(db.Text)       # JSON string for tonal analysis metrics
     
+    # Global Analysis Fields
+    likes = db.Column(db.Integer, default=0)  # 点赞数
+    views = db.Column(db.Integer, default=0)  # 浏览数
+    shares = db.Column(db.Integer, default=0)  # 分享数
+    tags = db.Column(db.Text)  # JSON string for tags
+    difficulty_level = db.Column(db.String(10), default='medium')  # 难度等级
+    theme_category = db.Column(db.String(50))  # 主题分类
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
     def to_dict(self):
         return {
             'id': self.id,
@@ -57,7 +66,14 @@ class Poem(db.Model):
             'author_bio': self.author_bio,
             'rhythm_name': self.rhythm_name,
             'rhythm_type': self.rhythm_type,
-            'tonal_summary': self.tonal_summary
+            'tonal_summary': self.tonal_summary,
+            'likes': self.likes,
+            'views': self.views,
+            'shares': self.shares,
+            'tags': self.tags,
+            'difficulty_level': self.difficulty_level,
+            'theme_category': self.theme_category,
+            'created_at': self.created_at.isoformat() if self.created_at else None
             # notes are fetched separately usually, but good to have access
         }
 
@@ -72,6 +88,7 @@ class Review(db.Model):
     # 新增：存储该条评论的主题分布情况
     # 存储形如：{"0": 0.1, "1": 0.9} 之类的 JSON
     topic_distribution = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     # 建立关联关系
     user = db.relationship('User', backref='reviews')

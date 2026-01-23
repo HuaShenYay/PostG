@@ -2,7 +2,7 @@
   <div class="personal-analysis-container">
     <!-- 顶部导航 (Consistent with Home) -->
     <nav class="top-nav glass-card">
-      <div class="nav-brand">
+      <div class="nav-brand" @click="goHome">
         <span class="logo-text">诗云</span>
         <span class="edition-badge">Zen Edition</span>
       </div>
@@ -194,7 +194,7 @@ import {
 } from '@vicons/ionicons5'
 
 const router = useRouter()
-const currentUser = localStorage.getItem('username') || '访客'
+const currentUser = localStorage.getItem('user') || '访客'
 
 const nextTickExec = (fn) => {
   setTimeout(fn, 0)

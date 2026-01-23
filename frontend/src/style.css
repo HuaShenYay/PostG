@@ -291,3 +291,104 @@ body {
 .login-prompt:hover {
   background: rgba(207, 63, 53, 0.1);
 }
+
+/* 全局覆盖Naive UI输入框默认样式，移除绿色光线效果 */
+.n-input-wrapper {
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+.n-input-wrapper:hover {
+  border-color: transparent !important;
+}
+
+.n-input-wrapper--focus {
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+.n-input-wrapper--disabled {
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+.n-input {
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+.n-input:focus-within {
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+/* 覆盖Naive UI全局默认的绿色聚焦光线 */
+.n-base-selection-input:focus,
+.n-base-selection-input:focus-within,
+.n-base-selection-input--focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* 移除所有Naive UI组件的默认聚焦边框 */
+*:focus {
+  outline: none !important;
+}
+
+*:focus-visible {
+  outline: none !important;
+}
+
+/* 针对所有输入类组件移除默认聚焦效果 */
+.n-input .n-input__input-el,
+.n-input .n-input__textarea-el,
+.n-select .n-base-selection .n-base-selection-input,
+.n-cascader .n-base-selection .n-base-selection-input,
+.n-auto-complete .n-base-selection .n-base-selection-input {
+  outline: none !important;
+}
+
+/* 覆盖NInput默认样式 */
+.n-input {
+  --n-border: transparent !important;
+  --n-border-hover: transparent !important;
+  --n-border-focus: transparent !important;
+  --n-box-shadow-focus: none !important;
+  --n-box-shadow: none !important;
+}
+
+/* 覆盖NSelect默认样式 */
+.n-select .n-base-selection {
+  --n-border: transparent !important;
+  --n-border-hover: transparent !important;
+  --n-border-focus: transparent !important;
+  --n-box-shadow-focus: none !important;
+  --n-box-shadow: none !important;
+}
+
+/* 覆盖NInputNumber默认样式 */
+.n-input-number {
+  --n-border: transparent !important;
+  --n-border-hover: transparent !important;
+  --n-border-focus: transparent !important;
+  --n-box-shadow-focus: none !important;
+  --n-box-shadow: none !important;
+}
+
+/* 覆盖NDatePicker默认样式 */
+.n-date-picker .n-base-selection {
+  --n-border: transparent !important;
+  --n-border-hover: transparent !important;
+  --n-border-focus: transparent !important;
+  --n-box-shadow-focus: none !important;
+  --n-box-shadow: none !important;
+}
+
+/* 覆盖NUpload默认样式 */
+.n-upload .n-upload-trigger {
+  --n-border: transparent !important;
+  --n-border-hover: transparent !important;
+  --n-border-focus: transparent !important;
+  --n-box-shadow-focus: none !important;
+  --n-box-shadow: none !important;
+}

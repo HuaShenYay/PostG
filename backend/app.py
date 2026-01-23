@@ -2,8 +2,7 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 from config import Config
 from models import db, User, Poem, Review
-from datetime import datetime
-from datetime import datetime
+from datetime import datetime, timedelta
 import pandas as pd
 from sqlalchemy import text
 import os
@@ -932,6 +931,207 @@ def get_system_stats():
     })
 
 
+# --- Global Analysis APIs ---
+
+@app.route('/api/global/stats')
+def get_global_stats():
+    """获取全站统计数据"""
+    try:
+        # 基础统计
+        total_users = User.query.count()
+        total_poems = Poem.query.count()
+        total_reviews = Review.query.count()
+        
+        # 扩展统计
+        total_likes = db.session.query(func.sum(Poem.likes)).scalar() or 0
+        total_views = db.session.query(func.sum(Poem.views)).scalar() or 0
+        total_shares = db.session.query(func.sum(Poem.shares)).scalar() or 0
+        
+        # 平均互动率
+        avg_engagement = round((total_likes + total_views + total_shares) / (total_poems * 3), 2) if total_poems > 0 else 0
+        
+        # 今日新增
+        today = datetime.utcnow().date()
+        today_users = User.query.filter(func.date(User.created_at) == today).count()
+        today_reviews = Review.query.filter(func.date(Review.created_at) == today).count()
+        
+        return jsonify({
+            "totalUsers": total_users,
+            "totalPoems": total_poems,
+            "totalReviews": total_reviews,
+            "totalLikes": total_likes,
+            "totalViews": total_views,
+            "totalShares": total_shares,
+            "avgEngagement": f"{avg_engagement * 100}%",
+            "todayNewUsers": today_users,
+            "todayReviews": today_reviews
+        })
+    except Exception as e:
+        return jsonify({"error": f"获取统计数据失败: {str(e)}"}), 500
+
+@app.route('/api/global/popular-poems')
+def get_popular_poems():
+    """获取热门诗歌排行"""
+    try:
+        time_range = request.args.get('time_range', 'week')
+        
+        # 根据时间范围过滤
+        query = Poem.query
+        if time_range == 'today':
+            query = query.filter(func.date(Poem.created_at) == datetime.utcnow().date())
+        elif time_range == 'week':
+            week_ago = datetime.utcnow() - timedelta(days=7)
+            query = query.filter(Poem.created_at >= week_ago)
+        elif time_range == 'month':
+            month_ago = datetime.utcnow() - timedelta(days=30)
+            query = query.filter(Poem.created_at >= month_ago)
+        
+        # 获取所有符合条件的诗歌
+        all_poems = query.all()
+        
+        # 按评论数排序（用户要求热门诗篇依赖评论数来排名）
+        sorted_poems = sorted(all_poems, key=lambda p: len(p.reviews), reverse=True)
+        popular_poems = sorted_poems[:10]
+        
+        result = []
+        for poem in popular_poems:
+            result.append({
+                "id": poem.id,
+                "title": poem.title,
+                "dynasty": poem.dynasty,
+                "author": poem.author,
+                "likes": poem.likes,
+                "review_count": len(poem.reviews),
+                "views": poem.views,
+                "shares": poem.shares
+            })
+        
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": f"获取热门诗歌失败: {str(e)}"}), 500
+
+@app.route('/api/global/theme-distribution')
+def get_theme_distribution():
+    """获取全站主题分布"""
+    try:
+        # 从所有评论中统计主题分布
+        theme_counts = {}
+        total_reviews = Review.query.filter(Review.topic_distribution.isnot(None)).count()
+        
+        for review in Review.query.filter(Review.topic_distribution.isnot(None)).all():
+            if review.topic_distribution:
+                topics = json.loads(review.topic_distribution)
+                for topic_id, count in topics.items():
+                    theme_name = topic_keywords.get(int(topic_id), ["未知"])[0]
+                    theme_counts[theme_name] = theme_counts.get(theme_name, 0) + count
+        
+        # 转换为图表需要的格式
+        result = []
+        for theme, count in theme_counts.items():
+            result.append({
+                "name": theme,
+                "value": count
+            })
+        
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": f"获取主题分布失败: {str(e)}"}), 500
+
+@app.route('/api/global/dynasty-distribution')
+def get_dynasty_distribution():
+    """获取朝代分布统计"""
+    try:
+        dynasty_stats = {}
+        total_poems = Poem.query.count()
+        
+        # 统计各朝代诗歌数量
+        for poem in Poem.query.all():
+            dynasty = poem.dynasty or '其他'
+            dynasty_stats[dynasty] = dynasty_stats.get(dynasty, 0) + 1
+        
+        # 转换为图表格式，按常见朝代排序
+        dynasty_order = ['唐', '宋', '元', '明', '清', '先秦', '汉', '魏晋', '南北朝', '其他']
+        result = []
+        for dynasty in dynasty_order:
+            if dynasty in dynasty_stats:
+                result.append({
+                    "name": dynasty,
+                    "value": dynasty_stats[dynasty]
+                })
+        
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": f"获取朝代分布失败: {str(e)}"}), 500
+
+@app.route('/api/global/trends')
+def get_global_trends():
+    """获取全站趋势数据"""
+    try:
+        period = request.args.get('period', 'week')
+        
+        # 生成最近7天的日期
+        dates = []
+        user_counts = []
+        review_counts = []
+        poem_counts = []
+        
+        if period == 'week':
+            days = 7
+        elif period == 'month':
+            days = 30
+        else:
+            days = 90
+        
+        for i in range(days):
+            date = datetime.utcnow() - timedelta(days=i)
+            dates.append(date.strftime('%m-%d'))
+            
+            # 统计该日期的数据
+            day_users = User.query.filter(func.date(User.created_at) == date.date()).count()
+            day_reviews = Review.query.filter(func.date(Review.created_at) == date.date()).count()
+            day_poems = Poem.query.filter(func.date(Poem.created_at) == date.date()).count()
+            
+            user_counts.append(day_users)
+            review_counts.append(day_reviews)
+            poem_counts.append(day_poems)
+        
+        return jsonify({
+            "dates": dates[::-1],  # 反转使最新日期在前
+            "users": user_counts[::-1],
+            "reviews": review_counts[::-1],
+            "poems": poem_counts[::-1]
+        })
+    except Exception as e:
+        return jsonify({"error": f"获取趋势数据失败: {str(e)}"}), 500
+
+@app.route('/api/global/wordcloud')
+def get_global_wordcloud():
+    """获取全站词云数据"""
+    try:
+        # 获取所有评论内容进行词频统计
+        all_comments = Review.query.with_entities(Review.comment).all()
+        
+        # 合并所有评论文本
+        all_text = ' '.join([r.comment for r in all_comments if r.comment])
+        
+        # 简单分词和统计
+        import re
+        words = re.findall(r'[\u4e00-\u9fa5]+', all_text)
+        word_counts = Counter(words)
+        
+        # 过滤停用词和短词
+        stopwords = ['的', '了', '是', '在', '有', '和', '就', '不', '人', '都', '一', '个', '上', '也', '很', '到', '说', '要', '去', '你', '会', '着', '没有', '看', '好', '自己', '这']
+        filtered_words = {word: count for word, count in word_counts.items() 
+                        if len(word) > 1 and word not in stopwords}
+        
+        # 取前100个高频词
+        top_words = sorted(filtered_words.items(), key=lambda x: x[1], reverse=True)[:100]
+        
+        result = [{"name": word, "value": count} for word, count in top_words]
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": f"获取词云数据失败: {str(e)}"}), 500
+
 # --- User Profile & Analysis APIs ---
 
 @app.route('/api/user/<username>/stats')
@@ -1021,16 +1221,40 @@ def get_user_form_stats(username):
 
 @app.route('/api/user/<username>/time-analysis')
 def get_user_time_analysis(username):
-    # Mocked time analysis for user behavior
-    return jsonify({
-        "insights": [
-            {"time": "子时", "value": 15},
-            {"time": "卯时", "value": 10},
-            {"time": "午时", "value": 40},
-            {"time": "酉时", "value": 85},
-            {"time": "亥时", "value": 30}
-        ]
-    })
+    user = User.query.filter_by(username=username).first()
+    if not user:
+        return jsonify({"insights": []})
+        
+    reviews = Review.query.filter_by(user_id=user.id).all()
+    if not reviews:
+        # Generic fallback
+        return jsonify({
+            "insights": [
+                {"time": "子时", "value": 15}, {"time": "卯时", "value": 10},
+                {"time": "午时", "value": 40}, {"time": "酉时", "value": 85},
+                {"time": "亥时", "value": 30}
+            ]
+        })
+        
+    # Mapping hour to Shichen
+    shichen_map = {
+        0: "子时", 1: "丑时", 2: "丑时", 3: "寅时", 4: "寅时", 
+        5: "卯时", 6: "卯时", 7: "辰时", 8: "辰时", 9: "巳时", 10: "巳时", 
+        11: "午时", 12: "午时", 13: "未时", 14: "未时", 15: "申时", 16: "申时", 
+        17: "酉时", 18: "酉时", 19: "戌时", 20: "戌时", 21: "亥时", 22: "亥时", 23: "子时"
+    }
+    
+    counts = Counter()
+    for r in reviews:
+        if r.created_at:
+            h = r.created_at.hour
+            counts[shichen_map.get(h, "未知")] += 1
+            
+    # Ordered display
+    ordered_shichen = ["子时", "卯时", "午时", "酉时", "亥时"]
+    insights = [{"time": s, "value": counts.get(s, 0)} for s in ordered_shichen]
+    
+    return jsonify({"insights": insights})
 
 @app.route('/api/user/<username>/recommendations')
 def get_user_recommendations_v2(username):

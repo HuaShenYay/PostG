@@ -327,6 +327,7 @@ const handleRegister = async () => {
   border-radius: 16px !important;
   transition: var(--transition-smooth);
   outline: none !important;
+  box-shadow: none !important;
 }
 
 .login-form :deep(.n-input-wrapper:hover) {
@@ -340,7 +341,7 @@ const handleRegister = async () => {
 .login-form :deep(.n-input-wrapper.n-input-wrapper--focus) {
   background: white !important;
   border: none !important;
-  box-shadow: 0 0 0 4px rgba(166, 27, 27, 0.1), 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+  box-shadow: none !important;
   transform: translateY(-2px);
   outline: none !important;
 }

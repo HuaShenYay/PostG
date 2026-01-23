@@ -51,6 +51,7 @@
                     placeholder="输入标题、作者、千古名句或意象关键词..." 
                     size="large" 
                     @keyup.enter="handleSearch" 
+                    @input="handleInputSearch"
                     class="search-bar-zen"
                     clearable
                     autofocus
@@ -173,6 +174,15 @@ const logout = () => {
   router.push('/login')
 }
 
+// 防抖函数实现
+const debounce = (fn, delay) => {
+  let timer = null
+  return function() {
+    clearTimeout(timer)
+    timer = setTimeout(() => fn.apply(this, arguments), delay)
+  }
+}
+
 const handleSearch = async () => {
   if (!searchQuery.value.trim()) {
     searchResults.value = []
@@ -190,6 +200,15 @@ const handleSearch = async () => {
     searchLoading.value = false
   }
 }
+
+// 带防抖的实时搜索处理
+const handleInputSearch = debounce(() => {
+  if (searchQuery.value.trim()) {
+    handleSearch()
+  } else {
+    searchResults.value = []
+  }
+}, 300)
 
 const quickSearch = (tag) => {
   searchQuery.value = tag
@@ -259,6 +278,68 @@ onMounted(() => {
 .search-bar-zen :deep(.n-input) {
     background: transparent;
     font-size: 18px;
+    border-radius: 30px;
+    padding: 16px 24px;
+    border: none !important;
+    outline: none !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-family: "Noto Serif SC", serif;
+    color: var(--ink-black);
+    box-shadow: none !important;
+}
+
+.search-bar-zen :deep(.n-input:focus-within) {
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    background: rgba(255, 255, 255, 0.95);
+}
+
+.search-bar-zen :deep(.n-input)::placeholder {
+    color: var(--text-tertiary);
+    font-style: italic;
+    font-family: "Noto Serif SC", serif;
+    letter-spacing: 0.05em;
+}
+
+.search-bar-zen :deep(.n-input:disabled) {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: rgba(0, 0, 0, 0.02);
+}
+
+.search-bar-zen :deep(.n-input-prefix) {
+    color: var(--text-tertiary);
+    font-size: 20px;
+    transition: color 0.3s ease;
+}
+
+.search-bar-zen :deep(.n-input:focus-within .n-input-prefix) {
+    color: var(--cinnabar-red);
+}
+
+.search-bar-zen :deep(.n-button) {
+    color: var(--text-tertiary);
+    transition: all 0.3s ease;
+}
+
+.search-bar-zen :deep(.n-button:hover:not(:disabled)) {
+    color: var(--cinnabar-red);
+    transform: scale(1.1);
+}
+
+.search-bar-zen :deep(.n-button:disabled) {
+    color: rgba(0, 0, 0, 0.2);
+}
+
+.search-input-wrapper {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 12px;
+    border-radius: 40px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(207, 63, 53, 0.02));
+    border: 1px solid rgba(207, 63, 53, 0.05);
 }
 
 .search-content {
