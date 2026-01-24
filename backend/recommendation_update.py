@@ -191,221 +191,121 @@ class PerformanceMonitor:
 
 # ==================== 增量推荐计算 ====================
 
+# ==================== 增量推荐计算 ====================
+from lda_analysis import load_lda_model, predict_topic
+
 class IncrementalRecommender:
-    """增量推荐计算器"""
+    """增量推荐计算器 (Hybrid LDA + CF)"""
     
     def __init__(self):
         self.logger = RecommendationLogger()
         self.monitor = PerformanceMonitor()
+        self.lda, self.dictionary, self.topic_keywords = load_lda_model()
     
-    def get_user_preference_vector(self, user_id):
-        """获取用户偏好向量"""
+    def update_user_preference(self, user_id):
+        """分析用户所有评论，更新用户偏好主题文本"""
         reviews = Review.query.filter_by(user_id=user_id).all()
-        
         if not reviews:
-            return None
+            return ""
         
-        # 聚合用户评论的主题分布
-        user_dist = {}
+        # 统计用户评论中出现的主题名频率
+        topic_counts = Counter()
         for r in reviews:
-            if r.topic_distribution:
-                dist = json.loads(r.topic_distribution)
-                for tid, prob in dist.items():
-                    user_dist[tid] = user_dist.get(tid, 0) + prob
+            if r.topic_names:
+                # 假设 topic_names 是逗号分隔的主题名（虽然逻辑上一般是一个，但防范万一）
+                names = r.topic_names.split(',')
+                topic_counts.update(names)
         
-        if not user_dist:
-            return None
+        if not topic_counts:
+            return ""
         
-        # 归一化
-        total = sum(user_dist.values())
-        if total == 0:
-            return None
+        # 获取最匹配的Top 3主题作为偏好描述
+        top_topics = [t for t, _ in topic_counts.most_common(3)]
+        return ",".join(top_topics)
+
+    def get_new_poems_for_user(self, user_id, limit=6):
+        """为用户获取推荐诗歌 (Hybrid Logic)"""
+        user = User.query.get(user_id)
+        if not user:
+            return self.get_global_popular(limit)
         
-        # 返回排序后的偏好列表
-        preference = [
-            {'topic_id': int(tid), 'score': score / total}
-            for tid, score in user_dist.items()
-        ]
-        preference.sort(key=lambda x: x['score'], reverse=True)
+        preference_topics = user.preference_topics.split(',') if user.preference_topics else []
+        user_reviewed_ids = {r.poem_id for r in Review.query.filter_by(user_id=user_id).all()}
         
-        return preference
-    
-    def get_new_poems_for_user(self, user_id, existing_recommendations):
-        """为用户获取新诗歌推荐（增量计算）"""
-        preference = self.get_user_preference_vector(user_id)
-        
-        if not preference or not preference[0]:
-            # 如果没有偏好，使用全局热门
-            return self.get_global_popular()
-        
-        top_topic_id = preference[0]['topic_id']
-        user_review_poem_ids = set(
-            r.poem_id for r in Review.query.filter_by(user_id=user_id).all()
-        )
-        
-        # 获取用户评论诗歌的主题分布
-        reviewed_topics = set()
-        for r in Review.query.filter_by(user_id=user_id).all():
-            if r.topic_distribution:
-                dist = json.loads(r.topic_distribution)
-                reviewed_topics.update(dist.keys())
-        
-        # 查找可能匹配的新诗歌
         candidates = []
-        
-        # 查找与用户偏好主题相关的新诗歌
+        # 查询所有诗歌进行匹配
         all_poems = Poem.query.all()
+        
         for poem in all_poems:
-            if poem.id in user_review_poem_ids:
+            if poem.id in user_reviewed_ids:
                 continue
             
-            # 计算诗歌与用户偏好的匹配度
-            match_score = 0
-            for p in preference:
-                tid = str(p['topic_id'])
-                # 这里可以添加更复杂的匹配逻辑
-                match_score += p['score']
+            score = 0
+            # 1. 基础分：浏览量加权 (Popularity)
+            score += min(poem.views * 0.01, 2.0)
             
-            candidates.append({
-                'poem': poem,
-                'match_score': match_score / len(preference) if preference else 0
-            })
+            # 2. 核心分：主题匹配 (LDA Topic Matching)
+            if poem.LDA_topic and preference_topics:
+                # 如果诗歌的主题在用户的偏好列表中
+                if poem.LDA_topic in preference_topics:
+                    score += 5.0 # 高额匹配分
+            
+            # 3. 评论引导分：如果评论数少且主题匹配，增加权重 (Cold Start Support)
+            if poem.review_count == 0 and poem.LDA_topic in preference_topics:
+                score += 3.0
+            
+            candidates.append((poem, score))
         
-        # 按匹配度排序
-        candidates.sort(key=lambda x: x['match_score'], reverse=True)
-        
-        # 返回前6首诗歌
-        return [c['poem'] for c in candidates[:6]]
+        # 按分数排序
+        candidates.sort(key=lambda x: x[1], reverse=True)
+        return [c[0] for c in candidates[:limit]]
     
     def get_global_popular(self, limit=6):
         """获取全局热门诗歌"""
-        poems = Poem.query.limit(limit).all()
-        return poems
+        return Poem.query.order_by(Poem.views.desc()).limit(limit).all()
     
+    def batch_update_all_recommendations(self, app=None):
+        """全量更新推荐逻辑 (通常在系统重构或LDA重训练后调用)"""
+        flask_app = app or current_app
+        with flask_app.app_context():
+            # 1. 首先确保所有诗歌都有 LDA_topic
+            if self.lda:
+                all_poems = Poem.query.filter(Poem.LDA_topic == None).all()
+                for poem in all_poems:
+                    poem.LDA_topic = predict_topic(poem.content, self.lda, self.dictionary, self.topic_keywords)
+                db.session.commit()
+            
+            # 2. 更新所有用户的偏好
+            users = User.query.all()
+            for user in users:
+                user.preference_topics = self.update_user_preference(user.id)
+                user.total_reviews = Review.query.filter_by(user_id=user.id).count()
+            db.session.commit()
+            
+            # 3. 更新诗歌的评论数
+            poems = Poem.query.all()
+            for poem in poems:
+                poem.review_count = Review.query.filter_by(poem_id=poem.id).count()
+            db.session.commit()
+
     def batch_update_recommendations(self, user_ids=None, trigger_type='manual', poem_id=None, app=None):
-        """批量更新用户推荐"""
+        """批量更新用户推荐状态 (满足原接口)"""
         start_time = datetime.now()
-        self.monitor.start_monitoring()
+        flask_app = app or current_app
         
-        self.logger.log_update_start(trigger_type, poem_id)
-        
-        # 使用传入的 app 或保存的 app
-        flask_app = app or self.app
-        
-        if flask_app is None:
-            self.logger.logger.error("无法获取 Flask 应用上下文")
-            return {'success': False, 'error': 'No app context'}
-        
-        # 如果没有传入 user_ids，从数据库获取
-        if user_ids is None:
-            with flask_app.app_context():
-                user_ids = [u.id for u in User.query.all()]
-        
-        total_users = len(user_ids)
-        processed_users = 0
-        failed_users = []
-        
-        if not user_ids:
-            self.logger.logger.info("没有用户需要更新推荐")
-            return {'success': True, 'processed_users': 0}
-        
-        # 性能指标
-        cpu_threshold_exceeded = False
-        memory_threshold_exceeded = False
-        
-        try:
-            # 整个批处理在应用上下文中运行
-            poem_count = 0
-            with flask_app.app_context():
-                for i, user_id in enumerate(user_ids):
-                    # 检查处理时间是否超出限制
-                    elapsed = (datetime.now() - start_time).total_seconds()
-                    if elapsed > RecommendationConfig.MAX_PROCESSING_TIME:
-                        self.logger.log_update_failure(
-                            f"处理时间超出限制 ({elapsed:.2f}秒)",
-                            retry_count=0
-                        )
-                        break
-                    
-                    # 采样资源使用
-                    cpu, memory = self.monitor.sample_resources()
-                    
-                    # 检查资源阈值
-                    if cpu > RecommendationConfig.CPU_THRESHOLD:
-                        cpu_threshold_exceeded = True
-                    if memory > RecommendationConfig.MEMORY_THRESHOLD:
-                        memory_threshold_exceeded = True
-                    
-                    try:
-                        # 获取用户推荐
-                        recommendations = self.get_new_poems_for_user(user_id, [])
-                        
-                        # 存储推荐结果到数据库
-                        user = User.query.get(user_id)
-                        if user and recommendations:
-                            # 简化：只更新推荐数量，不存储完整列表
-                            user.last_recommendation_update = datetime.utcnow()
-                            db.session.commit()
-                        
-                        processed_users += 1
-                        
-                        # 每处理10个用户记录一次进度
-                        if (i + 1) % 10 == 0:
-                            self.logger.log_update_progress(
-                                i + 1, total_users, elapsed
-                            )
-                        
-                        # 控制处理速度，避免影响系统性能
-                        time.sleep(0.1)
-                        
-                    except Exception as e:
-                        failed_users.append(user_id)
-                        self.logger.log_update_failure(str(e), retry_count=0)
-                        continue
-                
-                # 获取诗歌数量（在应用上下文中）
-                poem_count = Poem.query.count()
+        with flask_app.app_context():
+            if trigger_type == 'new_poem' and poem_id:
+                # 如果是新诗插入，为新诗计算 LDA 主题
+                poem = Poem.query.get(poem_id)
+                if poem and self.lda:
+                    poem.LDA_topic = predict_topic(poem.content, self.lda, self.dictionary, self.topic_keywords)
+                    db.session.commit()
+
+            # 这里的 batch 更新主要用于触发后续的个性化逻辑
+            # 在当前简单的数据库驱动架构中，我们只需要确保基础元数据更新即可
+            self.batch_update_all_recommendations(flask_app)
             
-            # 计算最终性能指标（在应用上下文外）
-            avg_cpu, avg_memory, total_time = self.monitor.get_final_metrics()
-            
-            # 记录性能指标
-            self.logger.log_performance_metrics(
-                avg_cpu, avg_memory, total_time
-            )
-            
-            # 检查阈值
-            thresholds = self.monitor.check_thresholds()
-            if thresholds['cpu_exceeded'] or thresholds['memory_exceeded']:
-                self.logger.log_update_failure(
-                    f"资源使用超出阈值 - CPU: {thresholds['cpu_usage']:.1f}%, " +
-                    f"内存: {thresholds['memory_usage']:.1f}%"
-                )
-            
-            # 记录成功
-            self.logger.log_update_success(
-                processed_users, poem_count, total_time
-            )
-            
-            return {
-                'success': True,
-                'processed_users': processed_users,
-                'failed_users': len(failed_users),
-                'total_users': total_users,
-                'elapsed_time': total_time,
-                'cpu_usage': avg_cpu,
-                'memory_usage': avg_memory,
-                'thresholds': thresholds
-            }
-            
-        except Exception as e:
-            self.logger.log_update_failure(str(e))
-            return {
-                'success': False,
-                'error': str(e),
-                'processed_users': processed_users,
-                'elapsed_time': (datetime.now() - start_time).total_seconds()
-            }
+        return {'success': True, 'processed_users': len(user_ids) if user_ids else 0}
 
 
 # ==================== 推荐更新服务 ====================
@@ -442,9 +342,13 @@ class RecommendationUpdateService:
         self.app = app  # 保存应用引用
         
         with app.app_context():
-            # 获取当前诗歌数量
-            self.last_poem_count = Poem.query.count()
-            self.logger.logger.info(f"🎯 监听器启动，当前诗歌数: {self.last_poem_count}")
+            # 获取当前诗歌数量 (容错处理)
+            try:
+                self.last_poem_count = Poem.query.count()
+                self.logger.logger.info(f"🎯 监听器启动，当前诗歌数: {self.last_poem_count}")
+            except Exception:
+                self.last_poem_count = 0
+                self.logger.logger.warning("⚠️ 监听器启动: 数据库表尚不可用，等待初始化")
             
             # 启动后台轮询线程
             self.poll_thread = threading.Thread(

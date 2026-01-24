@@ -11,14 +11,17 @@ class User(db.Model):
     password_hash = db.Column(db.String(128), default='123456')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
-    # 持久化用户的偏好主题（JSON字符串或格式化文本）
-    preference_topics = db.Column(db.Text) 
+    # New fields
+    total_reviews = db.Column(db.Integer, default=0)
+    preference_topics = db.Column(db.Text) # 分析关于该用户的所有评论，得出的具体的主题分布
     
     def to_dict(self):
         return {
             'id': self.id,
             'username': self.username,
-            'preference_topics': self.preference_topics
+            'total_reviews': self.total_reviews,
+            'preference_topics': self.preference_topics,
+            'created_at': self.created_at.isoformat() if self.created_at else None
         }
     
     def check_password(self, password):
@@ -31,29 +34,24 @@ class Poem(db.Model):
     title = db.Column(db.String(100), nullable=False)
     author = db.Column(db.String(50))
     content = db.Column(db.Text)
+    dynasty = db.Column(db.String(20))
     
-    # Core Fields
-    dynasty = db.Column(db.String(20), default='Tang')
+    # New metadata fields
+    genre_type = db.Column(db.String(50))     # 诗歌类型
+    rhythm_name = db.Column(db.String(50))    # 诗歌格律名
+    rhythm_type = db.Column(db.String(20))    # 诗歌格律类型
     
-    # Unused Fields (注释于 2024-01-24 代码清理)
-    # 这些字段从未被API查询或使用，保留数据但不映射到模型
-    # 如需恢复，取消以下注释并执行数据库迁移
-    # translation = db.Column(db.Text)  # Modern Chinese Translation
-    # appreciation = db.Column(db.Text)  # Shangxi
-    # author_bio = db.Column(db.Text)    # Author Biography
-    # notes = db.Column(db.Text)         # JSON string for Allusions/Notes
-    # rhythm_name = db.Column(db.String(50))   # e.g. "Dian Jiang Chun"
-    # rhythm_type = db.Column(db.String(20))   # e.g. "Ci", "Shi"
-    # tags = db.Column(db.Text)         # JSON string for tags
-    # difficulty_level = db.Column(db.String(10), default='medium')  # 难度等级
-    # theme_category = db.Column(db.String(50))  # 主题分类
+    # Stats
+    views = db.Column(db.Integer, default=0)
+    review_count = db.Column(db.Integer, default=0)
     
-    # Active Fields
-    tonal_summary = db.Column(db.Text)       # JSON string for tonal analysis metrics
-    likes = db.Column(db.Integer, default=0)  # 点赞数
-    views = db.Column(db.Integer, default=0)  # 浏览数
-    shares = db.Column(db.Integer, default=0)  # 分享数
+    # Timestamps
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Recommendation/LDA fields
+    LDA_topic = db.Column(db.Text)  # LDA主题名文本
+    Real_topic = db.Column(db.Text) # 真实主题（人工标注）
     
     def to_dict(self):
         return {
@@ -62,11 +60,15 @@ class Poem(db.Model):
             'author': self.author,
             'content': self.content,
             'dynasty': self.dynasty,
-            'tonal_summary': self.tonal_summary,
-            'likes': self.likes,
+            'genre_type': self.genre_type,
+            'rhythm_name': self.rhythm_name,
+            'rhythm_type': self.rhythm_type,
             'views': self.views,
-            'shares': self.shares,
-            'created_at': self.created_at.isoformat() if self.created_at else None
+            'review_count': self.review_count,
+            'LDA_topic': self.LDA_topic,
+            'Real_topic': self.Real_topic,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }
 
 
@@ -75,13 +77,25 @@ class Review(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     poem_id = db.Column(db.Integer, db.ForeignKey('poems.id'), nullable=False)
-    rating = db.Column(db.Integer)
     comment = db.Column(db.Text)
     
-    # 存储该条评论的主题分布情况
-    topic_distribution = db.Column(db.Text)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    # New fields
+    topic_names = db.Column(db.Text) # LDA分析这首评论属于哪个主题名
     
-    # 建立关联关系
-    user = db.relationship('User', backref='reviews')
-    poem = db.relationship('Poem', backref='reviews')
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relations
+    user = db.relationship('User', backref=db.backref('reviews', cascade='all, delete-orphan'))
+    poem = db.relationship('Poem', backref=db.backref('reviews', cascade='all, delete-orphan'))
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'poem_id': self.poem_id,
+            'comment': self.comment,
+            'topic_names': self.topic_names,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+        }

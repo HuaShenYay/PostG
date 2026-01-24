@@ -15,25 +15,32 @@
 import json
 import os
 from datetime import datetime
-
 from app import app
 from models import db, Poem
+from lda_analysis import load_lda_model, predict_topic
 
 # 使用绝对路径
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_DIR = os.path.join(BASE_DIR, 'data', 'chinese-poetry')
 
+# 加载 LDA 模型用于导入时打标签
+LDA_MODEL, LDA_DICT, TOPIC_KW = load_lda_model()
 
 def load_json_file(filepath):
     """加载 JSON 文件"""
     with open(filepath, 'r', encoding='utf-8') as f:
         return json.load(f)
 
+def tag_poem(poem_content):
+    """为诗歌打上 LDA 标签"""
+    if LDA_MODEL:
+        return predict_topic(poem_content, LDA_MODEL, LDA_DICT, TOPIC_KW)
+    return "未分类"
 
 def import_song_ci():
     """导入宋词三百首"""
     filepath = os.path.join(DATA_DIR, '宋词', '宋词三百首.json')
-    print(f"\n📖 导入宋词: {filepath}")
+    print(f"\n[Info] Importing Song Ci: {filepath}")
     
     data = load_json_file(filepath)
     imported = 0
@@ -52,22 +59,25 @@ def import_song_ci():
             author=item.get('author', '未知'),
             content=content,
             dynasty='宋',
-            tonal_summary=f"词牌: {item.get('rhythmic', '')}",
-            created_at=datetime.utcnow()
+            genre_type='词',
+            rhythm_name=item.get('rhythmic', ''),
+            rhythm_type='宋词',
+            LDA_topic=tag_poem(content),
+            created_at=datetime.utcnow(),
+            updated_at=datetime.utcnow()
         )
         
         db.session.add(poem)
         imported += 1
     
     db.session.commit()
-    print(f"  ✅ 成功导入 {imported} 首宋词")
+    print(f"  [Success] Imported {imported} Song Ci poems")
     return imported
-
 
 def import_caocao():
     """导入曹操诗集"""
     filepath = os.path.join(DATA_DIR, '曹操诗集', 'caocao.json')
-    print(f"\n📖 导入曹操诗集: {filepath}")
+    print(f"\n[Info] Importing Caocao: {filepath}")
     
     data = load_json_file(filepath)
     imported = 0
@@ -86,22 +96,24 @@ def import_caocao():
             author='曹操',
             content=content,
             dynasty='汉末',
-            tonal_summary="古体诗",
-            created_at=datetime.utcnow()
+            genre_type='诗',
+            rhythm_type='古体诗',
+            LDA_topic=tag_poem(content),
+            created_at=datetime.utcnow(),
+            updated_at=datetime.utcnow()
         )
         
         db.session.add(poem)
         imported += 1
     
     db.session.commit()
-    print(f"  ✅ 成功导入 {imported} 首曹操诗")
+    print(f"  [Success] Imported {imported} Caocao poems")
     return imported
-
 
 def import_yuanqu(limit=328):
     """导入元曲（限制数量）"""
     filepath = os.path.join(DATA_DIR, '元曲', 'yuanqu.json')
-    print(f"\n📖 导入元曲: {filepath} (限制 {limit} 首)")
+    print(f"\n[Info] Importing Yuanqu: {filepath} (Limit {limit})")
     
     data = load_json_file(filepath)
     imported = 0
@@ -109,9 +121,9 @@ def import_yuanqu(limit=328):
     for item in data[:limit]:
         # 提取曲牌名作为标题
         title = item.get('title', '无题')
-        # 曲牌名通常在标题中，如 "诈妮子调风月・仙吕/点绛唇"
         if '・' in title:
-            title = title.split('・')[1] if title.split('・')[1] else title
+            title_parts = title.split('・')
+            title = title_parts[1] if len(title_parts) > 1 else title
         
         # 检查是否已存在
         existing = Poem.query.filter_by(title=title, author=item.get('author', '')).first()
@@ -126,67 +138,55 @@ def import_yuanqu(limit=328):
             author=item.get('author', '未知'),
             content=content,
             dynasty='元',
-            tonal_summary=f"曲牌: {title}",
-            created_at=datetime.utcnow()
+            genre_type='曲',
+            rhythm_name=title,
+            rhythm_type='元曲',
+            LDA_topic=tag_poem(content),
+            created_at=datetime.utcnow(),
+            updated_at=datetime.utcnow()
         )
         
         db.session.add(poem)
         imported += 1
     
     db.session.commit()
-    print(f"  ✅ 成功导入 {imported} 首元曲")
+    print(f"  [Success] Imported {imported} Yuanqu poems")
     return imported
-
 
 def main():
     """主函数"""
     print("=" * 60)
-    print("批量导入诗歌数据")
+    print("批量导入诗歌数据 (重构版)")
     print("=" * 60)
     
-    # 先获取当前数量
     with app.app_context():
+        # 初始化数据库表
+        db.create_all()
+        print("[DB] Database schema synchronized.")
+        
+        # 如果没有 LDA 模型，先尝试训练一个
+        global LDA_MODEL, LDA_DICT, TOPIC_KW
+        if LDA_MODEL is None:
+            print("[Warning] No LDA model found, training from dataset.csv...")
+            from lda_analysis import train_lda_on_poems, save_lda_model, load_data
+            df = load_data()
+            if not df.empty:
+                # 使用 'comment' 字段作为训练文本 (dataset.csv 中是评论)
+                text_data = df['comment'].tolist() if 'comment' in df.columns else df.iloc[:, 0].tolist()
+                LDA_MODEL, LDA_DICT, TOPIC_KW = train_lda_on_poems(text_data)
+                if LDA_MODEL:
+                    save_lda_model(LDA_MODEL, LDA_DICT, TOPIC_KW)
+        
         current_count = Poem.query.count()
-        print(f"\n📊 当前数据库诗歌总数: {current_count} 首")
+        print(f"\n[Stats] Current poems count: {current_count}")
         
-        # 统计各朝代分布
-        from collections import Counter
-        dynasties = Counter([p.dynasty for p in Poem.query.all()])
-        print("当前朝代分布:")
-        for d, c in sorted(dynasties.items(), key=lambda x: -x[1]):
-            print(f"  {d}: {c} 首")
-    
-    print("\n" + "=" * 60)
-    print("开始导入...")
-    print("=" * 60)
-    
-    total_imported = 0
-    
-    with app.app_context():
-        # 1. 导入曹操诗集（26首，汉末）
-        total_imported += import_caocao()
-        
-        # 2. 导入宋词三百首（280首，宋）
-        total_imported += import_song_ci()
-        
-        # 3. 导入元曲（328首，元）
-        total_imported += import_yuanqu(limit=328)
-        
-        # 统计结果
-        print("\n" + "=" * 60)
-        print("导入完成！")
-        print("=" * 60)
+        import_caocao()
+        import_song_ci()
+        import_yuanqu(limit=328)
         
         new_count = Poem.query.count()
-        print(f"\n📊 导入后诗歌总数: {new_count} 首")
-        print(f"📈 新增诗歌数量: {new_count - current_count} 首")
-        
-        # 新的朝代分布
-        dynasties = Counter([p.dynasty for p in Poem.query.all()])
-        print("\n新的朝代分布:")
-        for d, c in sorted(dynasties.items(), key=lambda x: -x[1]):
-            print(f"  {d}: {c} 首")
-
+        print(f"\n[Stats] Final poems count: {new_count}")
+        print(f"[Stats] New poems added: {new_count - current_count}")
 
 if __name__ == '__main__':
     main()

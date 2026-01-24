@@ -252,8 +252,13 @@ body {
   box-sizing: border-box;
 }
 
-.user-greeting:hover {
+.user-greeting:hover,
+.user-greeting.active {
   background: rgba(0, 0, 0, 0.04);
+}
+
+.user-greeting.active .user-icon {
+  color: var(--cinnabar-red);
 }
 
 .user-name {

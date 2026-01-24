@@ -9,11 +9,18 @@ import os
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_FILE = os.path.join(BASE_DIR, '../data/dataset.csv')
 STOPWORDS_FILE = os.path.join(BASE_DIR, '../data/scu_stopwords.txt')
+# 默认主题数 K (用户要求固定，我们可以通过预训练得出一个合理的固定值)
+DEFAULT_K = 10 
 
 def load_data():
     """加载CSV数据"""
     if not os.path.exists(DATA_FILE):
-        raise FileNotFoundError(f"找不到数据文件: {DATA_FILE}")
+        # 如果 dataset.csv 不存在，尝试从数据库读取
+        from models import Poem
+        poems = Poem.query.all()
+        if not poems:
+            return pd.DataFrame(columns=['content'])
+        return pd.DataFrame([p.content for p in poems], columns=['content'])
     
     df = pd.read_csv(DATA_FILE)
     print(f"成功加载数据，共 {len(df)} 条记录")
@@ -30,177 +37,61 @@ def load_stopwords():
 
 def preprocess_text(text, stopwords):
     """文本预处理：分词 + 去停用词"""
+    if not isinstance(text, str):
+        return []
     # jieba分词
     words = jieba.cut(text)
     # 过滤停用词和过短的词
     meaningful_words = [w for w in words if w not in stopwords and len(w) > 1]
-    return meaningful_words # 返回列表，供 Gensim 使用
+    return meaningful_words 
 
-def preprocess_text_advanced(text, stopwords, valid_words=None):
-    """高级文本预处理：分词 + 词性过滤 + 去停用词"""
-    # jieba分词 + 词性标注
-    words_with_pos = pseg.cut(text)
-    
-    # 词性过滤：只保留名词、动词、形容词、副词
-    meaningful_words = []
-    for word, flag in words_with_pos:
-        if word not in stopwords and len(word) > 1:
-            # 只保留有意义的词性
-            if flag in ['n', 'v', 'a', 'd', 'vn', 'an', 'nz', 'z']:
-                meaningful_words.append(word)
-    
-    # 如果提供了有效词汇表，进一步过滤
-    if valid_words:
-        meaningful_words = [w for w in meaningful_words if w in valid_words]
-    
-    return meaningful_words
-
-def filter_by_frequency(tokenized_texts, min_freq=2, max_doc_ratio=0.8):
-    """基于词频过滤特征词
-    min_freq: 词至少出现min_freq次
-    max_doc_ratio: 词最多出现在max_doc_ratio比例的文档中
-    """
-    # 统计词频
-    all_words = [w for words in tokenized_texts for w in words]
-    word_freq = Counter(all_words)
-    
-    # 统计文档频率
-    doc_freq = {}
-    for words in tokenized_texts:
-        unique_words = set(words)
-        for w in unique_words:
-            doc_freq[w] = doc_freq.get(w, 0) + 1
-    
-    total_docs = len(tokenized_texts)
-    
-    # 确定有效词汇
-    valid_words = set()
-    for word, freq in word_freq.items():
-        doc_ratio = doc_freq.get(word, 0) / total_docs
-        if freq >= min_freq and doc_ratio <= max_doc_ratio:
-            valid_words.add(word)
-    
-    print(f"词频过滤: 原始词数={len(word_freq)}, 有效词数={len(valid_words)}")
-    
-    # 过滤文本
-    filtered_texts = [[w for w in words if w in valid_words] 
-                     for words in tokenized_texts]
-    
-    return filtered_texts, valid_words
-
-def train_lda_model(df=None, use_advanced_preprocessing=True):
-    """
-    训练LDA模型 (学术增强版：使用评估指标自动寻找最优 K 值)
-    方案 B：Perplexity (困惑度) 评估法
-    
-    Args:
-        df: 数据框，如果为None则从文件加载
-        use_advanced_preprocessing: 是否使用高级预处理（词性过滤+词频过滤）
-    """
-    if df is None:
-        df = load_data()
-    
+def train_lda_on_poems(poems_content_list, num_topics=DEFAULT_K):
+    """根据所有诗歌内容训练 LDA 模型"""
     stopwords = load_stopwords()
-
-    # 1. 预处理评论
-    print("正在进行分词和预处理...")
+    tokenized_texts = [preprocess_text(content, stopwords) for content in poems_content_list]
     
-    if use_advanced_preprocessing:
-        # 使用高级预处理
-        tokenized_texts = df['comment'].apply(
-            lambda x: preprocess_text(str(x), stopwords)
-        ).tolist()
-        
-        # 词频过滤
-        tokenized_texts, valid_words = filter_by_frequency(
-            tokenized_texts, 
-            min_freq=2,  # 至少出现2次
-            max_doc_ratio=0.8  # 最多出现在80%的文档中
-        )
-        
-        # 使用词性过滤重新处理
-        tokenized_texts = [
-            preprocess_text_advanced(str(text), stopwords, valid_words)
-            for text in df['comment']
-        ]
-    else:
-        # 使用简单预处理
-        tokenized_texts = df['comment'].apply(
-            lambda x: preprocess_text(str(x), stopwords)
-        ).tolist()
-    
-    # 2. 构建 Gensim 字典和语料库
     dictionary = corpora.Dictionary(tokenized_texts)
     dictionary.filter_extremes(no_below=2, no_above=0.8) 
     corpus = [dictionary.doc2bow(text) for text in tokenized_texts]
 
     if not corpus:
-        print("语料库为空，无法训练。")
-        return None, None, df, {}
+        return None, None, {}
 
-    # 3. 寻找最优 K 值 (学术评估)
-    # 遍历 K 从 2 到 10 (或根据数据量调整)
-    k_range = range(2, 11)
-    best_k = 5
-    min_perplexity = float('inf')
-    
-    print(f"正在通过困惑度评估寻找最优主题数 K (范围: {list(k_range)})...")
-    
-    # 存储评估数据，方便后续打印（用户可用于论文绘图）
-    eval_results = []
-
-    for k in k_range:
-        # 训练临时模型进行评估
-        temp_lda = models.LdaModel(
-            corpus=corpus, 
-            num_topics=k, 
-            id2word=dictionary, 
-            passes=5, # 评估时减少迭代次数以提升速度
-            random_state=42
-        )
-        # 计算困惑度 (值越小，模型拟合越好)
-        perplexity = temp_lda.log_perplexity(corpus)
-        eval_results.append((k, perplexity))
-        print(f"  - K={k}, Log-Perplexity: {perplexity:.4f}")
-        
-        if perplexity < min_perplexity:
-            min_perplexity = perplexity
-            best_k = k
-
-    print(f"\n[评估结论] 根据困惑度指标，选取最优主题数 K = {best_k}")
-
-    # 4. 使用最优 K 值训练最终模型
-    print(f"正在构建最终 LDA 模型 (K={best_k})...")
+    print(f"正在训练 LDA 模型 (K={num_topics})...")
     lda = models.LdaModel(
         corpus=corpus, 
-        num_topics=best_k, 
+        num_topics=num_topics, 
         id2word=dictionary, 
-        passes=20, # 最终模型增加迭代次数，保证收敛
+        passes=20, 
         random_state=42,
         alpha='auto',
         eta='auto'
     )
     
-    # 5. 提取主题关键词
+    # 提取主题关键词并生成主题名
     topic_keywords = {}
-    for topic_id in range(best_k):
-        words = lda.show_topic(topic_id, topn=10)
-        topic_keywords[topic_id] = [w[0] for w in words]
+    for topic_id in range(num_topics):
+        words = lda.show_topic(topic_id, topn=3)
+        topic_keywords[topic_id] = "-".join([w[0] for w in words])
     
-    # 6. 计算主题一致性分数
-    try:
-        coherence_model = models.CoherenceModel(
-            model=lda,
-            texts=tokenized_texts,
-            dictionary=dictionary,
-            coherence='c_v'
-        )
-        coherence_score = coherence_model.get_coherence()
-        print(f"\n[模型评估] 主题一致性分数: {coherence_score:.4f}")
-    except:
-        print("\n[模型评估] 无法计算主题一致性分数")
+    return lda, dictionary, topic_keywords
+
+def predict_topic(text, lda, dictionary, topic_keywords):
+    """预测文本所属的主题名"""
+    if not text or not lda:
+        return "未知"
     
-    return lda, dictionary, df, topic_keywords
+    stopwords = load_stopwords()
+    tokens = preprocess_text(text, stopwords)
+    bow = dictionary.doc2bow(tokens)
+    
+    if not bow:
+        return "未知"
+    
+    topics = lda.get_document_topics(bow)
+    # 获取概率最高的主题
+    best_topic_id = max(topics, key=lambda x: x[1])[0]
+    return topic_keywords.get(best_topic_id, f"主题-{best_topic_id}")
 
 def save_lda_model(lda, dictionary, topic_keywords):
     """保存模型到本地"""
@@ -210,7 +101,6 @@ def save_lda_model(lda, dictionary, topic_keywords):
     
     lda.save(os.path.join(model_dir, 'lda.model'))
     dictionary.save(os.path.join(model_dir, 'lda.dict'))
-    # 保存主题关键词（简单用 json）
     import json
     with open(os.path.join(model_dir, 'keywords.json'), 'w', encoding='utf-8') as f:
         json.dump(topic_keywords, f, ensure_ascii=False)
@@ -231,14 +121,19 @@ def load_lda_model():
         if os.path.exists(kw_path):
             with open(kw_path, 'r', encoding='utf-8') as f:
                 raw_kw = json.load(f)
-                # json 加载出来的 key 可能是字符串，转回 int
                 topic_keywords = {int(k): v for k, v in raw_kw.items()}
         return lda, dictionary, topic_keywords
     return None, None, None
 
 if __name__ == "__main__":
-    # 如果直接运行此脚本，则进行测试
-    lda, dictionary, df, keywords = train_lda_model(use_advanced_preprocessing=True)
-    if keywords:
-        for tid, words in list(keywords.items())[:5]:
-            print(f"主题 #{tid}: {' '.join(words)}")
+    # 模拟训练
+    df = load_data()
+    if not df.empty:
+        content_col = 'comment' if 'comment' in df.columns else df.columns[0]
+        lda, dictionary, keywords = train_lda_on_poems(df[content_col].tolist())
+        if lda:
+            save_lda_model(lda, dictionary, keywords)
+            test_text = "白日依山尽，黄河入海流。"
+            topic = predict_topic(test_text, lda, dictionary, keywords)
+            print(f"测试文本: {test_text}")
+            print(f"预测主题: {topic}")
