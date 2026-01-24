@@ -1,0 +1,19 @@
+2026-01-25 00:44:01,081 - INFO - ============================================================
+2026-01-25 00:44:01,081 - INFO - 开始重新训练LDA模型并预测诗歌主题
+2026-01-25 00:44:01,093 - INFO - ============================================================
+2026-01-25 00:44:01,094 - INFO - 步骤1: 收集诗歌内容...
+2026-01-25 00:44:01,143 - INFO - 总共找到 850 首诗歌
+2026-01-25 00:44:01,145 - INFO - 有效诗歌内容数量: 838
+2026-01-25 00:44:01,146 - INFO - 
+2026-01-25 00:44:01,146 - INFO - 步骤2: 开始训练LDA模型...
+2026-01-25 00:44:01,147 - ERROR - 训练或预测过程中发生错误: 'utf-8' codec can't decode byte 0xff in position 0: invalid start byte
+2026-01-25 00:44:01,148 - ERROR - Traceback (most recent call last):
+  File "<string>", line 45, in retrain_and_predict
+  File "C:\PostG\backend\lda_analysis.py", line 84, in train_lda_on_poems
+    stopwords = load_stopwords()
+                ^^^^^^^^^^^^^^^^
+  File "C:\PostG\backend\lda_analysis.py", line 44, in load_stopwords
+    for line in f:
+  File "<frozen codecs>", line 322, in decode
+UnicodeDecodeError: 'utf-8' codec can't decode byte 0xff in position 0: invalid start byte
+

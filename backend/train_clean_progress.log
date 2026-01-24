@@ -1,0 +1,28 @@
+[Clean-LDA] Collecting high-quality poetry samples...
+[Clean-LDA] Starting optimized training with K=60...
+[LDA] Preprocessing text with POS filtering...
+python : Building prefix di
+ct from the default diction
+ary ...
+所在位置 行:1 字符: 1
++ python -u train_clean_lda
+.py > train_clean_v3.log 2>
+&1
++ ~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~
+    + CategoryInfo         
+     : NotSpecified: (Bui  
+  lding prefix... dictio   
+ nary ...:String) [], R    
+emoteException
+    + FullyQualifiedErrorI 
+   d : NativeCommandError
+ 
+Loading model from cache C:
+\Users\25656\AppData\Local\
+Temp\jieba.cache
+Loading model cost 0.731 se
+conds.
+Prefix dict has been built 
+successfully.

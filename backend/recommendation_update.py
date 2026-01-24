@@ -192,18 +192,32 @@ class PerformanceMonitor:
 # ==================== 增量推荐计算 ====================
 
 # ==================== 增量推荐计算 ====================
-from lda_analysis import load_lda_model, predict_topic
+from bertopic_analysis import load_bertopic_model, predict_topic
+
+# ==================== 增量推荐计算 ====================
+from bertopic_analysis import load_bertopic_model, predict_topic, get_document_vector, batch_get_vectors
+from sklearn.metrics.pairwise import cosine_similarity
+import numpy as np
 
 class IncrementalRecommender:
-    """增量推荐计算器 (Hybrid LDA + CF)"""
+    """基于主题向量的协同过滤推荐器 (Topic Vector CF)"""
     
     def __init__(self):
         self.logger = RecommendationLogger()
         self.monitor = PerformanceMonitor()
-        self.lda, self.dictionary, self.topic_keywords = load_lda_model()
-    
+        self.bertopic_model = load_bertopic_model()
+        self.topic_matrix = None # 诗歌主题向量矩阵 (n_poems, vector_dim)
+        self.poem_id_map = {}    # poem_id -> matrix_index
+        self.poem_ids = []       # [poem_id1, poem_id2, ...]
+        
+        self.cache_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'saved_models', 'vector_cache')
+        os.makedirs(self.cache_dir, exist_ok=True)
+        
+        # 预加载向量矩阵
+        self._build_poem_vector_matrix()
+
     def update_user_preference(self, user_id):
-        """分析用户所有评论，更新用户偏好主题文本"""
+        """分析用户所有评论，更新用户偏好主题文本 (Restored from previous version)"""
         reviews = Review.query.filter_by(user_id=user_id).all()
         if not reviews:
             return ""
@@ -212,7 +226,6 @@ class IncrementalRecommender:
         topic_counts = Counter()
         for r in reviews:
             if r.topic_names:
-                # 假设 topic_names 是逗号分隔的主题名（虽然逻辑上一般是一个，但防范万一）
                 names = r.topic_names.split(',')
                 topic_counts.update(names)
         
@@ -222,87 +235,274 @@ class IncrementalRecommender:
         # 获取最匹配的Top 3主题作为偏好描述
         top_topics = [t for t, _ in topic_counts.most_common(3)]
         return ",".join(top_topics)
+    
+    def _build_poem_vector_matrix(self):
+        """构建全量诗歌向量矩阵（支持缓存加载）"""
+        if not self.bertopic_model:
+            return
+            
+        with current_app.app_context():
+            poems = Poem.query.all()
+            if not poems:
+                return
+            
+            self.poem_ids = [p.id for p in poems]
+            self.poem_id_map = {pid: idx for idx, pid in enumerate(self.poem_ids)}
+            
+            # 尝试从缓存加载
+            matrix_path = os.path.join(self.cache_dir, 'topic_matrix.npy')
+            ids_path = os.path.join(self.cache_dir, 'poem_ids.json')
+            
+            # 检查缓存是否有效 (ID列表匹配)
+            cache_valid = False
+            if os.path.exists(matrix_path) and os.path.exists(ids_path):
+                try:
+                    with open(ids_path, 'r') as f:
+                        cached_ids = json.load(f)
+                    if cached_ids == self.poem_ids:
+                        self.topic_matrix = np.load(matrix_path)
+                        self.logger.logger.info(f"成功从缓存加载 {len(self.poem_ids)} 首诗歌的向量矩阵")
+                        cache_valid = True
+                except Exception as e:
+                    self.logger.logger.warning(f"缓存加载失败: {e}")
+            
+            if not cache_valid:
+                # 获取所有诗歌内容重新计算
+                contents = [p.content for p in poems]
+                self.logger.logger.info(f"正在构建 {len(poems)} 首诗歌的向量矩阵 (全量计算)...")
+                self.topic_matrix = batch_get_vectors(contents, self.bertopic_model)
+                
+                # 保存到缓存
+                try:
+                    np.save(matrix_path, self.topic_matrix)
+                    with open(ids_path, 'w') as f:
+                        json.dump(self.poem_ids, f)
+                    self.logger.logger.info("向量矩阵已持久化到本地缓存")
+                except Exception as e:
+                    self.logger.logger.error(f"缓存保存失败: {e}")
+            
+            self.logger.logger.info("向量矩阵准备就绪")
+
+    def _get_user_profile_vector(self, user_id):
+        """构建用户偏好向量 (基于交互历史加权平均)"""
+        reviews = Review.query.filter_by(user_id=user_id).all()
+        if not reviews or self.topic_matrix is None:
+            return None
+            
+        user_vector = np.zeros(self.topic_matrix.shape[1])
+        weight_sum = 0
+        
+        for r in reviews:
+            poem_idx = self.poem_id_map.get(r.poem_id)
+            if poem_idx is not None:
+                # 简单权重: 1.0 (未来可以引入评分系统)
+                w = 1.0
+                user_vector += self.topic_matrix[poem_idx] * w
+                weight_sum += w
+                
+        if weight_sum > 0:
+            user_vector /= weight_sum
+            
+        return user_vector
+
+    def _get_similar_users(self, target_user_id, top_k=10):
+        """寻找相似用户 (User-CF Strategy)"""
+        target_vector = self._get_user_profile_vector(target_user_id)
+        if target_vector is None:
+            return []
+            
+        # 获取所有活跃用户的向量
+        other_users = User.query.filter(User.id != target_user_id, User.total_reviews > 0).limit(100).all() # 限制计算量
+        similarities = []
+        
+        for u in other_users:
+            u_vector = self._get_user_profile_vector(u.id)
+            if u_vector is not None:
+                sim = cosine_similarity([target_vector], [u_vector])[0][0]
+                similarities.append((u.id, sim))
+        
+        similarities.sort(key=lambda x: x[1], reverse=True)
+        return similarities[:top_k]
+
+    def _topic_based_item_cf(self, user_reviewed_ids, all_poem_indices, top_n=20):
+        """基于物品的主题协同过滤"""
+        if not user_reviewed_ids or self.topic_matrix is None:
+            return []
+            
+        # 获取用户喜欢的诗歌的向量
+        user_reviewed_indices = [self.poem_id_map[pid] for pid in user_reviewed_ids if pid in self.poem_id_map]
+        if not user_reviewed_indices:
+            return []
+            
+        reviewed_vectors = self.topic_matrix[user_reviewed_indices]
+        
+        # 计算所有诗歌与用户历史诗歌的相似度平均值
+        # 这里使用矩阵运算加速: (n_all, dim) . (n_reviewed, dim).T -> (n_all, n_reviewed)
+        sim_matrix = cosine_similarity(self.topic_matrix, reviewed_vectors)
+        # 取平均相似度作为得分
+        scores = np.mean(sim_matrix, axis=1)
+        
+        # 排除已读
+        for idx in user_reviewed_indices:
+            scores[idx] = -1.0
+            
+        # 获取Top-N
+        top_indices = np.argsort(scores)[::-1][:top_n]
+        return [(self.poem_ids[i], float(scores[i])) for i in top_indices if scores[i] > 0]
+
+    def _content_based_recommend(self, target_vector, user_reviewed_indices, top_n=20):
+        """基于用户画像向量的内容推荐"""
+        if self.topic_matrix is None or target_vector is None:
+            return []
+            
+        # 计算用户向量与所有诗歌的相似度
+        scores = cosine_similarity([target_vector], self.topic_matrix)[0]
+        
+        # 排除已读
+        for idx in user_reviewed_indices:
+            scores[idx] = -1.0
+            
+        top_indices = np.argsort(scores)[::-1][:top_n]
+        return [(self.poem_ids[i], float(scores[i])) for i in top_indices if scores[i] > 0]
 
     def get_new_poems_for_user(self, user_id, limit=6):
-        """为用户获取推荐诗歌 (Hybrid Logic)"""
+        """混合推荐主逻辑 (Hybrid Strategy)"""
         user = User.query.get(user_id)
-        if not user:
+        if not user or not self.bertopic_model:
             return self.get_global_popular(limit)
         
-        preference_topics = user.preference_topics.split(',') if user.preference_topics else []
-        user_reviewed_ids = {r.poem_id for r in Review.query.filter_by(user_id=user_id).all()}
+        if self.topic_matrix is None:
+            self._build_poem_vector_matrix()
+            
+        user_reviews = Review.query.filter_by(user_id=user_id).all()
+        user_reviewed_ids = {r.poem_id for r in user_reviews}
+        user_reviewed_indices = [self.poem_id_map[pid] for pid in user_reviewed_ids if pid in self.poem_id_map]
         
-        candidates = []
-        # 查询所有诗歌进行匹配
-        all_poems = Poem.query.all()
+        interaction_count = len(user_reviews)
+        candidates = {} # poem_id -> total_score
         
-        for poem in all_poems:
-            if poem.id in user_reviewed_ids:
-                continue
+        # 定义动态权重
+        if interaction_count == 0:
+            # 冷启动用户: 热门为主
+            w_cf_user = 0.0
+            w_cf_item = 0.0
+            w_content = 0.4
+            w_popular = 0.6
+        elif interaction_count < 10:
+            # 轻度用户: 内容+ItemCF为主
+            w_cf_user = 0.2
+            w_cf_item = 0.4
+            w_content = 0.3
+            w_popular = 0.1
+        else:
+            # 重度用户: 协同过滤为主
+            w_cf_user = 0.4
+            w_cf_item = 0.4
+            w_content = 0.2
+            w_popular = 0.0
             
-            score = 0
-            # 1. 基础分：浏览量加权 (Popularity)
-            score += min(poem.views * 0.01, 2.0)
-            
-            # 2. 核心分：主题匹配 (LDA Topic Matching)
-            if poem.LDA_topic and preference_topics:
-                # 如果诗歌的主题在用户的偏好列表中
-                if poem.LDA_topic in preference_topics:
-                    score += 5.0 # 高额匹配分
-            
-            # 3. 评论引导分：如果评论数少且主题匹配，增加权重 (Cold Start Support)
-            if poem.review_count == 0 and poem.LDA_topic in preference_topics:
-                score += 3.0
-            
-            candidates.append((poem, score))
+        # 1. User-CF Strategy (简化版: 只取相似用户最近喜欢的一首)
+        if w_cf_user > 0:
+            similar_users = self._get_similar_users(user_id)
+            for sim_uid, sim_score in similar_users:
+                sim_reviews = Review.query.filter_by(user_id=sim_uid).order_by(Review.created_at.desc()).limit(5).all()
+                for r in sim_reviews:
+                    if r.poem_id not in user_reviewed_ids:
+                        candidates[r.poem_id] = candidates.get(r.poem_id, 0) + (sim_score * w_cf_user)
+
+        # 2. Item-CF Strategy
+        if w_cf_item > 0:
+            item_recs = self._topic_based_item_cf(user_reviewed_ids, None)
+            for pid, score in item_recs:
+                candidates[pid] = candidates.get(pid, 0) + (score * w_cf_item)
+                
+        # 3. Content-Based Strategy
+        if w_content > 0:
+            user_vec = self._get_user_profile_vector(user_id)
+            if user_vec is not None:
+                content_recs = self._content_based_recommend(user_vec, user_reviewed_indices)
+                for pid, score in content_recs:
+                    candidates[pid] = candidates.get(pid, 0) + (score * w_content)
+                    
+        # 4. Popularity Strategy (Fallback)
+        if w_popular > 0 or not candidates:
+            popular_poems = self.get_global_popular(limit * 2)
+            for p in popular_poems:
+                if p.id not in user_reviewed_ids:
+                    # 归一化: 热门分 0~1
+                    pop_score = min(p.views / 1000.0, 1.0)
+                    candidates[p.id] = candidates.get(p.id, 0) + (pop_score * w_popular)
         
-        # 按分数排序
-        candidates.sort(key=lambda x: x[1], reverse=True)
-        return [c[0] for c in candidates[:limit]]
+        # 排序与返回
+        sorted_ids = sorted(candidates.keys(), key=lambda k: candidates[k], reverse=True)
+        final_ids = sorted_ids[:limit]
+        
+        # 兜底
+        if len(final_ids) < limit:
+            remaining = limit - len(final_ids)
+            pops = self.get_global_popular(remaining + 20) # 多取点防重重复
+            for p in pops:
+                if p.id not in user_reviewed_ids and p.id not in final_ids:
+                    final_ids.append(p.id)
+                    if len(final_ids) >= limit:
+                        break
+                        
+        # 保持顺序返回对象
+        id_map = {p.id: p for p in Poem.query.filter(Poem.id.in_(final_ids)).all()}
+        return [id_map[pid] for pid in final_ids if pid in id_map]
     
     def get_global_popular(self, limit=6):
         """获取全局热门诗歌"""
         return Poem.query.order_by(Poem.views.desc()).limit(limit).all()
     
     def batch_update_all_recommendations(self, app=None):
-        """全量更新推荐逻辑 (通常在系统重构或LDA重训练后调用)"""
+        """全量更新推荐逻辑"""
         flask_app = app or current_app
         with flask_app.app_context():
-            # 1. 首先确保所有诗歌都有 LDA_topic
-            if self.lda:
-                all_poems = Poem.query.filter(Poem.LDA_topic == None).all()
-                for poem in all_poems:
-                    poem.LDA_topic = predict_topic(poem.content, self.lda, self.dictionary, self.topic_keywords)
-                db.session.commit()
+            # 重建向量矩阵
+            self._build_poem_vector_matrix() # 确保最新
             
-            # 2. 更新所有用户的偏好
+            # 更新用户偏好缓存 (topics string)
+            # 虽然新算法主要用向量实时计算，但为了前端展示，我们还是维护 preference_topics 字段
             users = User.query.all()
             for user in users:
                 user.preference_topics = self.update_user_preference(user.id)
                 user.total_reviews = Review.query.filter_by(user_id=user.id).count()
             db.session.commit()
             
-            # 3. 更新诗歌的评论数
+            # 更新诗歌元数据
             poems = Poem.query.all()
             for poem in poems:
+                if not poem.LDA_topic and self.bertopic_model:
+                     tid, tname = predict_topic(poem.content, self.bertopic_model)
+                     poem.LDA_topic = tname
+                     poem.Real_topic = str(tid)
                 poem.review_count = Review.query.filter_by(poem_id=poem.id).count()
             db.session.commit()
 
     def batch_update_recommendations(self, user_ids=None, trigger_type='manual', poem_id=None, app=None):
-        """批量更新用户推荐状态 (满足原接口)"""
-        start_time = datetime.now()
+        """批量更新用户推荐状态"""
         flask_app = app or current_app
         
         with flask_app.app_context():
             if trigger_type == 'new_poem' and poem_id:
-                # 如果是新诗插入，为新诗计算 LDA 主题
+                # 如果是新诗插入，为新诗计算 BERTopic 主题
                 poem = Poem.query.get(poem_id)
-                if poem and self.lda:
-                    poem.LDA_topic = predict_topic(poem.content, self.lda, self.dictionary, self.topic_keywords)
+                if poem and self.bertopic_model:
+                    tid, tname = predict_topic(poem.content, self.bertopic_model)
+                    poem.LDA_topic = tname
+                    poem.Real_topic = str(tid)
                     db.session.commit()
+                    
+                    # 更新向量矩阵缓存 (增量更新暂未实现，简单触发全量重建或append)
+                    if self.topic_matrix is not None:
+                        # 简单的增量添加
+                        vec = get_document_vector(poem.content, self.bertopic_model)
+                        if vec is not None:
+                            self.topic_matrix = np.vstack([self.topic_matrix, vec])
+                            self.poem_ids.append(poem.id)
+                            self.poem_id_map[poem.id] = len(self.poem_ids) - 1
 
-            # 这里的 batch 更新主要用于触发后续的个性化逻辑
-            # 在当前简单的数据库驱动架构中，我们只需要确保基础元数据更新即可
             self.batch_update_all_recommendations(flask_app)
             
         return {'success': True, 'processed_users': len(user_ids) if user_ids else 0}
