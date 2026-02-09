@@ -2,6 +2,7 @@ import os
 import json
 import random
 import shutil
+import argparse
 from app import app
 from models import db, Poem
 import bertopic_analysis
@@ -54,7 +55,31 @@ def collect_poetry_data(sample_limit=20000):
         return random.sample(all_content, sample_limit)
     return all_content
 
-def main():
+def fill_real_topics(limit=0, batch_size=200, dry_run=False):
+    with app.app_context():
+        query = Poem.query.order_by(Poem.id.asc())
+        if limit and limit > 0:
+            query = query.limit(int(limit))
+        poems = query.all()
+        total = len(poems)
+        print(f"[RealTopic] Updating Real_topic for {total} poems...")
+
+        updated = 0
+        for i, p in enumerate(poems):
+            # 使用新逻辑生成模拟评论标签
+            p.Real_topic = bertopic_analysis.generate_real_topic(p.content, author=p.author)
+            updated += 1
+
+            if batch_size and (i + 1) % int(batch_size) == 0:
+                if not dry_run:
+                    db.session.commit()
+                print(f"  - Progress: {i+1}/{total}")
+
+        if not dry_run:
+            db.session.commit()
+        print(f"[Success] Updated Real_topic for {updated} poems.")
+
+def train_and_update_topics():
     # 1. 准备数据
     docs = collect_poetry_data(sample_limit=20000)
     
@@ -82,8 +107,8 @@ def main():
             # 但这里数据库目前只有 ~800 条，单条预测尚可
             
             topic_id, topic_name = bertopic_analysis.predict_topic(p.content, model)
-            p.LDA_topic = topic_name # 复用 LDA_topic 字段存储 BERTopic 的主题名
-            p.Real_topic = str(topic_id) # 用 Real_topic 存储 ID，以此区分
+            p.Bertopic = topic_name
+            p.Real_topic = bertopic_analysis.generate_real_topic(p.content, author=p.author)
             
             if (i+1) % 50 == 0:
                 print(f"  - Progress: {i+1}/{total_poems}")
@@ -93,4 +118,14 @@ def main():
         print(f"[Success] Updated {total_poems} poems with BERTopic tags.")
 
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--mode", choices=["train", "fill-real-topic"], default="train")
+    parser.add_argument("--limit", type=int, default=0)
+    parser.add_argument("--batch-size", type=int, default=200)
+    parser.add_argument("--dry-run", action="store_true")
+    args = parser.parse_args()
+
+    if args.mode == "fill-real-topic":
+        fill_real_topics(limit=args.limit, batch_size=args.batch_size, dry_run=args.dry_run)
+    else:
+        train_and_update_topics()

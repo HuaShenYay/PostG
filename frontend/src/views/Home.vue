@@ -60,7 +60,10 @@
                             <div v-for="(r, index) in reviews" :key="r.id" class="review-minimal">
                                 <div class="review-header">
                                     <span class="r-user">{{ r.user_id }}</span>
-                                    <n-rate readonly :value="r.rating" size="small" />
+                                    <div class="review-meta">
+                                        <n-rate readonly :value="r.rating" size="small" />
+                                        <n-icon v-if="r.liked" class="liked-icon"><NHeart /></n-icon>
+                                    </div>
                                 </div>
                                 <p class="r-content">{{ r.comment }}</p>
                             </div>
@@ -69,6 +72,15 @@
                         <!-- 评论输入框 -->
                         <div class="quick-comment" v-if="currentUser !== '访客'">
                             <n-input v-model:value="newComment" placeholder="留下雅言..." size="small" round />
+                            <n-rate v-model:value="newRating" size="small" />
+                            <n-button circle size="small" quaternary class="like-btn" @click="newLiked = !newLiked">
+                                <template #icon>
+                                    <n-icon>
+                                        <NHeart v-if="newLiked" />
+                                        <NHeartOutline v-else />
+                                    </n-icon>
+                                </template>
+                            </n-button>
                             <n-button circle size="small" @click="submitComment" :disabled="!newComment" class="submit-btn">
                                 <template #icon><n-icon><NSend /></n-icon></template>
                             </n-button>
@@ -134,10 +146,10 @@
                                 </div>
                             </div>
 
-                            <!-- 2. 意境画像 (ECharts Radar) -->
+                            <!-- 2. 情感雷达 (Sentiment Radar) -->
                             <div class="viz-card">
-                                <div class="viz-title">意境画像 (Atmosphere Profile)</div>
-                                <div ref="sentimentRef" style="height: 180px;"></div>
+                                <div class="viz-title">情感雷达 (Sentiment Radar)</div>
+                                <div ref="radarRef" style="height: 220px; width: 100%;"></div>
                             </div>
 
                             <!-- 3. 音律心跳 (ECharts Line) -->
@@ -189,7 +201,8 @@ import {
   NTabPane,
   NSpin,
   NProgress,
-  NTag
+  NTag,
+  useMessage
 } from 'naive-ui'
 import { 
   Search as NSearch, 
@@ -202,11 +215,14 @@ import {
   Menu as NMenu,
   Send as NSend,
   PersonOutline as NPersonOutline,
-  GlobeOutline as NGlobeOutline
+  GlobeOutline as NGlobeOutline,
+  Heart as NHeart,
+  HeartOutline as NHeartOutline
 } from '@vicons/ionicons5'
 
 const router = useRouter()
 const route = useRoute()
+const message = useMessage()
 
 // 导航函数
 const goToPersonalAnalysis = () => router.push('/personal-analysis')
@@ -215,7 +231,8 @@ const currentUser = localStorage.getItem('user') || '访客'
 const dailyPoem = ref(null)
 const reviews = ref([])
 const newComment = ref('')
-const newRating = ref(5)
+const newRating = ref(3)
+const newLiked = ref(false)
 const userProfile = ref(null)
 const scrollContainer = ref(null)
 const skipCount = ref(0)
@@ -232,34 +249,168 @@ const poemAnalysis = ref({
     tonal_sequence: [], 
     char_labels: [], 
     sentiment: [], 
-    colors: [] 
+    colors: [],
+    emotions: null
   } 
 })
 
+const paletteColors = computed(() => {
+  const colors = poemAnalysis.value?.chart_data?.colors
+  if (Array.isArray(colors)) return colors
+  return []
+})
+
+const meshStyle = computed(() => {
+  const colors = paletteColors.value
+  if (!colors.length) return {}
+  
+  // Use first 3-5 colors to create a radial mesh
+  const activeColors = colors.slice(0, 5)
+  const gradients = activeColors.map((color, index) => {
+    // Distribute positions based on index
+    // 0: Top-Left, 1: Bottom-Right, 2: Center, 3: Top-Right, 4: Bottom-Left
+    let pos = '50% 50%'
+    if (index === 0) pos = '0% 0%'
+    else if (index === 1) pos = '100% 100%'
+    else if (index === 2) pos = '50% 50%'
+    else if (index === 3) pos = '100% 0%'
+    else if (index === 4) pos = '0% 100%'
+    
+    return `radial-gradient(circle at ${pos}, ${color}, transparent 60%)`
+  })
+
+  return {
+    backgroundImage: gradients.join(', '),
+    backgroundColor: activeColors[0] || '#f5f5f5' // Fallback base color
+  }
+})
+
+const radarRef = ref(null)
 const heartbeatRef = ref(null)
-const sentimentRef = ref(null)
+// const sentimentRef = ref(null) // Removed
+let radarChart = null
 let hbChart = null
-let stChart = null
+// let stChart = null // Removed
+
+const getThemeColor = (name, fallback) => {
+  if (typeof window === 'undefined') return fallback
+  const value = getComputedStyle(document.documentElement).getPropertyValue(name).trim()
+  return value || fallback
+}
+
+const hexToRgba = (hex, alpha, fallbackHex = '#cf3f35') => {
+  if (!hex) return hexToRgba(fallbackHex, alpha)
+  let value = hex.replace('#', '').trim()
+  if (value.length === 3) value = value.split('').map(c => c + c).join('')
+  if (value.length !== 6) return `rgba(207, 63, 53, ${alpha})`
+  const r = parseInt(value.slice(0, 2), 16)
+  const g = parseInt(value.slice(2, 4), 16)
+  const b = parseInt(value.slice(4, 6), 16)
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`
+}
+
+const getThemePalette = () => ({
+  primary: getThemeColor('--cinnabar-red', '#cf3f35'),
+  primaryLight: getThemeColor('--cinnabar-light', '#e65c53'),
+  primaryDark: getThemeColor('--accent-red-dark', '#8a1616')
+})
 
 const initCharts = () => {
-  // 1. 音律心跳
-  if (heartbeatRef.value && poemAnalysis.value?.chart_data?.tonal_sequence?.length) {
+  const { primary, primaryLight, primaryDark } = getThemePalette()
+  // 1. 情感雷达
+  if (radarRef.value && radarRef.value.clientWidth > 0 && radarRef.value.clientHeight > 0) {
+      if (radarChart) radarChart.dispose()
+      radarChart = echarts.init(radarRef.value)
+      
+      let emotions = poemAnalysis.value?.chart_data?.emotions
+      
+      // 如果后端没有返回情感数据，使用默认的平衡数据，避免留白
+      if (!emotions) {
+          console.warn('Radar data missing, using default placeholder')
+          emotions = { joy: 2, anger: 2, sorrow: 2, fear: 2, love: 2, zen: 2 }
+      }
+
+      // Order: Joy, Anger, Sorrow, Fear, Love, Zen
+      const dataValues = [
+          emotions.joy || 0,
+          emotions.anger || 0,
+          emotions.sorrow || 0,
+          emotions.fear || 0,
+          emotions.love || 0,
+          emotions.zen || 0
+      ]
+
+      radarChart.setOption({
+          radar: {
+              indicator: [
+                  { name: '喜 Joy', max: 10 },
+                  { name: '怒 Anger', max: 10 },
+                  { name: '哀 Sorrow', max: 10 },
+                  { name: '惧 Fear', max: 10 },
+                  { name: '爱 Love', max: 10 },
+                  { name: '禅 Zen', max: 10 }
+              ],
+              splitNumber: 4,
+              axisName: {
+                  color: '#666',
+                  fontSize: 10
+              },
+              splitLine: {
+                  lineStyle: {
+                      color: ['#eee']
+                  }
+              },
+              splitArea: {
+                  show: true,
+                  areaStyle: {
+                      color: ['rgba(255,255,255,0.9)', 'rgba(255,255,255,0.7)']
+                  }
+              }
+          },
+          series: [{
+              type: 'radar',
+              data: [{
+                  value: dataValues,
+                  name: '情感分布',
+                  symbol: 'none',
+                  lineStyle: {
+                      width: 2,
+                      color: primary
+                  },
+                  areaStyle: {
+                      color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                          { offset: 0, color: hexToRgba(primaryLight || primary, 0.45, primary) },
+                          { offset: 1, color: hexToRgba(primary, 0.12, primary) }
+                      ])
+                  }
+              }]
+          }]
+      })
+  }
+
+  // 2. 音律心跳
+  if (heartbeatRef.value && heartbeatRef.value.clientWidth > 0 && heartbeatRef.value.clientHeight > 0 && poemAnalysis.value?.chart_data?.tonal_sequence?.length) {
     if (hbChart) hbChart.dispose()
     hbChart = echarts.init(heartbeatRef.value)
+    
+    // Safety check for data
+    const seq = poemAnalysis.value.chart_data.tonal_sequence
+    if (!seq || seq.length === 0) return
+
     hbChart.setOption({
       grid: { top: 10, bottom: 20, left: 10, right: 10 },
       xAxis: { type: 'category', data: poemAnalysis.value.chart_data.char_labels, show: false },
-      yAxis: { show: false, min: -1.5, max: 1.5 },
+      yAxis: { show: false, min: -0.5, max: 1.5 }, // Adjusted range for 0/1 data
       series: [{
-        data: poemAnalysis.value.chart_data.tonal_sequence,
+        data: seq,
         type: 'line',
         smooth: true,
         symbol: 'none',
-        lineStyle: { color: '#A61B1B', width: 2 },
+        lineStyle: { color: primaryDark || primary, width: 2 },
         areaStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: 'rgba(166, 27, 27, 0.4)' },
-            { offset: 1, color: 'rgba(166, 27, 27, 0)' }
+            { offset: 0, color: hexToRgba(primary, 0.35, primary) },
+            { offset: 1, color: hexToRgba(primary, 0, primary) }
           ])
         }
       }],
@@ -267,44 +418,30 @@ const initCharts = () => {
     })
   }
 
-  // 2. 意境雷达
-  if (sentimentRef.value && poemAnalysis.value?.chart_data?.sentiment?.length) {
-    if (stChart) stChart.dispose()
-    stChart = echarts.init(sentimentRef.value)
-    const indicators = poemAnalysis.value.chart_data.sentiment.map(s => ({ name: s.name, max: 100 }))
-    const values = poemAnalysis.value.chart_data.sentiment.map(s => s.value)
-    stChart.setOption({
-      radar: {
-        indicator: indicators,
-        shape: 'circle',
-        splitNumber: 3,
-        axisName: { color: '#666', fontSize: 10 },
-        splitLine: { lineStyle: { color: 'rgba(166, 27, 27, 0.1)' } },
-        splitArea: { show: false },
-        axisLine: { lineStyle: { color: 'rgba(166, 27, 27, 0.1)' } }
-      },
-      series: [{
-        type: 'radar',
-        data: [{
-          value: values,
-          itemStyle: { color: '#A61B1B' },
-          areaStyle: { color: 'rgba(166, 27, 27, 0.3)' }
-        }]
-      }]
-    })
-  }
+  // 2. 情绪起伏 (Sentiment Flow) - REPLACED BY Ethereal Nebula (CSS Only)
 }
 
 const updatePoemCharts = () => {
-  // 使用 nextTick 并稍微延迟，确保 DOM 稳定且尺寸就绪
   nextTick(() => {
-    setTimeout(initCharts, 200)
+    const start = Date.now()
+    const ensureReady = () => {
+      const radarReady = radarRef.value && radarRef.value.clientWidth > 0 && radarRef.value.clientHeight > 0
+      const heartbeatReady = heartbeatRef.value && heartbeatRef.value.clientWidth > 0 && heartbeatRef.value.clientHeight > 0
+      if (radarReady || heartbeatReady) {
+        initCharts()
+        return
+      }
+      if (Date.now() - start < 1800) {
+        setTimeout(ensureReady, 80)
+      }
+    }
+    ensureReady()
   })
 }
 
 const handleResize = () => {
   if (hbChart) hbChart.resize()
-  if (stChart) stChart.resize()
+  if (radarChart) radarChart.resize()
 }
 
 let resizeObserver = null
@@ -316,17 +453,28 @@ onMounted(() => {
   if (window.ResizeObserver) {
     resizeObserver = new ResizeObserver(() => {
       handleResize()
+      if (!radarChart || !hbChart) {
+        updatePoemCharts()
+      }
     })
     if (heartbeatRef.value) resizeObserver.observe(heartbeatRef.value)
-    if (sentimentRef.value) resizeObserver.observe(sentimentRef.value)
+    if (radarRef.value) resizeObserver.observe(radarRef.value)
+    // if (sentimentRef.value) resizeObserver.observe(sentimentRef.value)
   }
+  
+  if (route.query.poemId) {
+    fetchPoemById(route.query.poemId)
+  } else {
+    getAnotherPoem()
+  }
+  fetchUserProfile()
 })
 
 onUnmounted(() => {
   window.removeEventListener('resize', handleResize)
   if (resizeObserver) resizeObserver.disconnect()
   if (hbChart) hbChart.dispose()
-  if (stChart) stChart.dispose()
+  if (radarChart) radarChart.dispose()
 })
 
 // 可视化数据
@@ -411,7 +559,7 @@ const fetchUserProfile = async () => {
   }
   
   try {
-    const res = await axios.get(`http://127.0.0.1:5000/api/user_preference/${currentUser}`)
+    const res = await axios.get(`/api/user_preference/${currentUser}`)
     userProfile.value = res.data
   } catch(e) { 
     console.error('获取用户画像失败:', e)
@@ -430,7 +578,7 @@ const getAnotherPoem = async () => {
 
   try {
     skipCount.value++
-    const res = await axios.get(`http://127.0.0.1:5000/api/recommend_one/${currentUser}?current_id=${currentId}&skip_count=${skipCount.value}`)
+    const res = await axios.get(`/api/recommend_one/${currentUser}?current_id=${currentId}&skip_count=${skipCount.value}`)
     dailyPoem.value = res.data
     fetchReviews(dailyPoem.value.id)
     fetchAllusions(dailyPoem.value.id)
@@ -443,27 +591,25 @@ const getAnotherPoem = async () => {
 
 const fetchReviews = async (id) => {
   try {
-    const res = await axios.get(`http://127.0.0.1:5000/api/poem/${id}/reviews`)
+    const res = await axios.get(`/api/poem/${id}/reviews`)
     reviews.value = res.data
   } catch(e) { console.error('获取评论失败:', e) }
 }
 
 const fetchAllusions = async (id) => {
   try {
-    const res = await axios.get(`http://127.0.0.1:5000/api/poem/${id}/allusions`)
+    const res = await axios.get(`/api/poem/${id}/allusions`)
     allusions.value = res.data
   } catch(e) {
-    console.error('获取用典注释失败:', e)
     allusions.value = []
   }
 }
 
 const fetchPoemHelper = async (id) => {
   try {
-    const res = await axios.get(`http://127.0.0.1:5000/api/poem/${id}/helper`)
+    const res = await axios.get(`/api/poem/${id}/helper`)
     poemHelper.value = res.data
   } catch(e) {
-    console.error('获取诗歌辅助信息失败:', e)
     poemHelper.value = {
       author_bio: '',
       background: '',
@@ -474,12 +620,13 @@ const fetchPoemHelper = async (id) => {
 
 const fetchPoemAnalysis = async (id) => {
   try {
-    const res = await axios.get(`http://127.0.0.1:5000/api/poem/${id}/analysis`)
+    const res = await axios.get(`/api/poem/${id}/analysis`)
     poemAnalysis.value = res.data
-    // 触发图表更新
-    updatePoemCharts()
   } catch(e) { 
     console.error('获取诗歌分析失败:', e)
+  } finally {
+    // 无论成功失败，都尝试初始化图表（因为有默认值兜底）
+    updatePoemCharts()
   }
 }
 
@@ -489,18 +636,21 @@ const submitComment = async () => {
     return
   }
   try {
-    const res = await axios.post('http://127.0.0.1:5000/api/poem/review', {
+    const res = await axios.post('/api/poem/review', {
       username: currentUser,
       poem_id: dailyPoem.value.id,
       rating: newRating.value,
+      liked: newLiked.value,
       comment: newComment.value
     })
     if(res.data.status === 'success') {
       fetchReviews(dailyPoem.value.id)
       newComment.value = ''
+      newRating.value = 3
+      newLiked.value = false
     }
   } catch(e) {
-    console.error('发表评论失败:', e)
+    message.error(e.response?.data?.message || '发表评论失败')
   }
 }
 
@@ -513,7 +663,7 @@ const logout = () => {
 
 const fetchPoemById = async (id) => {
   try {
-    const res = await axios.get(`http://127.0.0.1:5000/api/poem/${id}`)
+    const res = await axios.get(`/api/poem/${id}`)
     dailyPoem.value = res.data
     fetchReviews(id)
     fetchAllusions(id)
@@ -524,14 +674,6 @@ const fetchPoemById = async (id) => {
   }
 }
 
-onMounted(() => {
-  if (route.query.poemId) {
-    fetchPoemById(route.query.poemId)
-  } else {
-    getAnotherPoem()
-  }
-  fetchUserProfile()
-})
 
 // 监听路由参数变化，支持搜索结果切换
 watch(() => route.query.poemId, (newId) => {
@@ -891,6 +1033,48 @@ watch(() => route.query.poemId, (newId) => {
   transform: translateY(0) scale(0.98);
 }
 
+.imagery-cloud-container {
+  height: 180px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+  background: rgba(249, 249, 249, 0.5);
+  border-radius: 8px;
+  border: 1px dashed rgba(0,0,0,0.05);
+}
+
+.imagery-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  padding: 15px;
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.cloud-tag {
+  display: inline-block;
+  transition: all 0.3s ease;
+  cursor: default;
+  font-family: 'Ma Shan Zheng', cursive, "Noto Serif SC", serif;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.cloud-tag:hover {
+  transform: scale(1.2) rotate(2deg);
+  opacity: 1 !important;
+  z-index: 10;
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
 
 /* ==================== REVIEWS & HELPERS ==================== */
 .reviews-container,
@@ -948,6 +1132,16 @@ watch(() => route.query.poemId, (newId) => {
   margin-bottom: 6px;
 }
 
+.review-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.liked-icon {
+  color: var(--cinnabar-red);
+}
+
 .r-user {
   font-size: 12px;
   font-weight: 500;
@@ -986,6 +1180,14 @@ watch(() => route.query.poemId, (newId) => {
 
 .quick-comment:hover {
   background: rgba(255, 255, 255, 0.95);
+}
+
+.like-btn {
+  color: var(--cinnabar-red) !important;
+}
+
+.like-btn:hover {
+  background: rgba(207, 63, 53, 0.08) !important;
 }
 
 /* 覆盖评论输入框默认样式，移除绿色光线效果 */
@@ -1071,6 +1273,51 @@ watch(() => route.query.poemId, (newId) => {
 
 .viz-card:hover {
   background: rgba(0, 0, 0, 0.04);
+}
+
+/* Frosted Glass Visualization */
+.frosted-glass-viz {
+  width: 100%;
+  height: 180px;
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  /* Light shadow for depth */
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.gradient-mesh {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  /* Smooth blur to blend gradients naturally */
+  filter: blur(40px) saturate(1.5);
+  transform: scale(1.2); /* Scale up to hide blur edges */
+  opacity: 0.8;
+  transition: all 1s ease;
+  animation: meshBreath 10s ease-in-out infinite alternate;
+}
+
+.glass-surface {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  /* The "frosted" texture - noise + white overlay */
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px); /* Creates the glass distortion over the mesh */
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  /* Optional: subtle noise texture could go here if assets allowed */
+}
+
+@keyframes meshBreath {
+  0% { transform: scale(1.2) rotate(0deg); }
+  100% { transform: scale(1.3) rotate(2deg); }
 }
 
 .poem-title {

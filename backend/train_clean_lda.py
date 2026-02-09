@@ -73,7 +73,7 @@ def main():
         with app.app_context():
             poems = Poem.query.all()
             for i, p in enumerate(poems):
-                p.LDA_topic = lda_analysis.predict_topic(p.content, lda, dictionary, topic_keywords)
+                p.Bertopic = lda_analysis.predict_topic(p.content, lda, dictionary, topic_keywords)
                 if i % 100 == 0:
                     print(f"  - DB Sync: {i}/{len(poems)}")
             db.session.commit()

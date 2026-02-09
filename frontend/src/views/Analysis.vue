@@ -140,7 +140,7 @@ const initCharts = async () => {
   chartInstances = []
 
   try {
-    const statsRes = await axios.get('http://127.0.0.1:5000/api/visual/stats', {
+    const statsRes = await axios.get('/api/visual/stats', {
       params: { user_id: currentUser === '访客' ? '' : currentUser }
     })
     stats.value = statsRes.data
@@ -188,7 +188,7 @@ const initCharts = async () => {
     }
 
     // 词云
-    const wcRes = await axios.get('http://127.0.0.1:5000/api/visual/wordcloud', {
+    const wcRes = await axios.get('/api/visual/wordcloud', {
       params: { user_id: currentUser === '访客' ? '' : currentUser }
     })
     if (wordCloudRef.value) {

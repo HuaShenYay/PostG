@@ -50,9 +50,17 @@ class Poem(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # Recommendation/LDA fields
-    LDA_topic = db.Column(db.Text)  # LDA主题名文本
+    Bertopic = db.Column(db.Text)  # Bertopic主题名文本 (原 LDA_topic)
     Real_topic = db.Column(db.Text) # 真实主题（人工标注）
     
+    @property
+    def average_rating(self):
+        reviews = Review.query.filter_by(poem_id=self.id).all()
+        if reviews:
+            return sum(r.rating for r in reviews) / len(reviews)
+        else:
+            return 3.0
+
     def to_dict(self):
         return {
             'id': self.id,
@@ -65,8 +73,9 @@ class Poem(db.Model):
             'rhythm_type': self.rhythm_type,
             'views': self.views,
             'review_count': self.review_count,
-            'LDA_topic': self.LDA_topic,
+            'Bertopic': self.Bertopic, # Renamed from LDA_topic
             'Real_topic': self.Real_topic,
+            'average_rating': self.average_rating,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }
@@ -81,6 +90,8 @@ class Review(db.Model):
     
     # New fields
     topic_names = db.Column(db.Text) # LDA分析这首评论属于哪个主题名
+    rating = db.Column(db.Float, default=3.0)
+    liked = db.Column(db.Boolean, default=False)
     
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -96,6 +107,8 @@ class Review(db.Model):
             'poem_id': self.poem_id,
             'comment': self.comment,
             'topic_names': self.topic_names,
+            'rating': self.rating,
+            'liked': self.liked,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }

@@ -50,30 +50,7 @@
             <div class="zen-divider"></div>
         </div>
 
-        <!-- 模式切换器 -->
-        <div class="mode-switcher-container anim-fade-up">
-            <div class="mode-switcher">
-                <div 
-                    v-for="mode in modes" 
-                    :key="mode.value"
-                    class="mode-item"
-                    :class="{ active: viewMode === mode.value }"
-                    @click="viewMode = mode.value"
-                >
-                    <n-icon>
-                        <component :is="
-                            mode.value === 'overview' ? NAppsOutline : 
-                            mode.value === 'trends' ? NTrendingUpOutline : 
-                            NCompare
-                        " />
-                    </n-icon>
-                    <span>{{ mode.label }}</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- 总览模式 -->
-        <div v-if="viewMode === 'overview'" class="mode-content overview-mode">
+        <div class="mode-content overview-mode">
             <!-- 全站统计 -->
             <div class="stat-hero-row glass-card anim-fade-up">
                 <div class="stat-hero-item" v-for="(item, idx) in [
@@ -140,28 +117,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- 趋势模式 -->
-        <div v-if="viewMode === 'trends'" class="mode-content">
-            <div class="glass-card viz-card-large anim-fade-up">
-                <div class="section-zen-header">
-                    <div class="header-accent"></div>
-                    <h3>社区活跃脉动</h3>
-                </div>
-                <div ref="trendChartRef" style="height: 400px;"></div>
-            </div>
-        </div>
-
-        <!-- 对比模式 -->
-        <div v-if="viewMode === 'compare'" class="mode-content">
-            <div class="glass-card viz-card-large anim-fade-up">
-                <div class="section-zen-header">
-                    <div class="header-accent"></div>
-                    <h3>维度深度博弈</h3>
-                </div>
-                <div ref="compareChartRef" style="height: 400px;"></div>
-            </div>
-        </div>
     </main>
   </div>
 </template>
@@ -198,25 +153,11 @@ import {
 const router = useRouter()
 const currentUser = localStorage.getItem('user') || '访客'
 
-// 状态
-const viewMode = ref('overview')
 const popularTimeRange = ref('week')
-const trendPeriod = ref('week')
-const compareMetric = ref('engagement')
-const compareDimension = ref('dynasty')
-
-// 模式配置
-const modes = [
-  { label: '总览', value: 'overview' },
-  { label: '趋势', value: 'trends' },
-  { label: '对比', value: 'compare' }
-]
 
 // 图表引用
 const themeChartRef = ref(null)
 const dynastyChartRef = ref(null)
-const trendChartRef = ref(null)
-const compareChartRef = ref(null)
 
 let charts = []
 
@@ -242,14 +183,6 @@ const themeDistribution = ref([])
 // 朝代分布数据
 const dynastyDistribution = ref([])
 
-// 趋势数据
-const trendData = ref({
-  dates: [],
-  users: [],
-  reviews: [],
-  poems: []
-})
-
 // 词云数据
 const wordCloudData = ref([])
 
@@ -260,31 +193,10 @@ const timeRangeOptions = [
   { label: '本月', value: 'month' }
 ]
 
-const periodOptions = [
-  { label: '近7天', value: 'week' },
-  { label: '近30天', value: 'month' },
-  { label: '近90天', value: 'quarter' },
-  { label: '近一年', value: 'year' }
-]
-
-const metricOptions = [
-  { label: '互动率', value: 'engagement' },
-  { label: '评论数', value: 'reviews' },
-  { label: '点赞数', value: 'likes' },
-  { label: '分享数', value: 'shares' }
-]
-
-const dimensionOptions = [
-  { label: '朝代', value: 'dynasty' },
-  { label: '主题', value: 'theme' },
-  { label: '作者', value: 'author' },
-  { label: '体裁', value: 'genre' }
-]
-
 // 获取全站统计数据
 const fetchGlobalStats = async () => {
   try {
-    const res = await axios.get('http://127.0.0.1:5000/api/global/stats')
+    const res = await axios.get('/api/global/stats')
     globalStats.value = res.data
   } catch (error) {
     console.error('获取全站统计失败:', error)
@@ -294,7 +206,7 @@ const fetchGlobalStats = async () => {
 // 获取热门诗歌
 const fetchPopularPoems = async () => {
   try {
-    const res = await axios.get(`http://127.0.0.1:5000/api/global/popular-poems?time_range=${popularTimeRange.value}`)
+    const res = await axios.get(`/api/global/popular-poems?time_range=${popularTimeRange.value}`)
     // 按评论数排序
     popularPoems.value = res.data.sort((a, b) => {
       const reviewCountA = a.review_count || 0
@@ -309,7 +221,7 @@ const fetchPopularPoems = async () => {
 // 获取主题分布
 const fetchThemeDistribution = async () => {
   try {
-    const res = await axios.get('http://127.0.0.1:5000/api/global/theme-distribution')
+    const res = await axios.get('/api/global/theme-distribution')
     themeDistribution.value = res.data
   } catch (error) {
     console.error('获取主题分布失败:', error)
@@ -319,27 +231,17 @@ const fetchThemeDistribution = async () => {
 // 获取朝代分布
 const fetchDynastyDistribution = async () => {
   try {
-    const res = await axios.get('http://127.0.0.1:5000/api/global/dynasty-distribution')
+    const res = await axios.get('/api/global/dynasty-distribution')
     dynastyDistribution.value = res.data
   } catch (error) {
     console.error('获取朝代分布失败:', error)
   }
 }
 
-// 获取趋势数据
-const fetchTrendData = async () => {
-  try {
-    const res = await axios.get(`http://127.0.0.1:5000/api/global/trends?period=${trendPeriod.value}`)
-    trendData.value = res.data
-  } catch (error) {
-    console.error('获取趋势数据失败:', error)
-  }
-}
-
 // 获取词云数据
 const fetchWordCloudData = async () => {
   try {
-    const res = await axios.get('http://127.0.0.1:5000/api/global/wordcloud')
+    const res = await axios.get('/api/global/wordcloud')
     wordCloudData.value = res.data
   } catch (error) {
     console.error('获取词云数据失败:', error)
@@ -354,147 +256,83 @@ const initCharts = () => {
   // 确保DOM元素已挂载
   const isElementMounted = (ref) => ref && ref.value && typeof ref.value === 'object' && 'clientWidth' in ref.value
 
-  if (viewMode.value === 'overview') {
-    // 主题分布图
-    if (isElementMounted(themeChartRef) && themeDistribution.value.length > 0) {
-      const c = echarts.init(themeChartRef.value)
-      c.setOption({
-        tooltip: { 
-          trigger: 'item', 
-          backgroundColor: 'rgba(255,255,255,0.9)', 
-          textStyle: { color: '#1a1a1a' },
-          formatter: '{b}: {c} ({d}%)'
+  if (isElementMounted(themeChartRef) && themeDistribution.value.length > 0) {
+    const c1 = echarts.init(themeChartRef.value)
+    c1.setOption({
+      tooltip: { 
+        trigger: 'item', 
+        backgroundColor: 'rgba(255,255,255,0.9)', 
+        textStyle: { color: '#1a1a1a' },
+        formatter: '{b}: {c} ({d}%)'
+      },
+      series: [{
+        type: 'pie',
+        radius: ['60%', '85%'],
+        itemStyle: { 
+          borderRadius: 16, 
+          borderColor: '#fdfbf7', 
+          borderWidth: 4,
+          shadowColor: 'rgba(0,0,0,0.1)',
+          shadowBlur: 10
         },
-        series: [{
-          type: 'pie',
-          radius: ['60%', '85%'],
-          itemStyle: { 
-            borderRadius: 16, 
-            borderColor: '#fdfbf7', 
-            borderWidth: 4,
-            shadowColor: 'rgba(0,0,0,0.1)',
-            shadowBlur: 10
-          },
-          data: themeDistribution.value.map(item => ({
-            value: item.value,
-            name: item.name,
-            itemStyle: { 
-              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                { offset: 0, color: '#cf3f35' },
-                { offset: 1, color: '#8a1616' }
-              ])
-            }
-          })),
-          label: {
-            show: true,
-            formatter: '{b}: {d}%',
-            position: 'outside',
-            color: '#333',
-            fontSize: 12,
-            fontWeight: 'bold'
-          },
-          labelLine: {
-            show: true,
-            length: 20,
-            length2: 30,
-            lineStyle: {
-              color: '#999'
-            }
-          }
-        }]
-      })
-      charts.push(c)
-    }
-    
-    // 朝代分布图
-    if (isElementMounted(dynastyChartRef) && dynastyDistribution.value.length > 0) {
-      const c = echarts.init(dynastyChartRef.value)
-      c.setOption({
-        xAxis: { 
-          type: 'category', 
-          data: dynastyDistribution.value.map(d => d.name), 
-          axisLine: { lineStyle: { color: 'rgba(0,0,0,0.05)' } }, 
-          axisTick: { show: false },
-          axisLabel: { color: 'var(--text-tertiary)', fontSize: 11, fontFamily: 'Noto Serif SC' }
-        },
-        yAxis: { show: false },
-        series: [{
-          data: dynastyDistribution.value.map(d => d.value),
-          type: 'bar',
+        data: themeDistribution.value.map(item => ({
+          value: item.value,
+          name: item.name,
           itemStyle: { 
             color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
               { offset: 0, color: '#cf3f35' },
-              { offset: 1, color: 'rgba(207, 63, 53, 0.3)' }
-            ]),
-            borderRadius: [4, 4, 0, 0]
+              { offset: 1, color: '#8a1616' }
+            ])
           }
-        }],
-        grid: { top: 20, bottom: 30, left: 10, right: 10 }
-      })
-      charts.push(c)
-    }
-  } else if (viewMode.value === 'trends') {
-    // 趋势图
-    if (isElementMounted(trendChartRef) && trendData.value.dates.length > 0) {
-      const c = echarts.init(trendChartRef.value)
-      c.setOption({
-        tooltip: { trigger: 'axis' },
-        xAxis: { type: 'category', data: trendData.value.dates },
-        yAxis: { type: 'value' },
-        series: [{
-          data: trendData.value.users,
-          type: 'line',
-          smooth: true,
-          lineStyle: { color: '#cf3f35', width: 4, shadowBlur: 15, shadowColor: 'rgba(207,63,53,0.3)' },
-          name: '活跃用户'
-        }, {
-          data: trendData.value.reviews,
-          type: 'line',
-          smooth: true,
-          lineStyle: { color: '#bfa46f', width: 3 },
-          name: '评论数'
-        }, {
-          data: trendData.value.poems,
-          type: 'line',
-          smooth: true,
-          lineStyle: { color: '#1a1a1a', width: 3 },
-          name: '诗歌数'
-        }]
-      })
-      charts.push(c)
-    }
-  } else if (viewMode.value === 'compare') {
-    // 对比图
-    if (isElementMounted(compareChartRef)) {
-      const c = echarts.init(compareChartRef.value)
-      c.setOption({
-        radar: {
-          indicator: [
-            { name: '唐', max: 100 },
-            { name: '宋', max: 100 },
-            { name: '元', max: 100 },
-            { name: '明', max: 100 },
-            { name: '清', max: 100 }
-          ]
+        })),
+        label: {
+          show: true,
+          formatter: '{b}: {d}%',
+          position: 'outside',
+          color: '#333',
+          fontSize: 12,
+          fontWeight: 'bold'
         },
-        series: [{
-          type: 'radar',
-          data: [{
-            value: [85, 78, 45, 62, 55],
-            name: '互动指数',
-            itemStyle: { color: '#cf3f35' },
-            areaStyle: { color: 'rgba(207, 63, 53, 0.3)' }
-          }]
-        }]
-      })
-      charts.push(c)
-    }
+        labelLine: {
+          show: true,
+          length: 20,
+          length2: 30,
+          lineStyle: {
+            color: '#999'
+          }
+        }
+      }]
+    })
+    charts.push(c1)
+  }
+  
+  if (isElementMounted(dynastyChartRef) && dynastyDistribution.value.length > 0) {
+    const c2 = echarts.init(dynastyChartRef.value)
+    c2.setOption({
+      xAxis: { 
+        type: 'category', 
+        data: dynastyDistribution.value.map(d => d.name), 
+        axisLine: { lineStyle: { color: 'rgba(0,0,0,0.05)' } }, 
+        axisTick: { show: false },
+        axisLabel: { color: 'var(--text-tertiary)', fontSize: 11, fontFamily: 'Noto Serif SC' }
+      },
+      yAxis: { show: false },
+      series: [{
+        data: dynastyDistribution.value.map(d => d.value),
+        type: 'bar',
+        itemStyle: { 
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: '#cf3f35' },
+            { offset: 1, color: 'rgba(207, 63, 53, 0.3)' }
+          ]),
+          borderRadius: [4, 4, 0, 0]
+        }
+      }],
+      grid: { top: 20, bottom: 30, left: 10, right: 10 }
+    })
+    charts.push(c2)
   }
 }
-
-watch(viewMode, () => {
-    nextTick(() => initCharts())
-})
 
 const handleResize = () => charts.forEach(c => c.resize())
 
@@ -504,7 +342,6 @@ onMounted(() => {
     fetchPopularPoems()
     fetchThemeDistribution()
     fetchDynastyDistribution()
-    fetchTrendData()
     fetchWordCloudData()
     
     // 延迟初始化图表以确保数据加载完成
@@ -521,11 +358,6 @@ onUnmounted(() => {
 // 监听时间范围变化
 watch(popularTimeRange, () => {
     fetchPopularPoems()
-})
-
-// 监听趋势周期变化
-watch(trendPeriod, () => {
-    fetchTrendData()
 })
 
 const goHome = () => router.push('/')

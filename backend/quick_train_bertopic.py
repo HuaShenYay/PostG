@@ -27,8 +27,10 @@ def quick_train(limit=2000):
         all_poems = Poem.query.all()
         for p in all_poems:
             tid, tname = bertopic_analysis.predict_topic(p.content, model)
-            p.LDA_topic = tname
-            p.Real_topic = str(tid)
+            p.Bertopic = tname
+            label = bertopic_analysis.generate_real_topic(p.content)
+            keywords = bertopic_analysis.get_individual_keywords(p.content, top_k=4)
+            p.Real_topic = f"{label}-{keywords}" if keywords and keywords not in {"未知", "未分类"} else label
         db.session.commit()
     print("[Success] System is now functional with Mini-Model.")
 

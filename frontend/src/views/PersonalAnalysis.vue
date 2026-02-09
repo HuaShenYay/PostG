@@ -53,12 +53,11 @@
         <div class="analysis-stack">
             <!-- 阅历摘要 (Minimalist & Elevated) -->
             <div class="glass-card stat-hero-row anim-fade-up">
-                <div class="stat-hero-item" v-for="(val, label, idx) in { '阅览诗章': userStats.totalReads, '贡献雅评': userStats.reviewCount, '平均赏析': userStats.avgRating, '游历时长': userStats.activeDays }" :key="label">
+                <div class="stat-hero-item" v-for="(val, label, idx) in { '阅览诗章': userStats.totalReads, '贡献雅评': userStats.reviewCount, '游历时长': userStats.activeDays }" :key="label">
                     <div class="stat-icon-gate">
                         <n-icon v-if="idx===0"><NBook /></n-icon>
                         <n-icon v-if="idx===1"><NChatBubble /></n-icon>
-                        <n-icon v-if="idx===2"><NStar /></n-icon>
-                        <n-icon v-if="idx===3"><NCalendar /></n-icon>
+                        <n-icon v-if="idx===2"><NCalendar /></n-icon>
                     </div>
                     <div class="stat-content">
                         <span class="stat-label-hero">{{ label }}</span>
@@ -66,12 +65,10 @@
                             {{ val }}
                             <small v-if="label === '阅览诗章'">篇</small>
                             <small v-else-if="label === '贡献雅评'">条</small>
-                            <small v-else-if="label === '平均赏析'">分</small>
                             <small v-else-if="label === '游历时长'">天</small>
                         </span>
                     </div>
                 </div>
-                <!-- Decorative Watermark -->
                 <div class="watermark-icon"><NHeart /></div>
             </div>
 
@@ -111,6 +108,14 @@
                     <h3>雅评万象词云</h3>
                 </div>
                 <div ref="wordCloudRef" style="height: 400px;"></div>
+            </div>
+
+            <div class="glass-card viz-card-elegant anim-fade-up" style="animation-delay: 0.2s">
+                <div class="section-zen-header">
+                    <div class="header-accent"></div>
+                    <h3>诗人-主题流向</h3>
+                </div>
+                <div ref="poetThemeSankeyRef" style="height: 380px;"></div>
             </div>
 
             <!-- 格律与节律 (Side by Side Grid) -->
@@ -176,7 +181,6 @@ import {
   GlobeOutline as NGlobeOutline, 
   BookOutline as NBook, 
   ChatbubbleOutline as NChatBubble, 
-  StarOutline as NStar, 
   CalendarOutline as NCalendar, 
   Heart as NHeart, 
   Sparkles as NSparkles,
@@ -204,16 +208,17 @@ const preferenceChartRef = ref(null)
 const timeChartRef = ref(null)
 const formChartRef = ref(null)
 const wordCloudRef = ref(null)
+const poetThemeSankeyRef = ref(null)
 
 let prefChart = null
 let timeChart = null
 let formChart = null
 let wcChart = null
+let poetThemeSankeyChart = null
 
 // 用户统计数据
 const userStats = ref({
   totalReads: 0,
-  avgRating: 0,
   reviewCount: 0,
   activeDays: 0
 })
@@ -223,17 +228,19 @@ const recommendedPoems = ref([])
 const formStats = ref([])
 const wordCloudData = ref([])
 const timeInsights = ref([])
+const poetThemeSankeyData = ref({ nodes: [], links: [] })
 
 // Fetch Data
 const fetchData = async () => {
   try {
-    const [statsRes, prefRes, timeRes, formRes, wcRes, recRes] = await Promise.all([
-      axios.get(`http://127.0.0.1:5000/api/user/${currentUser}/stats`),
-      axios.get(`http://127.0.0.1:5000/api/user/${currentUser}/preferences`),
-      axios.get(`http://127.0.0.1:5000/api/user/${currentUser}/time-analysis`),
-      axios.get(`http://127.0.0.1:5000/api/user/${currentUser}/form-stats`),
-      axios.get(`http://127.0.0.1:5000/api/user/${currentUser}/wordcloud`),
-      axios.get(`http://127.0.0.1:5000/api/user/${currentUser}/recommendations`)
+    const [statsRes, prefRes, timeRes, formRes, wcRes, recRes, sankeyRes] = await Promise.all([
+      axios.get(`/api/user/${currentUser}/stats`),
+      axios.get(`/api/user/${currentUser}/preferences`),
+      axios.get(`/api/user/${currentUser}/time-analysis`),
+      axios.get(`/api/user/${currentUser}/form-stats`),
+      axios.get(`/api/user/${currentUser}/wordcloud`),
+      axios.get(`/api/user/${currentUser}/recommendations`),
+      axios.get(`/api/user/${currentUser}/poet-topic-sankey`)
     ])
     
     userStats.value = statsRes.data
@@ -242,6 +249,7 @@ const fetchData = async () => {
     formStats.value = formRes.data
     wordCloudData.value = wcRes.data
     recommendedPoems.value = recRes.data.poems
+    poetThemeSankeyData.value = sankeyRes.data
     
     nextTickExec(() => {
         initCharts()
@@ -249,7 +257,7 @@ const fetchData = async () => {
   } catch (err) {
     console.warn('API error, using fallbacks', err)
     // Fallbacks
-    userStats.value = { totalReads: 124, avgRating: 4.5, reviewCount: 42, activeDays: 28 }
+    userStats.value = { totalReads: 124, reviewCount: 42, activeDays: 28 }
     userPreferences.value = [
         { topic_name: '山水田园', percentage: 45, color: '#cf3f35' },
         { topic_name: '思乡情怀', percentage: 30, color: '#bfa46f' },
@@ -258,6 +266,14 @@ const fetchData = async () => {
     formStats.value = [ { name: '七绝', value: 45 }, { name: '五律', value: 25 }, { name: '七律', value: 20 }, { name: '其他', value: 10 } ]
     wordCloudData.value = [ { name: '意境', value: 100 }, { name: '深远', value: 80 } ]
     recommendedPoems.value = [ { id: 1, title: '春江花月夜', author: '张若虚', content: '...', reason: '推荐' } ]
+    poetThemeSankeyData.value = {
+        nodes: [{ name: '李白' }, { name: '杜甫' }, { name: '思乡' }, { name: '山水' }],
+        links: [
+            { source: '李白', target: '山水', value: 3 },
+            { source: '李白', target: '思乡', value: 2 },
+            { source: '杜甫', target: '思乡', value: 4 }
+        ]
+    }
     
     nextTickExec(() => {
         initCharts()
@@ -403,6 +419,21 @@ const initCharts = () => {
             }]
         })
     }
+
+    if (poetThemeSankeyRef.value && poetThemeSankeyData.value.nodes.length > 0) {
+        poetThemeSankeyChart = echarts.init(poetThemeSankeyRef.value)
+        poetThemeSankeyChart.setOption({
+            tooltip: { trigger: 'item' },
+            series: [{
+                type: 'sankey',
+                data: poetThemeSankeyData.value.nodes,
+                links: poetThemeSankeyData.value.links,
+                lineStyle: { color: 'gradient', curveness: 0.5, opacity: 0.3 },
+                itemStyle: { color: '#A61B1B' },
+                label: { color: 'var(--ink-black)', fontFamily: 'Noto Serif SC' }
+            }]
+        })
+    }
 }
 
 const handleResize = () => {
@@ -410,6 +441,7 @@ const handleResize = () => {
     timeChart?.resize()
     formChart?.resize()
     wcChart?.resize()
+    poetThemeSankeyChart?.resize()
 }
 
 onMounted(() => {
@@ -423,6 +455,7 @@ onUnmounted(() => {
     if (timeChart) timeChart.dispose()
     if (formChart) formChart.dispose()
     if (wcChart) wcChart.dispose()
+    if (poetThemeSankeyChart) poetThemeSankeyChart.dispose()
 })
 
 // Navigation

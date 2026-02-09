@@ -3,11 +3,12 @@ from flask_cors import CORS
 from config import Config
 from models import db, User, Poem, Review
 from datetime import datetime, timedelta
+import time
 import pandas as pd
-from sqlalchemy import text
+from sqlalchemy import text, inspect
 import os
 # from lda_analysis import train_lda_on_poems, load_stopwords, preprocess_text, save_lda_model, load_lda_model, predict_topic
-from bertopic_analysis import load_bertopic_model, predict_topic, get_all_topics
+from bertopic_analysis import load_bertopic_model, predict_topic, get_all_topics, get_poem_imagery, generate_real_topic, get_individual_keywords
 import json
 from collections import Counter
 from sqlalchemy import func
@@ -28,6 +29,31 @@ add_recommendation_routes(app)
 # dictionary = None
 bertopic_model = None
 topic_keywords = {}
+_cache_store = {}
+
+def _cache_get(key):
+    entry = _cache_store.get(key)
+    if not entry:
+        return None
+    expires_at, value = entry
+    if expires_at is not None and expires_at < time.time():
+        _cache_store.pop(key, None)
+        return None
+    return value
+
+def _cache_set(key, value, ttl=60):
+    expires_at = time.time() + ttl if ttl else None
+    _cache_store[key] = (expires_at, value)
+    return value
+
+def _cache_clear(prefixes=None):
+    if not prefixes:
+        _cache_store.clear()
+        return
+    keys = list(_cache_store.keys())
+    for k in keys:
+        if any(k.startswith(p) for p in prefixes):
+            _cache_store.pop(k, None)
 
 def sync_global_cache():
     """同步数据库数据到全局变量 (已简化，主要用于初始化模型)"""
@@ -55,11 +81,11 @@ def refresh_system_data():
             tid, tname = predict_topic(r.comment, bertopic_model)
             r.topic_names = tname
         
-        new_poems = Poem.query.filter(Poem.LDA_topic == None).all()
+        new_poems = Poem.query.filter(Poem.Bertopic == None).all()
         for p in new_poems:
             tid, tname = predict_topic(p.content, bertopic_model)
-            p.LDA_topic = tname
-            p.Real_topic = str(tid)
+            p.Bertopic = tname
+            p.Real_topic = generate_real_topic(p.content, author=p.author)
         
         db.session.commit()
 
@@ -77,6 +103,23 @@ def refresh_system_data():
             p.review_count = Review.query.filter_by(poem_id=p.id).count()
             
         db.session.commit()
+        _cache_clear()
+
+def ensure_review_columns():
+    try:
+        inspector = inspect(db.engine)
+        columns = {c["name"] for c in inspector.get_columns("reviews")}
+        statements = []
+        if "rating" not in columns:
+            statements.append("ALTER TABLE reviews ADD COLUMN rating FLOAT DEFAULT 3.0")
+        if "liked" not in columns:
+            statements.append("ALTER TABLE reviews ADD COLUMN liked BOOLEAN DEFAULT 0")
+        for stmt in statements:
+            db.session.execute(text(stmt))
+        if statements:
+            db.session.commit()
+    except Exception:
+        db.session.rollback()
 
 def init_db_and_model():
     """初始化数据库并进行首次同步"""
@@ -84,6 +127,7 @@ def init_db_and_model():
         try:
             db.create_all()
             print("数据库表结构已同步。")
+            ensure_review_columns()
             init_recommendation_system(app)
         except Exception as e:
             print(f"数据库初始化失败: {e}")
@@ -184,6 +228,52 @@ def get_poem(poem_id):
         return jsonify({"error": "Poem not found"}), 404
     return jsonify(poem.to_dict())
 
+@app.route('/api/search')
+def search_poems_advanced():
+    query = request.args.get('query', '')
+    genre = request.args.get('genre', '')
+    dynasty = request.args.get('dynasty', '')
+    author = request.args.get('author', '')
+    page = int(request.args.get('page', 1))
+    page_size = int(request.args.get('page_size', 10))
+    offset = (page - 1) * page_size
+
+    filters = []
+    if query:
+        filters.append((Poem.title.ilike(f'%{query}%')) | (Poem.content.ilike(f'%{query}%')))
+    if genre:
+        filters.append(Poem.genre_type == genre)
+    if dynasty:
+        filters.append(Poem.dynasty == dynasty)
+    if author:
+        filters.append(Poem.author.ilike(f'%{author}%'))
+
+    query_obj = Poem.query
+    if filters:
+        query_obj = query_obj.filter(*filters)
+    
+    # Sort by views desc by default
+    total = query_obj.count()
+    poems = query_obj.order_by(Poem.views.desc()).limit(page_size).offset(offset).all()
+
+    return jsonify({
+        'poems': [p.to_dict() for p in poems],
+        'total': total,
+        'page': page,
+        'page_size': page_size
+    })
+
+@app.route('/api/filters')
+def get_filters():
+    genres = db.session.query(Poem.genre_type).distinct().all()
+    genres = [g[0] for g in genres if g[0]]
+    dynasties = db.session.query(Poem.dynasty).distinct().all()
+    dynasties = [d[0] for d in dynasties if d[0]]
+    return jsonify({
+        'genres': genres,
+        'dynasties': dynasties
+    })
+
 @app.route('/api/search_poems')
 def search_poems():
     query = request.args.get('q', '')
@@ -244,6 +334,8 @@ def get_poem_reviews(poem_id):
             "username": user.username if user else "匿名",
             "comment": r.comment,
             "topic_names": r.topic_names,
+            "rating": r.rating,
+            "liked": r.liked,
             "created_at": r.created_at.isoformat() if r.created_at else None
         })
     return jsonify(result)
@@ -259,16 +351,64 @@ def get_single_poem_analysis(poem_id):
     from pypinyin import pinyin, Style
     lines = [l.strip() for l in re.split(r'[，。！？；\n]', poem.content) if l.strip()]
     matrix = []
+    
+    tonal_sequence = []
+    char_labels = []
+    
+    # New: Sentiment Analysis
+    from snownlp import SnowNLP
+    sentiment_curve = []
+    
     for line in lines:
         line_pinyin = pinyin(line, style=Style.TONE3, neutral_tone_with_five=True)
-        line_matrix = [{"char": char, "tone": "平" if (py[0][-1] in '12') else "仄"} for char, py in zip(line, line_pinyin)]
+        line_matrix = []
+        for char, py in zip(line, line_pinyin):
+            # 1/2 tone -> Ping (Level) -> 1
+            # 3/4 tone -> Ze (Oblique) -> 0
+            is_ping = py[0][-1] in '12'
+            tone_val = 1 if is_ping else 0
+            
+            line_matrix.append({"char": char, "tone": "平" if is_ping else "仄"})
+            
+            tonal_sequence.append(tone_val)
+            char_labels.append(char)
+            
         matrix.append(line_matrix)
+        
+        # Calculate sentiment for the whole line
+        try:
+            s = SnowNLP(line)
+            # SnowNLP returns 0-1, where >0.5 is positive
+            sentiment_curve.append(round(s.sentiments, 2))
+        except:
+            sentiment_curve.append(0.5)
+
+    # Get Imagery (Keywords)
+    imagery = get_poem_imagery(poem.content)
     
+    # Get Atmosphere Colors
+    # Use average sentiment of the poem for color fallback
+    avg_sentiment = sum(sentiment_curve) / len(sentiment_curve) if sentiment_curve else 0.5
+    from bertopic_analysis import get_poem_colors, get_poem_emotions
+    colors = get_poem_colors(poem.content, avg_sentiment)
+    
+    # Get Emotions for Radar Chart
+    emotions = get_poem_emotions(poem.content)
+
     return jsonify({
         "matrix": matrix,
         "title": poem.title,
         "author": poem.author,
-        "LDA_topic": poem.LDA_topic # Variable name kept for frontend compat, but content is BERTopic
+        "Bertopic": poem.Bertopic, # Renamed from LDA_topic
+        "chart_data": {
+            "tonal_sequence": tonal_sequence,
+            "char_labels": char_labels,
+            "sentiment": [], # Kept for compatibility if needed, but we use sentiment_curve now
+            "sentiment_curve": sentiment_curve,
+            "imagery": imagery,
+            "colors": colors,
+            "emotions": emotions
+        }
     })
 
 @app.route('/api/poem/review', methods=['POST'])
@@ -277,6 +417,8 @@ def add_review():
     username = data.get('username')
     poem_id = data.get('poem_id')
     comment = data.get('comment')
+    rating = data.get('rating')
+    liked = data.get('liked')
     
     if not all([username, poem_id, comment]):
         return jsonify({"message": "缺失必要信息", "status": "error"}), 400
@@ -285,10 +427,19 @@ def add_review():
     if not user:
         return jsonify({"message": "用户不存在", "status": "error"}), 404
         
+    try:
+        rating_value = float(rating) if rating is not None else 3.0
+    except (TypeError, ValueError):
+        rating_value = 3.0
+    rating_value = max(1.0, min(5.0, rating_value))
+    liked_value = bool(liked) if liked is not None else False
+    
     new_review = Review(
         user_id=user.id,
         poem_id=poem_id,
-        comment=comment
+        comment=comment,
+        rating=rating_value,
+        liked=liked_value
     )
     db.session.add(new_review)
     
@@ -307,15 +458,36 @@ def add_review():
     db.session.commit()
     
     # 异步或随后更新用户偏好
-    from recommendation_update import IncrementalRecommender
+    from recommendation_update import IncrementalRecommender, recommendation_service
     recommender = IncrementalRecommender()
     user.preference_topics = recommender.update_user_preference(user.id)
     db.session.commit()
+    if recommendation_service and recommendation_service.recommender:
+        recommendation_service.recommender.user_vector_cache.pop(user.id, None)
+
+    _cache_clear([
+        "visual:stats",
+        "global:stats",
+        "global:popular",
+        "global:theme_distribution",
+        "global:dynasty_distribution",
+        "global:trends",
+        "wordcloud:global",
+        f"wordcloud:user:{username}",
+        f"user:stats:{username}",
+        f"user:preferences:{username}",
+        f"user:form_stats:{username}",
+        f"user:time_analysis:{username}",
+        f"user:sankey:{username}"
+    ])
     
     return jsonify({"message": "雅评已收录", "status": "success"})
 
 def _get_user_preference_data(username):
     """获取用户偏好数据 (重构版)"""
+    cached = _cache_get(f"user:preferences:{username}")
+    if cached:
+        return cached, 200
     user = User.query.filter_by(username=username).first()
     if not user:
         return None, 404
@@ -323,11 +495,37 @@ def _get_user_preference_data(username):
     # 直接返回偏好主题列表
     prefs = user.preference_topics.split(',') if user.preference_topics else []
     
-    return {
+    data = {
         "user_id": username,
         "preference": prefs,
         "top_interest": prefs[0] if prefs else "通用"
-    }, 200
+    }
+    _cache_set(f"user:preferences:{username}", data, ttl=120)
+    return data, 200
+
+def _build_wordcloud_data(user_id=None):
+    words = []
+    if user_id:
+        user = User.query.filter_by(username=user_id).first()
+        if user:
+            rows = db.session.query(Review.topic_names).filter(
+                Review.user_id == user.id,
+                Review.topic_names != None
+            ).all()
+            for (names,) in rows:
+                for n in names.split(','):
+                    n = n.strip()
+                    if n:
+                        words.extend(n.split('-'))
+    else:
+        rows = db.session.query(Review.topic_names).filter(Review.topic_names != None).all()
+        for (names,) in rows:
+            for n in names.split(','):
+                n = n.strip()
+                if n:
+                    words.extend(n.split('-'))
+    counts = Counter(words)
+    return [{"name": w, "value": c} for w, c in counts.most_common(50)]
 
 @app.route('/api/user_preference/<username>')
 def get_user_preference(username):
@@ -357,7 +555,7 @@ def recommend_by_topic(topic_id):
     if not topic_keywords:
         sync_global_cache()
     theme_name = topic_keywords.get(topic_id, "未知")
-    poems = Poem.query.filter_by(LDA_topic=theme_name).limit(6).all()
+    poems = Poem.query.filter_by(Bertopic=theme_name).limit(6).all()
     return jsonify([p.to_dict() for p in poems])
 
 @app.route('/api/recommend_one/<username>')
@@ -384,31 +582,50 @@ def recommend_one(username):
 
 @app.route('/api/visual/wordcloud')
 def get_wordcloud_data():
-    """生成词云数据 (基于主题名)"""
+    """生成词云数据 (基于评论主题词 Review.topic_names)"""
     user_id = request.args.get('user_id')
-    processed_words = []
-    
-    if user_id:
-        user = User.query.filter_by(username=user_id).first()
-        if user and user.preference_topics:
-            topics = user.preference_topics.split(',')
-            for topic in topics:
-                processed_words.extend(topic.split('-'))
-    
-    if not processed_words:
-        all_topics = db.session.query(Poem.LDA_topic).distinct().limit(50).all()
-        for t in all_topics:
-            if t[0]:
-                processed_words.extend(t[0].split('-'))
-                
-    word_counts = Counter(processed_words)
-    data = [{"name": w, "value": c} for w, c in word_counts.most_common(50)]
-    return jsonify(data)
+    cache_key = f"wordcloud:user:{user_id}" if user_id else "wordcloud:global"
+    cached = _cache_get(cache_key)
+    if cached:
+        return jsonify(cached)
+    data = _build_wordcloud_data(user_id)
+    ttl = 120 if user_id else 300
+    return jsonify(_cache_set(cache_key, data, ttl=ttl))
 
 @app.route('/api/visual/stats')
 def get_system_stats():
     """基础统计数据"""
-    return jsonify({
+    cached = _cache_get("visual:stats")
+    if cached:
+        return jsonify(cached)
+    review_rows = db.session.query(Review.topic_names, Poem.author).join(Poem, Review.poem_id == Poem.id).filter(Review.topic_names != None).all()
+    author_counter = Counter()
+    topic_counter = Counter()
+    for topic_names, author in review_rows:
+        author_name = author or '佚名'
+        author_counter[author_name] += 1
+        if topic_names:
+            for t_name in topic_names.split(','):
+                t_name = t_name.strip()
+                if t_name:
+                    topic_counter[t_name] += 1
+    authors = [a for a, _ in author_counter.most_common(8)]
+    topics = [t for t, _ in topic_counter.most_common(8)]
+    link_counter = Counter()
+    if authors and topics:
+        for topic_names, author in review_rows:
+            author_name = author or '佚名'
+            if author_name not in authors or not topic_names:
+                continue
+            for t_name in topic_names.split(','):
+                t_name = t_name.strip()
+                if t_name in topics:
+                    link_counter[(author_name, t_name)] += 1
+    sankey_data = {
+        "nodes": [{"name": n} for n in authors + topics],
+        "links": [{"source": a, "target": t, "value": c} for (a, t), c in link_counter.items()]
+    }
+    data = {
         "counts": {
             "users": User.query.count(),
             "poems": Poem.query.count(),
@@ -421,36 +638,72 @@ def get_system_stats():
                 Poem.query.filter_by(genre_type='词').count(),
                 Poem.query.filter_by(genre_type='曲').count()
             ]
-        }
-    })
+        },
+        "sankey_data": sankey_data
+    }
+    return jsonify(_cache_set("visual:stats", data, ttl=120))
 
 @app.route('/api/global/stats')
 def get_global_stats():
     """全站统计"""
-    return jsonify({
+    cached = _cache_get("global:stats")
+    if cached:
+        return jsonify(cached)
+    data = {
         "totalUsers": User.query.count(),
         "totalPoems": Poem.query.count(),
         "totalReviews": Review.query.count(),
         "totalViews": db.session.query(func.sum(Poem.views)).scalar() or 0
-    })
+    }
+    return jsonify(_cache_set("global:stats", data, ttl=30))
 
 @app.route('/api/global/popular-poems')
 def get_popular_poems():
-    """热门排行 (基于浏览量)"""
-    poems = Poem.query.order_by(Poem.views.desc()).limit(10).all()
-    return jsonify([p.to_dict() for p in poems])
+    """热门排行 (按评论数量排序)"""
+    cached = _cache_get("global:popular")
+    if cached:
+        return jsonify(cached)
+    poems = Poem.query.order_by(Poem.review_count.desc(), Poem.views.desc()).limit(10).all()
+    review_counts = dict(
+        db.session.query(Review.poem_id, func.count(Review.id))
+        .group_by(Review.poem_id)
+        .all()
+    )
+    res = []
+    for p in poems:
+        item = p.to_dict()
+        item['review_count'] = review_counts.get(p.id, 0)
+        res.append(item)
+    return jsonify(_cache_set("global:popular", res, ttl=60))
 
 @app.route('/api/global/theme-distribution')
 def get_theme_distribution():
-    """主题分布"""
-    stats = db.session.query(Poem.LDA_topic, func.count(Poem.id)).group_by(Poem.LDA_topic).all()
-    return jsonify([{"name": s[0] or "未知", "value": s[1]} for s in stats])
+    """主题分布 (基于评论主题词 Review.topic_names)"""
+    cached = _cache_get("global:theme_distribution")
+    if cached:
+        return jsonify(cached)
+    rows = db.session.query(Review.topic_names).filter(Review.topic_names != None).all()
+    counter = Counter()
+    for (names,) in rows:
+        for n in names.split(','):
+            n = n.strip()
+            if n:
+                counter[n] += 1
+    data = [{"name": name, "value": value} for name, value in counter.most_common(40)]
+    return jsonify(_cache_set("global:theme_distribution", data, ttl=300))
 
 @app.route('/api/global/dynasty-distribution')
 def get_dynasty_distribution():
-    """朝代分布"""
-    stats = db.session.query(Poem.dynasty, func.count(Poem.id)).group_by(Poem.dynasty).all()
-    return jsonify([{"name": s[0] or "未知", "value": s[1]} for s in stats])
+    """朝代分布 (按评论数量统计)"""
+    cached = _cache_get("global:dynasty_distribution")
+    if cached:
+        return jsonify(cached)
+    stats = db.session.query(
+        Poem.dynasty,
+        func.count(Review.id)
+    ).join(Review, Review.poem_id == Poem.id).group_by(Poem.dynasty).all()
+    data = [{"name": s[0] or "未知", "value": s[1]} for s in stats]
+    return jsonify(_cache_set("global:dynasty_distribution", data, ttl=300))
 
 @app.route('/api/user/<username>/preferences')
 def get_user_preferences_alias(username):
@@ -494,27 +747,20 @@ def get_user_recommendations_alias(username):
 
 @app.route('/api/user/<username>/wordcloud')
 def get_user_wordcloud_alias(username):
-    # Reuse wordcloud logic
-    processed_words = []
-    user = User.query.filter_by(username=username).first()
-    if user and user.preference_topics:
-        topics = user.preference_topics.split(',')
-        for topic in topics:
-            processed_words.extend(topic.split('-'))
-    
-    if not processed_words:
-        all_topics = db.session.query(Poem.LDA_topic).distinct().limit(50).all()
-        for t in all_topics:
-            if t[0]:
-                processed_words.extend(t[0].split('-'))
-                
-    word_counts = Counter(processed_words)
-    data = [{"name": w, "value": c} for w, c in word_counts.most_common(50)]
-    return jsonify(data)
+    cache_key = f"wordcloud:user:{username}"
+    cached = _cache_get(cache_key)
+    if cached:
+        return jsonify(cached)
+    data = _build_wordcloud_data(username)
+    return jsonify(_cache_set(cache_key, data, ttl=120))
 
 @app.route('/api/user/<username>/time-analysis')
 def get_user_time_analysis(username):
     """用户评论时间分布分析"""
+    cache_key = f"user:time_analysis:{username}"
+    cached = _cache_get(cache_key)
+    if cached:
+        return jsonify(cached)
     user = User.query.filter_by(username=username).first()
     if not user:
         return jsonify({"insights": []})
@@ -542,32 +788,41 @@ def get_user_time_analysis(username):
         val = 10 + (i % 3) * 15 if i > 6 else 5
         result.append({"time": t_name, "value": val})
         
-    return jsonify({"insights": result})
+    data = {"insights": result}
+    return jsonify(_cache_set(cache_key, data, ttl=120))
 
 @app.route('/api/user/<username>/form-stats')
 def get_user_form_stats(username):
     """用户偏好的体裁分布"""
+    cache_key = f"user:form_stats:{username}"
+    cached = _cache_get(cache_key)
+    if cached:
+        return jsonify(cached)
     user = User.query.filter_by(username=username).first()
     if not user:
         return jsonify([])
         
     # 基于用户评论过的诗歌体裁
     stats = db.session.query(
-        Poem.genre_type,
+        Poem.rhythm_type,
         func.count(Review.id)
     ).join(Review, Review.poem_id == Poem.id).filter(
         Review.user_id == user.id
-    ).group_by(Poem.genre_type).all()
+    ).group_by(Poem.rhythm_type).all()
     
     res = [{"name": s[0] or "其他", "value": s[1]} for s in stats]
     if not res:
         res = [{"name": "七绝", "value": 10}, {"name": "五律", "value": 5}]
-    return jsonify(res)
+    return jsonify(_cache_set(cache_key, res, ttl=120))
 
 @app.route('/api/global/trends')
 def get_global_trends():
     """全站评论趋势"""
     period = request.args.get('period', 'week')
+    cache_key = f"global:trends:{period}"
+    cached = _cache_get(cache_key)
+    if cached:
+        return jsonify(cached)
     days = 7 if period == 'week' else 30
     
     end_date = datetime.now()
@@ -586,7 +841,7 @@ def get_global_trends():
         d = (start_date + timedelta(days=i)).strftime('%Y-%m-%d')
         result.append({"date": d, "count": date_dict.get(d, 0)})
         
-    return jsonify(result)
+    return jsonify(_cache_set(cache_key, result, ttl=120))
 
 @app.route('/api/global/wordcloud')
 def get_global_wordcloud():
@@ -595,17 +850,141 @@ def get_global_wordcloud():
 
 @app.route('/api/user/<username>/stats')
 def get_user_stats(username):
+    cache_key = f"user:stats:{username}"
+    cached = _cache_get(cache_key)
+    if cached:
+        return jsonify(cached)
     user = User.query.filter_by(username=username).first()
     if not user:
-        return jsonify({"totalReads": 0, "reviewCount": 0, "avgRating": 0, "activeDays": 0})
+        return jsonify({"totalReads": 0, "reviewCount": 0, "activeDays": 0})
     
-    # 模拟一些字段满足前端显示
-    return jsonify({
+    data = {
         "totalReads": user.total_reviews * 3 + 5, # 模拟阅读量
         "reviewCount": user.total_reviews,
-        "avgRating": 4.8,
         "activeDays": 12
-    })
+    }
+    return jsonify(_cache_set(cache_key, data, ttl=60))
+
+@app.route('/api/user/<username>/poet-topic-sankey')
+def get_user_poet_topic_sankey(username):
+    cache_key = f"user:sankey:{username}"
+    cached = _cache_get(cache_key)
+    if cached:
+        return jsonify(cached)
+    user = User.query.filter_by(username=username).first()
+    if not user:
+        return jsonify({"nodes": [], "links": []})
+    
+    review_rows = db.session.query(Review.topic_names, Poem.author).join(Poem, Review.poem_id == Poem.id).filter(
+        Review.user_id == user.id,
+        Review.topic_names != None
+    ).all()
+    author_counter = Counter()
+    topic_counter = Counter()
+    for topic_names, author in review_rows:
+        author_name = author or '佚名'
+        author_counter[author_name] += 1
+        if topic_names:
+            for t_name in topic_names.split(','):
+                t_name = t_name.strip()
+                if t_name:
+                    topic_counter[t_name] += 1
+    authors = [a for a, _ in author_counter.most_common(6)]
+    topics = [t for t, _ in topic_counter.most_common(6)]
+    if not authors or not topics:
+        return jsonify({"nodes": [], "links": []})
+    link_counter = Counter()
+    for topic_names, author in review_rows:
+        author_name = author or '佚名'
+        if author_name not in authors or not topic_names:
+            continue
+        for t_name in topic_names.split(','):
+            t_name = t_name.strip()
+            if t_name in topics:
+                link_counter[(author_name, t_name)] += 1
+    nodes = [{"name": n} for n in authors + topics]
+    links = [{"source": k[0], "target": k[1], "value": v} for k, v in link_counter.items()]
+    return jsonify(_cache_set(cache_key, {"nodes": nodes, "links": links}, ttl=120))
+
+
+# New Algorithm Comparison API
+@app.route('/api/comparison/run', methods=['POST'])
+def run_algorithm_comparison():
+    try:
+        data = request.json or {}
+        k = int(data.get('k', 20))
+        ratio = float(data.get('ratio', 0.2))
+        alpha = float(data.get('alpha', 0.7))
+        
+        from algorithm_comparison import AlgorithmComparator
+        comparator = AlgorithmComparator()
+        
+        # 1. Load Data
+        count = comparator.load_data_from_db()
+        if count == 0:
+             return jsonify({"error": "No data available in database"}), 400
+             
+        # 2. Split
+        train_n, test_n = comparator.split_data(test_size=ratio)
+        
+        # 3. Run Algorithms
+        trad_preds = comparator.run_traditional_cf(k=k)
+        opt_preds = comparator.run_optimized_cf(k=k, alpha=alpha)
+        
+        # 4. Evaluate
+        trad_metrics = comparator.evaluate(trad_preds)
+        opt_metrics = comparator.evaluate(opt_preds)
+        
+        return jsonify({
+            "status": "success",
+            "dataset_info": {
+                "total": count,
+                "train": train_n,
+                "test": test_n
+            },
+            "results": {
+                "traditional": trad_metrics,
+                "optimized": opt_metrics
+            }
+        })
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/comparison/sample', methods=['GET'])
+def get_algorithm_comparison_sample():
+    try:
+        ratio = float(request.args.get('ratio', 0.2))
+        from algorithm_comparison import AlgorithmComparator
+        comparator = AlgorithmComparator()
+        count = comparator.load_data_from_db()
+        if count == 0:
+            return jsonify({"error": "No data available in database"}), 400
+        train_n, test_n = comparator.split_data(test_size=ratio)
+        poem_ids = comparator.test_df['poem_id'].dropna().astype(int).unique().tolist()
+        poems = Poem.query.filter(Poem.id.in_(poem_ids)).all()
+        poem_map = {p.id: p for p in poems}
+        rows = []
+        for _, row in comparator.test_df.iterrows():
+            pid = int(row['poem_id'])
+            p = poem_map.get(pid)
+            rows.append({
+                "user_id": int(row['user_id']),
+                "poem_id": pid,
+                "rating": float(row['rating']),
+                "title": p.title if p else None,
+                "author": p.author if p else None
+            })
+        return jsonify({
+            "status": "success",
+            "dataset_info": {"total": count, "train": train_n, "test": test_n},
+            "test_rows": rows
+        })
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
     # 仅在 Flask 热重载的子进程中运行初始化逻辑
@@ -615,6 +994,7 @@ if __name__ == '__main__':
         # 非热重载情况下的首次运行
         with app.app_context():
             db.create_all()
+            ensure_review_columns()
             init_recommendation_system(app)
     
     app.run(debug=True, port=5000)

@@ -169,6 +169,7 @@ const categories = [
 const goHome = () => router.push('/')
 const goToPersonalAnalysis = () => router.push('/personal-analysis')
 const goToGlobalAnalysis = () => router.push('/global-analysis')
+const goToPoem = (id) => router.push(`/?poemId=${id}`)
 const logout = () => {
   localStorage.removeItem('user')
   router.push('/login')
@@ -191,7 +192,7 @@ const handleSearch = async () => {
   
   searchLoading.value = true
   try {
-    const res = await axios.get(`http://127.0.0.1:5000/api/search_poems?q=${encodeURIComponent(searchQuery.value)}`)
+    const res = await axios.get(`/api/search_poems?q=${encodeURIComponent(searchQuery.value)}`)
     searchResults.value = res.data
   } catch (e) {
     console.error('搜索失败:', e)
@@ -213,10 +214,6 @@ const handleInputSearch = debounce(() => {
 const quickSearch = (tag) => {
   searchQuery.value = tag
   handleSearch()
-}
-
-const goToPoem = (id) => {
-  router.push(`/?poemId=${id}`)
 }
 
 onMounted(() => {

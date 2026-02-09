@@ -25,6 +25,7 @@ from collections import Counter
 from functools import wraps
 import psutil
 import os
+import math
 
 from flask import Flask, current_app
 from sqlalchemy import event
@@ -213,6 +214,9 @@ class IncrementalRecommender:
         self.cache_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'saved_models', 'vector_cache')
         os.makedirs(self.cache_dir, exist_ok=True)
         
+        self.user_vector_cache = {}
+        self.user_vector_cache_ttl = 300
+        
         # 预加载向量矩阵
         self._build_poem_vector_matrix()
 
@@ -283,27 +287,50 @@ class IncrementalRecommender:
             
             self.logger.logger.info("向量矩阵准备就绪")
 
+    def _get_cached_user_vector(self, user_id):
+        entry = self.user_vector_cache.get(user_id)
+        if not entry:
+            return None
+        expires_at, vector = entry
+        if expires_at < time.time():
+            self.user_vector_cache.pop(user_id, None)
+            return None
+        return vector
+
+    def _set_cached_user_vector(self, user_id, vector):
+        self.user_vector_cache[user_id] = (time.time() + self.user_vector_cache_ttl, vector)
+        return vector
+
     def _get_user_profile_vector(self, user_id):
         """构建用户偏好向量 (基于交互历史加权平均)"""
+        cached = self._get_cached_user_vector(user_id)
+        if cached is not None:
+            return cached
         reviews = Review.query.filter_by(user_id=user_id).all()
         if not reviews or self.topic_matrix is None:
             return None
             
         user_vector = np.zeros(self.topic_matrix.shape[1])
-        weight_sum = 0
+        weight_sum = 0.0
+        now = datetime.utcnow()
         
         for r in reviews:
             poem_idx = self.poem_id_map.get(r.poem_id)
-            if poem_idx is not None:
-                # 简单权重: 1.0 (未来可以引入评分系统)
-                w = 1.0
-                user_vector += self.topic_matrix[poem_idx] * w
-                weight_sum += w
+            if poem_idx is None:
+                continue
+            age_days = (now - r.created_at).total_seconds() / 86400 if r.created_at else 0
+            decay = math.exp(-age_days / 30.0)
+            rating = r.rating if r.rating is not None else 3.0
+            rating_weight = max(0.2, min(1.0, rating / 5.0))
+            like_boost = 1.2 if getattr(r, "liked", False) else 1.0
+            w = decay * rating_weight * like_boost
+            user_vector += self.topic_matrix[poem_idx] * w
+            weight_sum += w
                 
         if weight_sum > 0:
             user_vector /= weight_sum
             
-        return user_vector
+        return self._set_cached_user_vector(user_id, user_vector)
 
     def _get_similar_users(self, target_user_id, top_k=10):
         """寻找相似用户 (User-CF Strategy)"""
@@ -311,8 +338,7 @@ class IncrementalRecommender:
         if target_vector is None:
             return []
             
-        # 获取所有活跃用户的向量
-        other_users = User.query.filter(User.id != target_user_id, User.total_reviews > 0).limit(100).all() # 限制计算量
+        other_users = User.query.filter(User.id != target_user_id, User.total_reviews > 0).order_by(User.total_reviews.desc()).limit(300).all()
         similarities = []
         
         for u in other_users:
@@ -324,13 +350,108 @@ class IncrementalRecommender:
         similarities.sort(key=lambda x: x[1], reverse=True)
         return similarities[:top_k]
 
-    def _topic_based_item_cf(self, user_reviewed_ids, all_poem_indices, top_n=20):
+    def _normalize_scores(self, items):
+        if not items:
+            return {}
+        max_score = max(s for _, s in items)
+        if max_score <= 0:
+            return {}
+        return {pid: s / max_score for pid, s in items if s > 0}
+
+    def _get_user_cf_candidates(self, similar_users, exclude_ids, per_user_limit=5, limit=300):
+        if not similar_users:
+            return []
+        sim_map = {uid: score for uid, score in similar_users}
+        user_ids = list(sim_map.keys())
+        reviews = Review.query.filter(Review.user_id.in_(user_ids)).order_by(Review.created_at.desc()).limit(limit).all()
+        user_counts = Counter()
+        candidates = {}
+        now = datetime.utcnow()
+        for r in reviews:
+            if r.poem_id in exclude_ids:
+                continue
+            if user_counts[r.user_id] >= per_user_limit:
+                continue
+            sim_score = sim_map.get(r.user_id, 0)
+            if sim_score <= 0:
+                continue
+            user_counts[r.user_id] += 1
+            age_days = (now - r.created_at).total_seconds() / 86400 if r.created_at else 0
+            decay = math.exp(-age_days / 30.0)
+            rating = r.rating if r.rating is not None else 3.0
+            rating_weight = max(0.2, min(1.0, rating / 5.0))
+            like_boost = 1.2 if getattr(r, "liked", False) else 1.0
+            candidates[r.poem_id] = candidates.get(r.poem_id, 0) + (sim_score * decay * rating_weight * like_boost)
+        return list(candidates.items())
+
+    def _get_popular_candidates(self, limit, exclude_ids):
+        poems = self.get_global_popular(limit * 2)
+        now = datetime.utcnow()
+        res = []
+        for p in poems:
+            if p.id in exclude_ids:
+                continue
+            view_score = min(p.views / 1000.0, 1.0)
+            age_days = (now - p.created_at).total_seconds() / 86400 if p.created_at else 0
+            recency = max(0.0, 1 - age_days / 30.0)
+            score = 0.7 * view_score + 0.3 * recency
+            res.append((p.id, score))
+        return res[:limit]
+
+    def _diversify_candidates(self, candidates, limit):
+        if not candidates:
+            return []
+        ids = list(candidates.keys())
+        poems = Poem.query.filter(Poem.id.in_(ids)).all()
+        poem_map = {p.id: p for p in poems}
+        remaining = set(ids)
+        selected = []
+        author_counts = Counter()
+        topic_counts = Counter()
+        
+        while remaining and len(selected) < limit:
+            best_id = None
+            best_score = -1
+            for pid in list(remaining):
+                base = candidates.get(pid, 0)
+                poem = poem_map.get(pid)
+                author = poem.author if poem else None
+                topic = poem.Bertopic if poem else None
+                author_penalty = 1 / (1 + author_counts[author]) if author else 1.0
+                topic_penalty = 1 / (1 + topic_counts[topic]) if topic else 1.0
+                score = base * author_penalty * topic_penalty
+                if score > best_score:
+                    best_score = score
+                    best_id = pid
+            if best_id is None:
+                break
+            selected.append(best_id)
+            remaining.remove(best_id)
+            poem = poem_map.get(best_id)
+            if poem and poem.author:
+                author_counts[poem.author] += 1
+            if poem and poem.Bertopic:
+                topic_counts[poem.Bertopic] += 1
+        
+        return selected
+
+    def _topic_based_item_cf(self, user_reviews, top_n=20):
         """基于物品的主题协同过滤"""
-        if not user_reviewed_ids or self.topic_matrix is None:
+        if not user_reviews or self.topic_matrix is None:
             return []
             
         # 获取用户喜欢的诗歌的向量
-        user_reviewed_indices = [self.poem_id_map[pid] for pid in user_reviewed_ids if pid in self.poem_id_map]
+        user_reviewed_indices = []
+        weights = []
+        for r in user_reviews:
+            poem_idx = self.poem_id_map.get(r.poem_id)
+            if poem_idx is None:
+                continue
+            rating = r.rating if r.rating is not None else 3.0
+            rating_weight = max(0.2, min(1.0, rating / 5.0))
+            like_boost = 1.2 if getattr(r, "liked", False) else 1.0
+            user_reviewed_indices.append(poem_idx)
+            weights.append(rating_weight * like_boost)
         if not user_reviewed_indices:
             return []
             
@@ -340,7 +461,11 @@ class IncrementalRecommender:
         # 这里使用矩阵运算加速: (n_all, dim) . (n_reviewed, dim).T -> (n_all, n_reviewed)
         sim_matrix = cosine_similarity(self.topic_matrix, reviewed_vectors)
         # 取平均相似度作为得分
-        scores = np.mean(sim_matrix, axis=1)
+        weight_sum = sum(weights)
+        if weight_sum > 0:
+            scores = np.average(sim_matrix, axis=1, weights=np.array(weights))
+        else:
+            scores = np.mean(sim_matrix, axis=1)
         
         # 排除已读
         for idx in user_reviewed_indices:
@@ -379,7 +504,7 @@ class IncrementalRecommender:
         user_reviewed_indices = [self.poem_id_map[pid] for pid in user_reviewed_ids if pid in self.poem_id_map]
         
         interaction_count = len(user_reviews)
-        candidates = {} # poem_id -> total_score
+        candidates = {}
         
         # 定义动态权重
         if interaction_count == 0:
@@ -401,55 +526,56 @@ class IncrementalRecommender:
             w_content = 0.2
             w_popular = 0.0
             
-        # 1. User-CF Strategy (简化版: 只取相似用户最近喜欢的一首)
+        user_cf_recs = []
         if w_cf_user > 0:
             similar_users = self._get_similar_users(user_id)
-            for sim_uid, sim_score in similar_users:
-                sim_reviews = Review.query.filter_by(user_id=sim_uid).order_by(Review.created_at.desc()).limit(5).all()
-                for r in sim_reviews:
-                    if r.poem_id not in user_reviewed_ids:
-                        candidates[r.poem_id] = candidates.get(r.poem_id, 0) + (sim_score * w_cf_user)
+            user_cf_recs = self._get_user_cf_candidates(similar_users, user_reviewed_ids, per_user_limit=5, limit=300)
 
-        # 2. Item-CF Strategy
-        if w_cf_item > 0:
-            item_recs = self._topic_based_item_cf(user_reviewed_ids, None)
-            for pid, score in item_recs:
-                candidates[pid] = candidates.get(pid, 0) + (score * w_cf_item)
-                
-        # 3. Content-Based Strategy
+        item_recs = self._topic_based_item_cf(user_reviews) if w_cf_item > 0 else []
+
+        content_recs = []
         if w_content > 0:
             user_vec = self._get_user_profile_vector(user_id)
             if user_vec is not None:
                 content_recs = self._content_based_recommend(user_vec, user_reviewed_indices)
-                for pid, score in content_recs:
-                    candidates[pid] = candidates.get(pid, 0) + (score * w_content)
-                    
-        # 4. Popularity Strategy (Fallback)
+
+        popular_recs = self._get_popular_candidates(limit * 3, user_reviewed_ids)
+
+        user_cf_scores = self._normalize_scores(user_cf_recs)
+        item_scores = self._normalize_scores(item_recs)
+        content_scores = self._normalize_scores(content_recs)
+        popular_scores = self._normalize_scores(popular_recs)
+
+        for pid, score in user_cf_scores.items():
+            candidates[pid] = candidates.get(pid, 0) + (score * w_cf_user)
+
+        for pid, score in item_scores.items():
+            candidates[pid] = candidates.get(pid, 0) + (score * w_cf_item)
+
+        for pid, score in content_scores.items():
+            candidates[pid] = candidates.get(pid, 0) + (score * w_content)
+
         if w_popular > 0 or not candidates:
-            popular_poems = self.get_global_popular(limit * 2)
-            for p in popular_poems:
-                if p.id not in user_reviewed_ids:
-                    # 归一化: 热门分 0~1
-                    pop_score = min(p.views / 1000.0, 1.0)
-                    candidates[p.id] = candidates.get(p.id, 0) + (pop_score * w_popular)
+            pop_weight = w_popular if w_popular > 0 else 0.3
+            for pid, score in popular_scores.items():
+                candidates[pid] = candidates.get(pid, 0) + (score * pop_weight)
+
+        if not candidates and popular_recs:
+            for pid, score in popular_recs:
+                candidates[pid] = max(candidates.get(pid, 0), score)
+
+        selected_ids = self._diversify_candidates(candidates, limit)
         
-        # 排序与返回
-        sorted_ids = sorted(candidates.keys(), key=lambda k: candidates[k], reverse=True)
-        final_ids = sorted_ids[:limit]
-        
-        # 兜底
-        if len(final_ids) < limit:
-            remaining = limit - len(final_ids)
-            pops = self.get_global_popular(remaining + 20) # 多取点防重重复
-            for p in pops:
-                if p.id not in user_reviewed_ids and p.id not in final_ids:
-                    final_ids.append(p.id)
-                    if len(final_ids) >= limit:
+        if len(selected_ids) < limit:
+            remaining = limit - len(selected_ids)
+            for pid, _ in popular_recs:
+                if pid not in user_reviewed_ids and pid not in selected_ids:
+                    selected_ids.append(pid)
+                    if len(selected_ids) >= limit:
                         break
                         
-        # 保持顺序返回对象
-        id_map = {p.id: p for p in Poem.query.filter(Poem.id.in_(final_ids)).all()}
-        return [id_map[pid] for pid in final_ids if pid in id_map]
+        id_map = {p.id: p for p in Poem.query.filter(Poem.id.in_(selected_ids)).all()}
+        return [id_map[pid] for pid in selected_ids if pid in id_map]
     
     def get_global_popular(self, limit=6):
         """获取全局热门诗歌"""
@@ -473,9 +599,9 @@ class IncrementalRecommender:
             # 更新诗歌元数据
             poems = Poem.query.all()
             for poem in poems:
-                if not poem.LDA_topic and self.bertopic_model:
+                if not poem.Bertopic and self.bertopic_model:
                      tid, tname = predict_topic(poem.content, self.bertopic_model)
-                     poem.LDA_topic = tname
+                     poem.Bertopic = tname
                      poem.Real_topic = str(tid)
                 poem.review_count = Review.query.filter_by(poem_id=poem.id).count()
             db.session.commit()
@@ -490,7 +616,7 @@ class IncrementalRecommender:
                 poem = Poem.query.get(poem_id)
                 if poem and self.bertopic_model:
                     tid, tname = predict_topic(poem.content, self.bertopic_model)
-                    poem.LDA_topic = tname
+                    poem.Bertopic = tname
                     poem.Real_topic = str(tid)
                     db.session.commit()
                     

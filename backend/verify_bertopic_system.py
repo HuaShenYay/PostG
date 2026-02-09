@@ -30,13 +30,13 @@ def verify():
     print("\n[3] Checking Database...")
     with app.app_context():
         total = Poem.query.count()
-        tagged = Poem.query.filter(Poem.LDA_topic != None).count()
+        tagged = Poem.query.filter(Poem.Bertopic != None).count()
         print(f"   Total Poems: {total}")
         print(f"   Tagged Poems: {tagged}")
         
-        sample = Poem.query.filter(Poem.LDA_topic != None).first()
+        sample = Poem.query.filter(Poem.Bertopic != None).first()
         if sample:
-            print(f"   [Sample] {sample.title} -> {sample.LDA_topic} (ID: {sample.Real_topic})")
+            print(f"   [Sample] {sample.title} -> {sample.Bertopic} (Real: {sample.Real_topic})")
         else:
             print("   [Warning] No tagged poems found in DB.")
 
@@ -50,7 +50,7 @@ def verify():
             recs = recommender.get_new_poems_for_user(user.id)
             print(f"   [Recs] Generated {len(recs)} recommendations:")
             for p in recs:
-                print(f"     - {p.title} ({p.LDA_topic})")
+                print(f"     - {p.title} ({p.Bertopic})")
         else:
             print("   [Skip] No users in DB.")
 

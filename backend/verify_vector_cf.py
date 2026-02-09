@@ -51,7 +51,7 @@ def verify_vector_cf():
             recs = recommender.get_new_poems_for_user(user.id, limit=5)
             print(f"   [Result] Got {len(recs)} recommendations:")
             for p in recs:
-                print(f"     - {p.title} (Topic: {p.LDA_topic})")
+                print(f"     - {p.title} (Topic: {p.Bertopic})")
         else:
             print("   [Skip] No users found for testing.")
 

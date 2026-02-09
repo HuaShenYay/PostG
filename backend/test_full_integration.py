@@ -92,12 +92,19 @@ def test_full_integration():
         response = requests.get(f"{base_url}/api/global/trends?period=week")
         if response.status_code == 200:
             data = response.json()
-            dates = data.get('dates', [])
-            users = data.get('users', [])
-            print(f"   ✅ 返回 {len(dates)} 天的数据")
-            if len(dates) > 0:
-                print(f"   最新日期: {dates[-1]}")
-                print(f"   最新用户数: {users[-1]}")
+            if isinstance(data, list):
+                print(f"   ✅ 返回 {len(data)} 天的数据")
+                if data:
+                    last = data[-1]
+                    print(f"   最新日期: {last.get('date', 'N/A')}")
+                    print(f"   最新评论数: {last.get('count', 0)}")
+            else:
+                dates = data.get('dates', [])
+                users = data.get('users', [])
+                print(f"   ✅ 返回 {len(dates)} 天的数据")
+                if len(dates) > 0:
+                    print(f"   最新日期: {dates[-1]}")
+                    print(f"   最新用户数: {users[-1]}")
         else:
             print(f"   ❌ 状态码: {response.status_code}")
     except Exception as e:

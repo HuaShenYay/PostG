@@ -135,6 +135,52 @@
               <p>为了您的账户安全，建议定期更换密令。诗云不会以任何形式要求您提供个人隐私信息。</p>
             </div>
           </div>
+          
+          <!-- Algorithm Lab -->
+          <div class="settings-card glass-card">
+              <div class="card-header-zen">
+                  <n-icon class="header-icon"><NSpace /></n-icon>
+                  <div class="header-texts">
+                      <h2 class="card-title-zen">算法实验室</h2>
+                      <p class="card-subtitle-zen">对比分析推荐算法性能指标</p>
+                  </div>
+              </div>
+              
+              <div class="lab-container">
+                  <div class="lab-config">
+                      <n-form label-placement="left" label-width="120" size="small">
+                          <n-form-item label="邻居数量 (K)">
+                              <n-slider v-model:value="comparisonConfig.k" :min="5" :max="50" :step="5" style="width: 100%" />
+                              <span class="config-val">{{ comparisonConfig.k }}</span>
+                          </n-form-item>
+                          <n-form-item label="测试集比例">
+                              <n-slider v-model:value="comparisonConfig.ratio" :min="0.1" :max="0.5" :step="0.1" style="width: 100%" />
+                              <span class="config-val">{{ comparisonConfig.ratio }}</span>
+                          </n-form-item>
+                          <n-form-item label="主题权重 (α)">
+                              <n-slider v-model:value="comparisonConfig.alpha" :min="0" :max="1" :step="0.1" style="width: 100%" />
+                              <span class="config-val">{{ comparisonConfig.alpha }}</span>
+                          </n-form-item>
+                      </n-form>
+                      <div class="lab-actions">
+                          <n-button type="primary" color="#cf3f35" :loading="comparisonLoading" @click="runComparison">
+                              启动对比实验
+                          </n-button>
+                          <n-button v-if="comparisonResults" @click="downloadReport">
+                              导出报告
+                          </n-button>
+                      </div>
+                  </div>
+                  
+                  <div class="lab-charts" v-if="comparisonResults">
+                      <div ref="comparisonChartRef" class="lab-chart"></div>
+                      <div ref="rmseChartRef" class="lab-chart"></div>
+                  </div>
+                  <div class="lab-placeholder" v-else>
+                      <n-empty description="请启动实验" />
+                  </div>
+              </div>
+          </div>
         </section>
       </div>
     </main>
@@ -142,7 +188,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { 
   NInput, 
@@ -150,7 +196,8 @@ import {
   NIcon, 
   useMessage,
   NCard,
-  NSpace
+  NSpace,
+  NSlider, NForm, NFormItem, NEmpty
 } from 'naive-ui'
 import { 
   PersonOutline as NPerson,
@@ -163,6 +210,7 @@ import {
   ShieldCheckmarkOutline as NShield
 } from '@vicons/ionicons5'
 import axios from 'axios'
+import * as echarts from 'echarts'
 
 const router = useRouter()
 const message = useMessage()
@@ -180,18 +228,96 @@ const formData = ref({
   password: ''
 })
 
-const fetchUserStats = async () => {
-  if (currentUser.value === '访客') return
-  try {
-    const res = await axios.get(`http://127.0.0.1:5000/api/user/${currentUser.value}/stats`)
-    userStats.value = {
-      totalReads: res.data.totalReads || 0,
-      reviewCount: res.data.reviewCount || 0,
-      activeDays: res.data.activeDays || 1
+// Algorithm Comparison Logic
+const comparisonConfig = ref({
+    k: 20,
+    ratio: 0.2,
+    alpha: 0.7
+})
+const comparisonResults = ref(null)
+const comparisonLoading = ref(false)
+const comparisonChartRef = ref(null)
+const rmseChartRef = ref(null)
+let compChart = null
+let rmseChart = null
+
+const handleResize = () => {
+  if (compChart) compChart.resize()
+  if (rmseChart) rmseChart.resize()
+}
+
+const runComparison = async () => {
+    comparisonLoading.value = true
+    try {
+        const res = await axios.post('/api/comparison/run', comparisonConfig.value)
+        comparisonResults.value = res.data
+        await nextTick()
+        initComparisonCharts()
+    } catch (e) {
+        console.error(e)
+        message.error('运行失败')
+    } finally {
+        comparisonLoading.value = false
     }
-  } catch (e) {
-    console.warn('Failed to fetch user stats')
-  }
+}
+
+const initComparisonCharts = () => {
+    if (!comparisonResults.value) return
+    
+    const trad = comparisonResults.value.results.traditional
+    const opt = comparisonResults.value.results.optimized
+    
+    // 1. Accuracy Chart (Precision, Recall, F1)
+    if (comparisonChartRef.value) {
+        if (compChart) compChart.dispose()
+        compChart = echarts.init(comparisonChartRef.value)
+        compChart.setOption({
+            color: ['#999', '#cf3f35'],
+            title: { text: '核心指标对比', left: 'center', textStyle: { fontFamily: 'Noto Serif SC' } },
+            tooltip: { trigger: 'axis' },
+            legend: { bottom: 0 },
+            grid: { bottom: 30 },
+            xAxis: { type: 'category', data: ['Precision', 'Recall', 'F1-Score'] },
+            yAxis: { type: 'value' },
+            series: [
+                { name: '传统协同过滤', type: 'bar', data: [trad.precision, trad.recall, trad.f1], label: { show: true, position: 'top', formatter: ({ value }) => Number.isFinite(Number(value)) ? Number(value).toFixed(4) : '-' } },
+                { name: '优化协同过滤', type: 'bar', data: [opt.precision, opt.recall, opt.f1], label: { show: true, position: 'top', formatter: ({ value }) => Number.isFinite(Number(value)) ? Number(value).toFixed(4) : '-' } }
+            ]
+        })
+    }
+    
+    // 2. RMSE Chart
+    if (rmseChartRef.value) {
+        if (rmseChart) rmseChart.dispose()
+        rmseChart = echarts.init(rmseChartRef.value)
+        rmseChart.setOption({
+            color: ['#999', '#cf3f35'],
+            title: { text: '误差对比 (RMSE)', left: 'center', textStyle: { fontFamily: 'Noto Serif SC' } },
+            tooltip: { trigger: 'axis' },
+            legend: { bottom: 0 },
+            grid: { bottom: 30 },
+            xAxis: { type: 'category', data: ['RMSE'] },
+            yAxis: { type: 'value' },
+            series: [
+                { name: '传统协同过滤', type: 'bar', data: [trad.rmse], label: { show: true, position: 'top', formatter: ({ value }) => Number.isFinite(Number(value)) ? Number(value).toFixed(4) : '-' } },
+                { name: '优化协同过滤', type: 'bar', data: [opt.rmse], label: { show: true, position: 'top', formatter: ({ value }) => Number.isFinite(Number(value)) ? Number(value).toFixed(4) : '-' } }
+            ]
+        })
+    }
+
+    if (compChart) compChart.resize()
+    if (rmseChart) rmseChart.resize()
+}
+
+const downloadReport = () => {
+    if (!comparisonResults.value) return
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(comparisonResults.value, null, 2));
+    const downloadAnchorNode = document.createElement('a');
+    downloadAnchorNode.setAttribute("href", dataStr);
+    downloadAnchorNode.setAttribute("download", "algorithm_comparison_report.json");
+    document.body.appendChild(downloadAnchorNode);
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
 }
 
 const handleUpdate = async () => {
@@ -202,7 +328,7 @@ const handleUpdate = async () => {
   
   updating.value = true
   try {
-    const res = await axios.post('http://127.0.0.1:5000/api/user/update', {
+    const res = await axios.post('/api/user/update', {
       old_username: currentUser.value,
       new_username: formData.value.username,
       new_password: formData.value.password || null
@@ -229,8 +355,29 @@ const handleLogout = () => {
   router.push('/login')
 }
 
+const fetchUserStats = async () => {
+  if (currentUser.value === '访客') return
+  try {
+    const res = await axios.get(`/api/user/${currentUser.value}/stats`)
+    userStats.value = {
+      totalReads: res.data.totalReads || 0,
+      reviewCount: res.data.reviewCount || 0,
+      activeDays: res.data.activeDays || 1
+    }
+  } catch (e) {
+    console.warn('Failed to fetch user stats')
+  }
+}
+
 onMounted(() => {
   fetchUserStats()
+  window.addEventListener('resize', handleResize)
+})
+
+onUnmounted(() => {
+    if (compChart) compChart.dispose()
+    if (rmseChart) rmseChart.dispose()
+    window.removeEventListener('resize', handleResize)
 })
 </script>
 
@@ -474,5 +621,58 @@ onMounted(() => {
   .profile-sidebar {
     max-width: 100%;
   }
+}
+
+/* Lab Styles */
+.lab-container {
+    display: flex;
+    gap: 40px;
+    margin-top: 20px;
+}
+.lab-config {
+    flex: 0 0 300px;
+    padding-right: 30px;
+    border-right: 1px solid rgba(0,0,0,0.05);
+}
+.config-val {
+    margin-left: 10px;
+    width: 30px;
+    font-weight: bold;
+}
+.lab-actions {
+    margin-top: 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.lab-charts {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(420px, 1fr));
+    gap: 20px;
+}
+.lab-chart {
+    height: 420px;
+    background: rgba(0,0,0,0.02);
+    border-radius: 8px;
+    padding: 10px;
+}
+.lab-placeholder {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.02);
+    border-radius: 8px;
+    min-height: 300px;
+}
+
+@media (max-width: 1200px) {
+    .lab-container { flex-direction: column; }
+    .lab-config { border-right: none; border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 20px; }
+}
+@media (max-width: 900px) {
+    .lab-charts { grid-template-columns: 1fr; }
+    .lab-chart { height: 420px; }
 }
 </style>

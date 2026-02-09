@@ -62,7 +62,7 @@ def import_song_ci():
             genre_type='词',
             rhythm_name=item.get('rhythmic', ''),
             rhythm_type='宋词',
-            LDA_topic=tag_poem(content),
+            Bertopic=tag_poem(content),
             created_at=datetime.utcnow(),
             updated_at=datetime.utcnow()
         )
@@ -98,7 +98,7 @@ def import_caocao():
             dynasty='汉末',
             genre_type='诗',
             rhythm_type='古体诗',
-            LDA_topic=tag_poem(content),
+            Bertopic=tag_poem(content),
             created_at=datetime.utcnow(),
             updated_at=datetime.utcnow()
         )
@@ -141,7 +141,7 @@ def import_yuanqu(limit=328):
             genre_type='曲',
             rhythm_name=title,
             rhythm_type='元曲',
-            LDA_topic=tag_poem(content),
+            Bertopic=tag_poem(content),
             created_at=datetime.utcnow(),
             updated_at=datetime.utcnow()
         )

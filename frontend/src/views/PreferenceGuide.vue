@@ -310,7 +310,7 @@ onMounted(async () => {
 
 const loadTopics = async () => {
   try {
-    const res = await axios.get('http://127.0.0.1:5000/api/topics')
+    const res = await axios.get('/api/topics')
     topics.value = res.data
   } catch (e) {
     message.error('加载主题失败')
@@ -350,7 +350,7 @@ const toggleTopic = (topicId) => {
 const handleSavePreferences = async () => {
   submitting.value = true
   try {
-    const res = await axios.post('http://127.0.0.1:5000/api/save_initial_preferences', {
+    const res = await axios.post('/api/save_initial_preferences', {
       username: username.value,
       selected_topics: selectedTopics.value
     })

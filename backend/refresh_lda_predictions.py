@@ -19,9 +19,9 @@ def refresh():
         print(f"[Refresh] Updating {total} poems...")
         
         for i, p in enumerate(poems):
-            old_topic = p.LDA_topic
+            old_topic = p.Bertopic
             new_topic = lda_analysis.predict_topic(p.content, lda, dictionary, keywords)
-            p.LDA_topic = new_topic
+            p.Bertopic = new_topic
             
             if (i+1) % 100 == 0:
                 print(f"  - Progress: {i+1}/{total}")

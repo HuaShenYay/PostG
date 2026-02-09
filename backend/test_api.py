@@ -57,7 +57,13 @@ def test_global_apis():
         print(f"✅ 趋势数据API: {response.status_code}")
         if response.status_code == 200:
             data = response.json()
-            print(f"   返回 {len(data.get('dates', []))} 天的数据")
+            if isinstance(data, list):
+                print(f"   返回 {len(data)} 天的数据")
+                if data:
+                    last = data[-1]
+                    print(f"   最新: {last.get('date', 'N/A')} = {last.get('count', 0)}")
+            else:
+                print(f"   返回 {len(data.get('dates', []))} 天的数据")
     except Exception as e:
         print(f"❌ 趋势数据API失败: {e}")
     
