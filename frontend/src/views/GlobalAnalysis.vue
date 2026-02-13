@@ -199,7 +199,7 @@ const fetchGlobalStats = async () => {
     const res = await axios.get('/api/global/stats')
     globalStats.value = res.data
   } catch (error) {
-    console.error('获取全站统计失败:', error)
+    void error
   }
 }
 
@@ -214,7 +214,7 @@ const fetchPopularPoems = async () => {
       return reviewCountB - reviewCountA
     })
   } catch (error) {
-    console.error('获取热门诗歌失败:', error)
+    void error
   }
 }
 
@@ -224,7 +224,7 @@ const fetchThemeDistribution = async () => {
     const res = await axios.get('/api/global/theme-distribution')
     themeDistribution.value = res.data
   } catch (error) {
-    console.error('获取主题分布失败:', error)
+    void error
   }
 }
 
@@ -234,7 +234,7 @@ const fetchDynastyDistribution = async () => {
     const res = await axios.get('/api/global/dynasty-distribution')
     dynastyDistribution.value = res.data
   } catch (error) {
-    console.error('获取朝代分布失败:', error)
+    void error
   }
 }
 
@@ -244,7 +244,7 @@ const fetchWordCloudData = async () => {
     const res = await axios.get('/api/global/wordcloud')
     wordCloudData.value = res.data
   } catch (error) {
-    console.error('获取词云数据失败:', error)
+    void error
   }
 }
 

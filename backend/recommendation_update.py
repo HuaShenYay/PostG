@@ -34,7 +34,6 @@ from sqlalchemy.orm import Session
 
 from config import Config
 from models import db, User, Poem, Review
-import pandas as pd
 
 
 # ==================== 配置 ====================
@@ -193,12 +192,29 @@ class PerformanceMonitor:
 # ==================== 增量推荐计算 ====================
 
 # ==================== 增量推荐计算 ====================
-from bertopic_analysis import load_bertopic_model, predict_topic
+load_bertopic_model = None
+predict_topic = None
+get_document_vector = None
+batch_get_vectors = None
+cosine_similarity = None
+np = None
 
-# ==================== 增量推荐计算 ====================
-from bertopic_analysis import load_bertopic_model, predict_topic, get_document_vector, batch_get_vectors
-from sklearn.metrics.pairwise import cosine_similarity
-import numpy as np
+def _lazy_load_recommender_deps():
+    global load_bertopic_model, predict_topic, get_document_vector, batch_get_vectors, cosine_similarity, np
+    if load_bertopic_model is None:
+        from bertopic_analysis import load_bertopic_model as _load_bertopic_model
+        from bertopic_analysis import predict_topic as _predict_topic
+        from bertopic_analysis import get_document_vector as _get_document_vector
+        from bertopic_analysis import batch_get_vectors as _batch_get_vectors
+        load_bertopic_model = _load_bertopic_model
+        predict_topic = _predict_topic
+        get_document_vector = _get_document_vector
+        batch_get_vectors = _batch_get_vectors
+    if cosine_similarity is None or np is None:
+        from sklearn.metrics.pairwise import cosine_similarity as _cosine_similarity
+        import numpy as _np
+        cosine_similarity = _cosine_similarity
+        np = _np
 
 class IncrementalRecommender:
     """基于主题向量的协同过滤推荐器 (Topic Vector CF)"""
@@ -206,7 +222,7 @@ class IncrementalRecommender:
     def __init__(self):
         self.logger = RecommendationLogger()
         self.monitor = PerformanceMonitor()
-        self.bertopic_model = load_bertopic_model()
+        self.bertopic_model = None
         self.topic_matrix = None # 诗歌主题向量矩阵 (n_poems, vector_dim)
         self.poem_id_map = {}    # poem_id -> matrix_index
         self.poem_ids = []       # [poem_id1, poem_id2, ...]
@@ -217,8 +233,12 @@ class IncrementalRecommender:
         self.user_vector_cache = {}
         self.user_vector_cache_ttl = 300
         
-        # 预加载向量矩阵
-        self._build_poem_vector_matrix()
+        # 延迟加载向量矩阵
+
+    def _ensure_model_loaded(self):
+        _lazy_load_recommender_deps()
+        if self.bertopic_model is None:
+            self.bertopic_model = load_bertopic_model()
 
     def update_user_preference(self, user_id):
         """分析用户所有评论，更新用户偏好主题文本 (Restored from previous version)"""
@@ -242,6 +262,8 @@ class IncrementalRecommender:
     
     def _build_poem_vector_matrix(self):
         """构建全量诗歌向量矩阵（支持缓存加载）"""
+        _lazy_load_recommender_deps()
+        self._ensure_model_loaded()
         if not self.bertopic_model:
             return
             
@@ -303,6 +325,7 @@ class IncrementalRecommender:
 
     def _get_user_profile_vector(self, user_id):
         """构建用户偏好向量 (基于交互历史加权平均)"""
+        _lazy_load_recommender_deps()
         cached = self._get_cached_user_vector(user_id)
         if cached is not None:
             return cached
@@ -334,6 +357,7 @@ class IncrementalRecommender:
 
     def _get_similar_users(self, target_user_id, top_k=10):
         """寻找相似用户 (User-CF Strategy)"""
+        _lazy_load_recommender_deps()
         target_vector = self._get_user_profile_vector(target_user_id)
         if target_vector is None:
             return []
@@ -437,6 +461,7 @@ class IncrementalRecommender:
 
     def _topic_based_item_cf(self, user_reviews, top_n=20):
         """基于物品的主题协同过滤"""
+        _lazy_load_recommender_deps()
         if not user_reviews or self.topic_matrix is None:
             return []
             
@@ -477,6 +502,7 @@ class IncrementalRecommender:
 
     def _content_based_recommend(self, target_vector, user_reviewed_indices, top_n=20):
         """基于用户画像向量的内容推荐"""
+        _lazy_load_recommender_deps()
         if self.topic_matrix is None or target_vector is None:
             return []
             
@@ -492,6 +518,7 @@ class IncrementalRecommender:
 
     def get_new_poems_for_user(self, user_id, limit=6):
         """混合推荐主逻辑 (Hybrid Strategy)"""
+        _lazy_load_recommender_deps()
         user = User.query.get(user_id)
         if not user or not self.bertopic_model:
             return self.get_global_popular(limit)
@@ -583,6 +610,7 @@ class IncrementalRecommender:
     
     def batch_update_all_recommendations(self, app=None):
         """全量更新推荐逻辑"""
+        _lazy_load_recommender_deps()
         flask_app = app or current_app
         with flask_app.app_context():
             # 重建向量矩阵
@@ -608,6 +636,7 @@ class IncrementalRecommender:
 
     def batch_update_recommendations(self, user_ids=None, trigger_type='manual', poem_id=None, app=None):
         """批量更新用户推荐状态"""
+        _lazy_load_recommender_deps()
         flask_app = app or current_app
         
         with flask_app.app_context():

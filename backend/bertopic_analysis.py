@@ -1,10 +1,28 @@
 import os
 import jieba
-from bertopic import BERTopic
-from sklearn.feature_extraction.text import CountVectorizer
-from sentence_transformers import SentenceTransformer, util
-import torch
 import pandas as pd
+BERTopic = None
+CountVectorizer = None
+SentenceTransformer = None
+util = None
+torch = None
+
+def _lazy_load_bertopic():
+    global BERTopic, CountVectorizer
+    if BERTopic is None:
+        from bertopic import BERTopic as _BERTopic
+        from sklearn.feature_extraction.text import CountVectorizer as _CountVectorizer
+        BERTopic = _BERTopic
+        CountVectorizer = _CountVectorizer
+
+def _lazy_load_sentence_transformers():
+    global SentenceTransformer, util, torch
+    if SentenceTransformer is None:
+        from sentence_transformers import SentenceTransformer as _SentenceTransformer, util as _util
+        import torch as _torch
+        SentenceTransformer = _SentenceTransformer
+        util = _util
+        torch = _torch
 import csv
 import codecs
 
@@ -204,6 +222,7 @@ class SemanticColorAnalyzer:
     """基于语义嵌入的颜色分析器 (轻量级/高性能)"""
     def __init__(self):
         try:
+            _lazy_load_sentence_transformers()
             # 复用 BERT 模型 (paraphrase-multilingual-MiniLM-L12-v2)
             # 这是一个非常轻量且效果好的多语言模型
             self.model = SentenceTransformer("paraphrase-multilingual-MiniLM-L12-v2")
@@ -564,6 +583,8 @@ def get_poem_emotions(text):
 
 def train_bertopic_model(docs):
     """训练 BERTopic 模型 (支持 GPU 加速)"""
+    _lazy_load_sentence_transformers()
+    _lazy_load_bertopic()
     # 硬件加速检测
     device = "cpu"
     try:
@@ -602,6 +623,7 @@ def save_bertopic_model(model):
 
 def load_bertopic_model():
     """加载模型 (支持 GPU 加速)"""
+    _lazy_load_bertopic()
     # 硬件加速检测
     device = "cpu"
     try:
@@ -613,6 +635,7 @@ def load_bertopic_model():
     if os.path.exists(MODEL_DIR):
         try:
             print(f"[BERTopic] Loading embedding model on {device}...")
+            _lazy_load_sentence_transformers()
             embedding_model = SentenceTransformer("paraphrase-multilingual-MiniLM-L12-v2", device=device)
             print("[BERTopic] Loading BERTopic model...")
             model = BERTopic.load(MODEL_DIR, embedding_model=embedding_model)

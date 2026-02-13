@@ -236,12 +236,6 @@ const newLiked = ref(false)
 const userProfile = ref(null)
 const scrollContainer = ref(null)
 const skipCount = ref(0)
-const allusions = ref([])
-const poemHelper = ref({
-  author_bio: '',
-  background: '',
-  appreciation: ''
-})
 const poemAnalysis = ref({ 
   matrix: [], 
   rhymes: [], 
@@ -326,7 +320,6 @@ const initCharts = () => {
       
       // 如果后端没有返回情感数据，使用默认的平衡数据，避免留白
       if (!emotions) {
-          console.warn('Radar data missing, using default placeholder')
           emotions = { joy: 2, anger: 2, sorrow: 2, fear: 2, love: 2, zen: 2 }
       }
 
@@ -562,7 +555,7 @@ const fetchUserProfile = async () => {
     const res = await axios.get(`/api/user_preference/${currentUser}`)
     userProfile.value = res.data
   } catch(e) { 
-    console.error('获取用户画像失败:', e)
+    void e
     userProfile.value = null
   }
 }
@@ -581,11 +574,9 @@ const getAnotherPoem = async () => {
     const res = await axios.get(`/api/recommend_one/${currentUser}?current_id=${currentId}&skip_count=${skipCount.value}`)
     dailyPoem.value = res.data
     fetchReviews(dailyPoem.value.id)
-    fetchAllusions(dailyPoem.value.id)
-    fetchPoemHelper(dailyPoem.value.id)
     fetchPoemAnalysis(dailyPoem.value.id)
   } catch (e) { 
-    console.error('获取诗歌失败:', e)
+    void e
   }
 }
 
@@ -593,28 +584,8 @@ const fetchReviews = async (id) => {
   try {
     const res = await axios.get(`/api/poem/${id}/reviews`)
     reviews.value = res.data
-  } catch(e) { console.error('获取评论失败:', e) }
-}
-
-const fetchAllusions = async (id) => {
-  try {
-    const res = await axios.get(`/api/poem/${id}/allusions`)
-    allusions.value = res.data
   } catch(e) {
-    allusions.value = []
-  }
-}
-
-const fetchPoemHelper = async (id) => {
-  try {
-    const res = await axios.get(`/api/poem/${id}/helper`)
-    poemHelper.value = res.data
-  } catch(e) {
-    poemHelper.value = {
-      author_bio: '',
-      background: '',
-      appreciation: ''
-    }
+    void e
   }
 }
 
@@ -623,7 +594,7 @@ const fetchPoemAnalysis = async (id) => {
     const res = await axios.get(`/api/poem/${id}/analysis`)
     poemAnalysis.value = res.data
   } catch(e) { 
-    console.error('获取诗歌分析失败:', e)
+    void e
   } finally {
     // 无论成功失败，都尝试初始化图表（因为有默认值兜底）
     updatePoemCharts()
@@ -666,11 +637,9 @@ const fetchPoemById = async (id) => {
     const res = await axios.get(`/api/poem/${id}`)
     dailyPoem.value = res.data
     fetchReviews(id)
-    fetchAllusions(id)
-    fetchPoemHelper(id)
     fetchPoemAnalysis(id)
   } catch (e) {
-    console.error('获取指定诗歌失败:', e)
+    void e
   }
 }
 

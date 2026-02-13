@@ -136,51 +136,6 @@
             </div>
           </div>
           
-          <!-- Algorithm Lab -->
-          <div class="settings-card glass-card">
-              <div class="card-header-zen">
-                  <n-icon class="header-icon"><NSpace /></n-icon>
-                  <div class="header-texts">
-                      <h2 class="card-title-zen">算法实验室</h2>
-                      <p class="card-subtitle-zen">对比分析推荐算法性能指标</p>
-                  </div>
-              </div>
-              
-              <div class="lab-container">
-                  <div class="lab-config">
-                      <n-form label-placement="left" label-width="120" size="small">
-                          <n-form-item label="邻居数量 (K)">
-                              <n-slider v-model:value="comparisonConfig.k" :min="5" :max="50" :step="5" style="width: 100%" />
-                              <span class="config-val">{{ comparisonConfig.k }}</span>
-                          </n-form-item>
-                          <n-form-item label="测试集比例">
-                              <n-slider v-model:value="comparisonConfig.ratio" :min="0.1" :max="0.5" :step="0.1" style="width: 100%" />
-                              <span class="config-val">{{ comparisonConfig.ratio }}</span>
-                          </n-form-item>
-                          <n-form-item label="主题权重 (α)">
-                              <n-slider v-model:value="comparisonConfig.alpha" :min="0" :max="1" :step="0.1" style="width: 100%" />
-                              <span class="config-val">{{ comparisonConfig.alpha }}</span>
-                          </n-form-item>
-                      </n-form>
-                      <div class="lab-actions">
-                          <n-button type="primary" color="#cf3f35" :loading="comparisonLoading" @click="runComparison">
-                              启动对比实验
-                          </n-button>
-                          <n-button v-if="comparisonResults" @click="downloadReport">
-                              导出报告
-                          </n-button>
-                      </div>
-                  </div>
-                  
-                  <div class="lab-charts" v-if="comparisonResults">
-                      <div ref="comparisonChartRef" class="lab-chart"></div>
-                      <div ref="rmseChartRef" class="lab-chart"></div>
-                  </div>
-                  <div class="lab-placeholder" v-else>
-                      <n-empty description="请启动实验" />
-                  </div>
-              </div>
-          </div>
         </section>
       </div>
     </main>
@@ -188,16 +143,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { 
   NInput, 
   NButton, 
   NIcon, 
   useMessage,
-  NCard,
-  NSpace,
-  NSlider, NForm, NFormItem, NEmpty
+  NCard
 } from 'naive-ui'
 import { 
   PersonOutline as NPerson,
@@ -210,7 +163,6 @@ import {
   ShieldCheckmarkOutline as NShield
 } from '@vicons/ionicons5'
 import axios from 'axios'
-import * as echarts from 'echarts'
 
 const router = useRouter()
 const message = useMessage()
@@ -227,98 +179,6 @@ const formData = ref({
   username: currentUser.value,
   password: ''
 })
-
-// Algorithm Comparison Logic
-const comparisonConfig = ref({
-    k: 20,
-    ratio: 0.2,
-    alpha: 0.7
-})
-const comparisonResults = ref(null)
-const comparisonLoading = ref(false)
-const comparisonChartRef = ref(null)
-const rmseChartRef = ref(null)
-let compChart = null
-let rmseChart = null
-
-const handleResize = () => {
-  if (compChart) compChart.resize()
-  if (rmseChart) rmseChart.resize()
-}
-
-const runComparison = async () => {
-    comparisonLoading.value = true
-    try {
-        const res = await axios.post('/api/comparison/run', comparisonConfig.value)
-        comparisonResults.value = res.data
-        await nextTick()
-        initComparisonCharts()
-    } catch (e) {
-        console.error(e)
-        message.error('运行失败')
-    } finally {
-        comparisonLoading.value = false
-    }
-}
-
-const initComparisonCharts = () => {
-    if (!comparisonResults.value) return
-    
-    const trad = comparisonResults.value.results.traditional
-    const opt = comparisonResults.value.results.optimized
-    
-    // 1. Accuracy Chart (Precision, Recall, F1)
-    if (comparisonChartRef.value) {
-        if (compChart) compChart.dispose()
-        compChart = echarts.init(comparisonChartRef.value)
-        compChart.setOption({
-            color: ['#999', '#cf3f35'],
-            title: { text: '核心指标对比', left: 'center', textStyle: { fontFamily: 'Noto Serif SC' } },
-            tooltip: { trigger: 'axis' },
-            legend: { bottom: 0 },
-            grid: { bottom: 30 },
-            xAxis: { type: 'category', data: ['Precision', 'Recall', 'F1-Score'] },
-            yAxis: { type: 'value' },
-            series: [
-                { name: '传统协同过滤', type: 'bar', data: [trad.precision, trad.recall, trad.f1], label: { show: true, position: 'top', formatter: ({ value }) => Number.isFinite(Number(value)) ? Number(value).toFixed(4) : '-' } },
-                { name: '优化协同过滤', type: 'bar', data: [opt.precision, opt.recall, opt.f1], label: { show: true, position: 'top', formatter: ({ value }) => Number.isFinite(Number(value)) ? Number(value).toFixed(4) : '-' } }
-            ]
-        })
-    }
-    
-    // 2. RMSE Chart
-    if (rmseChartRef.value) {
-        if (rmseChart) rmseChart.dispose()
-        rmseChart = echarts.init(rmseChartRef.value)
-        rmseChart.setOption({
-            color: ['#999', '#cf3f35'],
-            title: { text: '误差对比 (RMSE)', left: 'center', textStyle: { fontFamily: 'Noto Serif SC' } },
-            tooltip: { trigger: 'axis' },
-            legend: { bottom: 0 },
-            grid: { bottom: 30 },
-            xAxis: { type: 'category', data: ['RMSE'] },
-            yAxis: { type: 'value' },
-            series: [
-                { name: '传统协同过滤', type: 'bar', data: [trad.rmse], label: { show: true, position: 'top', formatter: ({ value }) => Number.isFinite(Number(value)) ? Number(value).toFixed(4) : '-' } },
-                { name: '优化协同过滤', type: 'bar', data: [opt.rmse], label: { show: true, position: 'top', formatter: ({ value }) => Number.isFinite(Number(value)) ? Number(value).toFixed(4) : '-' } }
-            ]
-        })
-    }
-
-    if (compChart) compChart.resize()
-    if (rmseChart) rmseChart.resize()
-}
-
-const downloadReport = () => {
-    if (!comparisonResults.value) return
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(comparisonResults.value, null, 2));
-    const downloadAnchorNode = document.createElement('a');
-    downloadAnchorNode.setAttribute("href", dataStr);
-    downloadAnchorNode.setAttribute("download", "algorithm_comparison_report.json");
-    document.body.appendChild(downloadAnchorNode);
-    downloadAnchorNode.click();
-    downloadAnchorNode.remove();
-}
 
 const handleUpdate = async () => {
   if (!formData.value.username) {
@@ -365,19 +225,12 @@ const fetchUserStats = async () => {
       activeDays: res.data.activeDays || 1
     }
   } catch (e) {
-    console.warn('Failed to fetch user stats')
+    void e
   }
 }
 
 onMounted(() => {
   fetchUserStats()
-  window.addEventListener('resize', handleResize)
-})
-
-onUnmounted(() => {
-    if (compChart) compChart.dispose()
-    if (rmseChart) rmseChart.dispose()
-    window.removeEventListener('resize', handleResize)
 })
 </script>
 

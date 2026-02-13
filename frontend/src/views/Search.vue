@@ -195,7 +195,6 @@ const handleSearch = async () => {
     const res = await axios.get(`/api/search_poems?q=${encodeURIComponent(searchQuery.value)}`)
     searchResults.value = res.data
   } catch (e) {
-    console.error('搜索失败:', e)
     searchResults.value = []
   } finally {
     searchLoading.value = false

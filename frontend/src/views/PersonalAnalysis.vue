@@ -255,7 +255,6 @@ const fetchData = async () => {
         initCharts()
     })
   } catch (err) {
-    console.warn('API error, using fallbacks', err)
     // Fallbacks
     userStats.value = { totalReads: 124, reviewCount: 42, activeDays: 28 }
     userPreferences.value = [

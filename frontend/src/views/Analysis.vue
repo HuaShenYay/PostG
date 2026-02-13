@@ -206,8 +206,8 @@ const initCharts = async () => {
       chartInstances.push(c)
     }
 
-  } catch(e) { 
-    console.error("Charts Error", e)
+  } catch(e) {
+    void e
   }
   loaded.value = true
 }
